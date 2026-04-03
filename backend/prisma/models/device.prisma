@@ -1,0 +1,27 @@
+//Table objets connectés
+model IoTDevice {
+    id          String   @id @default(cuid())
+    uniqueName  String   @unique
+    name        String
+    description String?
+    createdAt   DateTime @default(now())
+
+    type  DeviceType
+    brand String?
+    model String?
+
+    status      DeviceStatus @default(INACTIVE)
+    isConnected Boolean      @default(false)
+}
+
+enum DeviceType {
+    //A remplir ...
+    LIGHT
+    SENSOR
+}
+
+enum DeviceStatus {
+    ACTIVE
+    INACTIVE
+    ERROR
+}

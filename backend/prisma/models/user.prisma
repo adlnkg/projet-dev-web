@@ -1,0 +1,28 @@
+model User {
+    id         Int         @id @default(autoincrement())
+    login      String      @unique
+    password   String
+    name       String?
+    firstName  String?
+    sex        Sex?
+    age        Int?
+    role       Role
+    memberType MemberType?
+    avatarUrl  String?
+    createdAt  DateTime    @default(now())
+}
+
+enum Sex {
+    M
+    F
+}
+
+enum Role {
+    USER
+    SUPER_USER
+    ADMIN
+}
+
+enum MemberType {
+    STUDENT
+}

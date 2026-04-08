@@ -1,0 +1,12 @@
+//To delete ?? (see if it is useful)
+
+model Whiteboard {
+  id            Int     @id @default(autoincrement())
+  size          String
+  isInteractive Boolean
+
+  classroom   Classroom @relation("ClassroomWhiteboards", fields: [classroomId], references: [id], onDelete: Cascade)
+  classroomId Int
+
+  @@index([classroomId])
+}

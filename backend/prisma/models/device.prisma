@@ -1,27 +1,62 @@
 //Table objets connectés
 model IoTDevice {
-    id          String   @id @default(cuid())
-    uniqueName  String   @unique
-    name        String
-    description String?
-    createdAt   DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  uniqueName  String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
 
-    type  DeviceType
-    brand String?
-    model String?
+  brand String?
+  model String?
 
-    status      DeviceStatus @default(INACTIVE)
-    isConnected Boolean      @default(false)
+  status      DeviceStatus @default(INACTIVE)
+  isConnected Boolean      @default(false)
+
+  area   Area @relation("AreaDevices", fields: [areaId], references: [id], onDelete: Cascade)
+  areaId Int
+
+  type       DeviceType
+  sensor     Sensor?
+  whiteboard InteractiveWhiteboard?
+  light      Light?
 }
 
 enum DeviceType {
-    //A remplir ...
-    LIGHT
-    SENSOR
+  //A remplir ...
+  LIGHT
+  SENSOR
+  WHITEBOARD
 }
 
 enum DeviceStatus {
-    ACTIVE
-    INACTIVE
-    ERROR
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+model Sensor {
+  id        Int      @id @default(autoincrement())
+  deviceId  Int      @unique
+  timestamp DateTime @default(now())
+  value     Float
+
+  device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+}
+
+model InteractiveWhiteboard {
+  id         Int    @id @default(autoincrement())
+  deviceId   Int    @unique
+  resolution String
+  screenSize Float
+
+  device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+}
+
+model Light {
+  id         Int    @id @default(autoincrement())
+  deviceId   Int    @unique
+  brightness Int
+  color      String
+
+  device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }

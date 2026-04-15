@@ -1,9 +1,10 @@
 <script setup>
-import TheWelcome from '../components/TheWelcome.vue'
+import { Button } from 'primevue';
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <h1>Hello World!</h1>
+    <Button>Test</Button>
   </main>
 </template>

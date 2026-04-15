@@ -4,6 +4,7 @@ model Area {
   description String?
 
   iotDevices IoTDevice[] @relation("AreaDevices")
+  events Event[] @relation("AreaEvents")
 
   type          AreaType
   building      Building?      @relation("AreaBuilding")

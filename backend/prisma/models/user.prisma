@@ -1,19 +1,21 @@
 model User {
-  id         String      @id @default(uuid())
-  login      String      @unique
-  email      String      @unique
-  password   String
-  otp        String?
-  otpExpires DateTime?
-  isVerified Boolean     @default(false)
-  lastName   String?
-  firstName  String?
-  sex        Sex?
-  age        Int?
-  role       Role
-  memberType MemberType?
-  avatarUrl  String?
-  createdAt  DateTime    @default(now())
+  id             String         @id @default(uuid())
+  login          String         @unique
+  email          String         @unique
+  password       String
+  otp            String?
+  otpExpires     DateTime?
+  isVerified     Boolean        @default(false)
+  lastName       String?
+  firstName      String?
+  sex            Sex?
+  age            Int?
+  role           Role
+  memberType     MemberType?
+  avatarUrl      String?
+  createdAt      DateTime       @default(now())
+  points         Int            @default(0)
+  pointHistories PointHistory[]
 }
 
 enum Sex {
@@ -29,4 +31,14 @@ enum Role {
 
 enum MemberType {
   STUDENT
+  TEACHER
+}
+
+model PointHistory {
+  id        String   @id @default(uuid())
+  amount    Int
+  reason    String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }

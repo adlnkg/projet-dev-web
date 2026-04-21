@@ -1,9 +1,8 @@
 import prisma from "../config/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-
-//PROVISOIRE A CHANGER !!!!!
-export const JWT_SECRET = "UJ86MYuOsynT2n9qH8C3Al91iaKOSjwPXpW4kCd3L4m";
+import { generateOTP } from "../utils/otp.js";
+import { sendOTP } from "../services/mailer.services.js";
 
 export const login = async (req, res) => {
   try {
@@ -34,9 +33,19 @@ export const login = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    if (!user.isVerified) {
+      res.status(403).json({
+        error: "Compte non vérifié",
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      },
+    );
 
     const { id, password: _password, ...userPublicData } = user;
 
@@ -58,36 +67,41 @@ export const register = async (req, res) => {
     const {
       login,
       password,
-      name,
-      firstName,
+      email,
       lastName,
+      firstName,
       sex,
       age,
       memberType,
       avatarUrl,
     } = req.body;
 
-    if (!login || !password) {
+    if (!login || !password || !email) {
       return res.status(400).json({
-        error: "Login et mot de passe requis",
+        error: "Login, email et mot de passe requis",
       });
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { login },
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ login }, { email }],
+      },
     });
 
     if (existingUser) {
       return res.status(400).json({
-        error: "Login déjà utilisé.",
+        error: "Login ou email déjà utilisé",
       });
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
 
+    const otp = generateOTP();
+
     const user = await prisma.user.create({
       data: {
         login,
+        email,
         password: hashPassword,
         lastName,
         firstName,
@@ -96,14 +110,16 @@ export const register = async (req, res) => {
         memberType: memberType ?? null,
         avatarUrl: avatarUrl ?? null,
         role: "USER",
+        otp,
+        otpExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+        isVerified: false,
       },
     });
 
+    await sendOTP(email, otp);
+
     res.status(201).json({
-      id: user.id,
-      login: user.login,
-      lastName: user.lastName,
-      firstName: user.firstName,
+      message: "Utilisateur créé. Vérifiez votre email.",
     });
   } catch (error) {
     console.error(error);
@@ -112,4 +128,35 @@ export const register = async (req, res) => {
       error: "Erreur serveur.",
     });
   }
+};
+
+export const verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return res.status(404).json({ error: "Utilisateur introuvable" });
+  }
+
+  if (user.otp !== otp) {
+    return res.status(400).json({ error: "OTP invalide" });
+  }
+
+  if (new Date() > user.otpExpires) {
+    return res.status(400).json({ error: "OTP expiré" });
+  }
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      isVerified: true,
+      otp: null,
+      otpExpires: null,
+    },
+  });
+
+  res.status(200).json({ message: "Compte vérifié" });
 };

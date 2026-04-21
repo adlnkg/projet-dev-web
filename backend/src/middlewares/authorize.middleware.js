@@ -1,6 +1,3 @@
-import { JWT_SECRET } from "../controllers/auth.controller.js";
-import jwt from "jsonwebtoken";
-
 const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {

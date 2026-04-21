@@ -3,14 +3,13 @@ model IoTDevice {
     id          Int      @id @default(autoincrement())
     uniqueName  String   @unique
     name        String
-    description String?
+    description String
     createdAt   DateTime @default(now())
 
-    brand String?
-    model String?
+    brand String
+    model String
 
-    status      DeviceStatus @default(INACTIVE)
-    isConnected Boolean      @default(false)
+    status DeviceStatus @default(INACTIVE)
 
     area   Area @relation("AreaDevices", fields: [areaId], references: [id], onDelete: Cascade)
     areaId Int
@@ -27,12 +26,15 @@ enum DeviceType {
     LIGHT
     SENSOR
     THERMOSTAT
+    CAMERA
+    ACCESS_CONTROL
     WHITEBOARD
 }
 
 enum DeviceStatus {
     ACTIVE
     INACTIVE
+    DISCONNECTED
     ERROR
 }
 

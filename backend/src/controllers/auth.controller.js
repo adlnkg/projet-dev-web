@@ -34,7 +34,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user.id }, JWT_SECRET, {
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: "1h",
     });
 
@@ -60,6 +60,7 @@ export const register = async (req, res) => {
       password,
       name,
       firstName,
+      lastName,
       sex,
       age,
       memberType,
@@ -88,7 +89,7 @@ export const register = async (req, res) => {
       data: {
         login,
         password: hashPassword,
-        name,
+        lastName,
         firstName,
         sex: sex ?? null,
         age: age ?? null,
@@ -101,7 +102,7 @@ export const register = async (req, res) => {
     res.status(201).json({
       id: user.id,
       login: user.login,
-      name: user.name,
+      lastName: user.lastName,
       firstName: user.firstName,
     });
   } catch (error) {

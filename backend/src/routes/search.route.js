@@ -1,9 +1,8 @@
-import express from 'express';
-import authMiddleware from '../middlewares/auth.middleware';
-import { searchDevices } from '../controllers/search.controller';
+import express from "express";
+import { searchDevices } from "../controllers/search.controller.js";
 
 const router = express.Router();
 
-router.use('/search', authMiddleware, searchDevices);
+router.get("/search", searchDevices);
 
 export default router;

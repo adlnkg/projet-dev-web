@@ -1,16 +1,20 @@
 model Area {
-  id          Int     @id @default(autoincrement())
+  id          Int    @id @default(autoincrement())
   name        String
-  description String?
+  description String
 
   iotDevices IoTDevice[] @relation("AreaDevices")
-  events Event[] @relation("AreaEvents")
+  events     Event[]     @relation("AreaEvents")
+
+  parentArea   Area?  @relation("AreaHierarchy", fields: [parentAreaId], references: [id], onDelete: Cascade)
+  parentAreaId Int?
+  childAreas   Area[] @relation("AreaHierarchy")
 
   type          AreaType
-  building      Building?      @relation("AreaBuilding")
-  floor         Floor?         @relation("AreaFloor")
-  classroom     Classroom?     @relation("AreaClassroom")
-  technicalRoom TechnicalRoom? @relation("AreaTechnicalRoom")
+  building      Building?      @relation("AreaTypeBuilding")
+  floor         Floor?         @relation("AreaTypeFloor")
+  classroom     Classroom?     @relation("AreaTypeClassroom")
+  technicalRoom TechnicalRoom? @relation("AreaTypeTechnicalRoom")
 }
 
 enum AreaType {
@@ -22,12 +26,18 @@ enum AreaType {
 
 model Building {
   id      Int    @id @default(autoincrement())
-  name    String
+  // name    String
   address String
 
-  floors Floor[] @relation("BuildingFloors")
+  areas  Area @relation("AreaTypeBuilding", onDelete: Cascade, fields: [areaId], references: [id])
+  areaId Int  @unique
+}
 
-  area   Area @relation("AreaBuilding", fields: [areaId], references: [id], onDelete: Cascade)
+model Floor {
+  id          Int @id @default(autoincrement())
+  floorNumber Int
+
+  area   Area @relation("AreaTypeFloor", onDelete: Cascade, fields: [areaId], references: [id])
   areaId Int  @unique
 }
 
@@ -35,45 +45,16 @@ model Classroom {
   id              Int @id @default(autoincrement())
   classroomNumber Int
 
-  floor   Floor @relation("FloorClassrooms", fields: [floorId], references: [id], onDelete: Cascade)
-  floorId Int
-
   whiteboards Whiteboard[] @relation("ClassroomWhiteboards")
 
-  area   Area @relation("AreaClassroom", fields: [areaId], references: [id], onDelete: Cascade)
+  area   Area @relation("AreaTypeClassroom", onDelete: Cascade, fields: [areaId], references: [id])
   areaId Int  @unique
-
-  @@unique([floorId, classroomNumber])
-  @@index([floorId])
 }
 
 model TechnicalRoom {
   id         Int @id @default(autoincrement())
   roomNumber Int
 
-  floor   Floor @relation("FloorTechnicalRooms", fields: [floorId], references: [id], onDelete: Cascade)
-  floorId Int
-
-  area   Area @relation("AreaTechnicalRoom", fields: [areaId], references: [id], onDelete: Cascade)
+  area   Area @relation("AreaTypeTechnicalRoom", onDelete: Cascade, fields: [areaId], references: [id])
   areaId Int  @unique
-
-  @@unique([floorId, roomNumber])
-  @@index([floorId])
-}
-
-model Floor {
-  id          Int @id @default(autoincrement())
-  floorNumber Int
-
-  classrooms     Classroom[]     @relation("FloorClassrooms")
-  technicalRooms TechnicalRoom[] @relation("FloorTechnicalRooms")
-
-  building   Building @relation("BuildingFloors", fields: [buildingId], references: [id], onDelete: Cascade)
-  buildingId Int
-
-  area   Area @relation("AreaFloor", fields: [areaId], references: [id], onDelete: Cascade)
-  areaId Int  @unique
-
-  @@unique([buildingId, floorNumber])
-  @@index([buildingId])
 }

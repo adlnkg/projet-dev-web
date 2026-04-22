@@ -25,7 +25,7 @@ async function main() {
     await prisma.ioTDevice.createMany({
         data: [
             { id: 1, name: "Capteur de température peu cher", description: "Un capteur de température basique pour les projets étudiants", type: "SENSOR", areaId: 3, brand: "Generic", model: "TempSensor 1.0", status: "ACTIVE", uniqueName: "temp-sensor-101" },
-            { id: 2, name: "Caméra de surveillance basique", description: "Une caméra de surveillance simple pour les projets étudiants", type: "CAMERA", areaId: 3, brand: "Generic", model: "CamBasic 1.0", status: "INACTIVE", uniqueName: "cam-basic-101" },
+            { id: 2, name: "Caméra de surveillance basique", description: "Une caméra de surveillance simple pour les projets étudiants", type: "CAMERA", areaId: 3, brand: "Generic", model: "CamBasic 1.0", status: "INACTIVE", uniqueName: "cam-basic-101", imageUrl: "images/devices/cam-basic-101.png" },
             { id: 3, name: "Thermostat intelligent d'entrée de gamme", description: "Un thermostat intelligent abordable pour les projets étudiants", type: "THERMOSTAT", areaId: 3, brand: "Generic", model: "SmartThermo 1.0", status: "ACTIVE", uniqueName: "smart-thermo-101" },
             { id: 4, name: "Contrôleur d'accès basique", description: "Un contrôleur d'accès simple pour les projets étudiants", type: "ACCESS_CONTROL", areaId: 3, brand: "Generic", model: "AccessControl 1.0", status: "INACTIVE", uniqueName: "access-control-101" },
             { id: 5, name: "Tableau blanc interactif basique", description: "Un tableau blanc interactif simple pour les projets étudiants", type: "WHITEBOARD", areaId: 3, brand: "Generic", model: "WhiteboardBasic 1.0", status: "ACTIVE", uniqueName: "whiteboard-basic-101" },

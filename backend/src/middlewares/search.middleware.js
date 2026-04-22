@@ -7,7 +7,7 @@ const normalizeQueryValue = (value) => {
 
 const validateAndNormalizeSearch = (req, res, next) => {
   const keywords = normalizeQueryValue(req.query.keywords);
-  const building = normalizeQueryValue(req.query.building).toLowerCase();
+  const building = normalizeQueryValue(req.query.building);
   const type = normalizeQueryValue(req.query.type).toLowerCase();
 
   if (keywords.length > LIMITS.DEFAULT_STRING || building.length > LIMITS.DEFAULT_STRING) {

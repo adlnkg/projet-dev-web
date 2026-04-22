@@ -4,18 +4,20 @@ model Event {
     description String
     createdAt   DateTime @default(now())
     organizer   String
-    startTime   DateTime
-    endTime     DateTime
+    imageUrl    String   @default("images/events/default-event.png")
+
+    startTime            DateTime
+    endTime              DateTime
     numberOfParticipants Int
-    maxParticipants    Int
+    maxParticipants      Int
 
     area   Area @relation("AreaEvents", fields: [areaId], references: [id], onDelete: Cascade)
     areaId Int
 }
 
 model Actuality {
-    id          Int      @id @default(autoincrement())
-    title       String
-    content     String
-    createdAt   DateTime @default(now())
+    id        Int      @id @default(autoincrement())
+    title     String
+    content   String
+    createdAt DateTime @default(now())
 }

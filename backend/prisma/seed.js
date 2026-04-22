@@ -46,7 +46,7 @@ async function main() {
 
     await prisma.user.createMany({
         data: [
-            { id: 3, age: 8, createdAt: new Date("2026-04-03T16:44:09.115Z"), firstName: "ddd", login: "login", memberType: "STUDENT", name: "fanck", password: "$2b$10$zkK/XRFfcakTLLDoV0xQWeywJIY6aNA/oGf/VxiFzj3.mvptRJ3ju", role: "USER", sex: "M" }
+            { id: "user1", createdAt: new Date("2026-04-03T16:44:09.115Z"), firstName: "Fanck", login: "fanck", memberType: "STUDENT", password: "$2b$10$zkK/XRFfcakTLLDoV0xQWeywJIY6aNA/oGf/VxiFzj3.mvptRJ3ju", role: "USER", sex: "M", email: "fanck@example.com" }
         ]
     });
 }

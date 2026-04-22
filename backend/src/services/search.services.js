@@ -293,7 +293,5 @@ const search = async (filters) => {
     }
 };
 
-prisma
-
 export default { search };
 

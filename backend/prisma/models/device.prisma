@@ -5,6 +5,7 @@ model IoTDevice {
     name        String
     description String
     createdAt   DateTime @default(now())
+    imageUrl    String   @default("images/devices/default-device.png")
 
     brand String
     model String

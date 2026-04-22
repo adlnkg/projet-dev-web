@@ -2,6 +2,7 @@ model Area {
   id          Int    @id @default(autoincrement())
   name        String
   description String
+  imageUrl    String @default("images/areas/default-area.svg")
 
   iotDevices IoTDevice[] @relation("AreaDevices")
   events     Event[]     @relation("AreaEvents")

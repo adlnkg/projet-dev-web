@@ -1,5 +1,16 @@
 import { LIMITS } from "../utils/constants.js";
 
+
+/**
+ * Normalizes a text value by trimming whitespace and applying length validation.
+ * @param {*} value The value to normalize.
+ * @param {*} param1 An object containing validation parameters.
+ * @param {number} param1.minLength The minimum allowed length (inclusive), 0 if not specified.
+ * @param {number} param1.maxLength The maximum allowed length (inclusive), LIMITS.DEFAULT_STRING if not specified.
+ * @param {string} param1.fieldName The name of the field being normalized (used for error messages).
+ * @returns {string} The normalized text value.
+ * @throws {Error} If the value is not a string or does not meet the length criteria.
+ */
 const normalizeTextValue = (value, { minLength = 0, maxLength = LIMITS.DEFAULT_STRING, fieldName }) => {
     if (typeof value !== "string") {
         throw new Error(`${fieldName} doit être une chaîne de caractères.`);
@@ -17,6 +28,18 @@ const normalizeTextValue = (value, { minLength = 0, maxLength = LIMITS.DEFAULT_S
     return normalized;
 };
 
+/**
+ * Normalizes a number value by parsing it and applying validation checks.
+ * @param {*} value The value to normalize.
+ * @param {*} param1 An object containing validation parameters.
+ * @param {number} param1.min The minimum allowed value (inclusive), undefined if no minimum.
+ * @param {number} param1.max The maximum allowed value (inclusive), undefined if no maximum.
+ * @param {number} param1.step The step size for the number.
+ * @param {boolean} param1.integer Whether the number should be an integer.
+ * @param {string} param1.fieldName The name of the field being normalized (used for error messages).
+ * @returns {number} The normalized number value.
+ * @throws {Error} If the value is not a valid number or does not meet the validation criteria.
+ */
 const normalizeNumberValue = (value, { min = undefined, max = undefined, step = 1, integer = false, fieldName }) => {
     const parsed = typeof value === "number" ? value : Number(value);
 
@@ -47,6 +70,14 @@ const normalizeNumberValue = (value, { min = undefined, max = undefined, step = 
     return parsed;
 };
 
+/**
+ * Normalizes an enum value by trimming whitespace and converting to uppercase.
+ * @param {*} value The value to normalize.
+ * @param {*} allowedValues An array of allowed string values for the enum.
+ * @param {*} fieldName The name of the field being normalized (used for error messages).
+ * @return {string} The normalized enum value.
+ * @throws {Error} If the value is not a string or if it is not one of the allowed values.
+ */
 const normalizeEnumValue = (value, allowedValues, fieldName) => {
     if (typeof value !== "string") {
         throw new Error(`${fieldName} doit être une valeur de type chaîne.`);

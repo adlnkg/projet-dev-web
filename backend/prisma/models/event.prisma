@@ -1,5 +1,6 @@
 model Event {
     id          Int      @id @default(autoincrement())
+    price       Float   @default(0.0)  
     title       String
     description String
     createdAt   DateTime @default(now())
@@ -13,7 +14,18 @@ model Event {
 
     area   Area @relation("AreaEvents", fields: [areaId], references: [id], onDelete: Cascade)
     areaId Int
+
+    type EventType @default(WORKSHOP)
 }
+
+enum EventType {
+    //A remplir ...
+    WORKSHOP
+    CONFERENCE
+    MEETING
+}
+
+
 
 model Actuality {
     id        Int      @id @default(autoincrement())

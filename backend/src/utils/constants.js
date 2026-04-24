@@ -12,3 +12,5 @@ export const ALLOWED_SEARCH_TYPES = ["device", "area", "event", "all"]; //DO NOT
 export const DEVICE_STATUS_VALUES = ["ACTIVE", "INACTIVE", "DISCONNECTED", "ERROR"];
 export const DEVICE_TYPES = ["LIGHT", "SENSOR", "THERMOSTAT", "CAMERA", "ACCESS_CONTROL", "WHITEBOARD"];
 export const THERMOSTAT_MODE_VALUES = ["OFF", "HEAT", "COOL", "AUTO"];
+export const AREA_TYPES = ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM"];
+export const EVENT_TYPES = ["WORKSHOP", "CONFERENCE", "MEETING"];

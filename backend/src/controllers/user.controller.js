@@ -1,5 +1,6 @@
 import prisma from "../config/db.js";
 import bcrypt from "bcrypt";
+import { getPointsHistory } from "../services/points.services.js";
 
 export const getMe = async (req, res) => {
   try {
@@ -102,6 +103,24 @@ export const updateUser = async (req, res) => {
 
     res.status(500).json({
       error: "Erreur serveur",
+    });
+  }
+};
+
+export const getMyPointsHistory = async (req, res) => {
+  try {
+    const history = await getPointsHistory(req.user.id, 200);
+
+    return res.status(200).json({
+      pointsHistory: history,
+    });
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération de l'historique des points :",
+      error,
+    );
+    return res.status(500).json({
+      error: "Erreur lors de la récupération de l'historique des points",
     });
   }
 };

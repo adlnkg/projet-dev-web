@@ -103,6 +103,31 @@ Authorization: Bearer <token>
 
 Réponse `200` : objet utilisateur sans mot de passe.
 
+### `GET /api/user/me/points/history`
+
+Retourne toutes les transactions de points de l’utilisateur connecté.
+
+Header requis :
+
+```http
+Authorization: Bearer <token>
+```
+
+Réponse `200` :
+
+```json
+{
+  "pointsHistory": [
+    {
+      "id": "uuid",
+      "amount": 10,
+      "reason": "Connexion journalière",
+      "createdAt": "2026-04-24T08:00:00.000Z"
+    }
+  ]
+}
+```
+
 ### `GET /api/user/:id`
 
 Retourne le profil d’un utilisateur par identifiant.

@@ -19,5 +19,8 @@ model Actuality {
     id        Int      @id @default(autoincrement())
     title     String
     content   String
+
+    imageUrl  String   @default("images/actualities/default-actuality.png")
+
     createdAt DateTime @default(now())
 }

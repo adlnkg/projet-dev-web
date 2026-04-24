@@ -8,3 +8,7 @@ export const LIMITS = {
 };
 
 export const ALLOWED_SEARCH_TYPES = ["device", "area", "event", "all"]; //DO NOT RENAME
+
+export const DEVICE_STATUS_VALUES = ["ACTIVE", "INACTIVE", "DISCONNECTED", "ERROR"];
+export const DEVICE_TYPES = ["LIGHT", "SENSOR", "THERMOSTAT", "CAMERA", "ACCESS_CONTROL", "WHITEBOARD"];
+export const THERMOSTAT_MODE_VALUES = ["OFF", "HEAT", "COOL", "AUTO"];

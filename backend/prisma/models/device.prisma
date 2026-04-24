@@ -5,21 +5,27 @@ model IoTDevice {
     name        String
     description String
     createdAt   DateTime @default(now())
+    lastUpdated DateTime @updatedAt @default(now())
     imageUrl    String   @default("images/devices/default-device.png")
 
-    brand String
-    model String
+    electricityConsumption Float @default(0) // in kWh
+    brand                  String
+    model                  String
 
     status DeviceStatus @default(INACTIVE)
+    active Boolean      @default(false)
 
     area   Area @relation("AreaDevices", fields: [areaId], references: [id], onDelete: Cascade)
     areaId Int
 
+    // inheritance-like relations for device types
     type       DeviceType
     sensor     Sensor?
     whiteboard InteractiveWhiteboard?
     light      Light?
     thermostat Thermostat?
+    camera     Camera?
+    accessControl AccessControl?
 }
 
 enum DeviceType {
@@ -44,6 +50,7 @@ model Sensor {
     deviceId  Int      @unique
     timestamp DateTime @default(now())
     value     Float
+
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -70,7 +77,25 @@ model Thermostat {
     id          Int            @id @default(autoincrement())
     deviceId    Int            @unique
     temperature Float
+    targetTemp  Float
     mode        ThermostatMode @default(OFF)
+
+    device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+}
+
+model Camera {
+    id         Int    @id @default(autoincrement())
+    deviceId   Int    @unique
+    resolution String
+    frameRate  Float
+
+    device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+}
+
+model AccessControl {
+    id         Int    @id @default(autoincrement())
+    deviceId   Int    @unique
+    status     String
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }

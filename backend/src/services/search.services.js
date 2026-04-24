@@ -324,7 +324,7 @@ const searchEvents = async (keywords, validAreasIds, hierarchy) => {
  * @param {Object} filters - The search filters containing keywords, building, and type.
  * @param {string} filters.keywords - The search keywords.
  * @param {string} filters.building - The building filter (can be empty, null, or "all" for no filtering).
- * @param {string} filters.type - The type of items to search for ("device", "area", "events", or "all").
+ * @param {string} filters.type - The type of items to search for ("device", "area", "event", or "all").
  * @returns {Promise<Array>} The search results based on the provided filters.
  */
 const search = async (filters) => {
@@ -339,7 +339,7 @@ const search = async (filters) => {
             return await searchDevices(keywords, validAreasIds, validAreasHierarchy);
         case "area":
             return await searchAreas(keywords, validAreasIds, validAreasHierarchy);
-        case "events":
+        case "event":
             return await searchEvents(keywords, validAreasIds, validAreasHierarchy);
         default:
             const list = await Promise.all([

@@ -7,7 +7,7 @@ Base URL locale : `http://localhost:3000/api`
 - Toutes les routes sont montées sous `/api` dans `src/app.js`.
 - L’authentification se fait via un header `Authorization: Bearer <token>`.
 - Le token JWT est renvoyé par la route de login.
-- Les réponses d’erreur suivent en général le format `{ error: "..." }`.
+- Les réponses d’erreur suivent en général le format `{ error: "..." }` ou `{ success: false, message: "..." }`.
 
 ## Auth
 
@@ -122,14 +122,14 @@ Route publique : pas de token requis actuellement.
 
 Query params :
 
-- `keywords` : texte à rechercher
+- `keywords` : texte à rechercher, inclus le détail de la zone de la recherche (ex: "batiment turing etage 1 salle 101 camera")
 - `building` : nom du bâtiment, optionnel
 - `type` : `device`, `area`, `event`, `all`
 
 Exemple :
 
 ```http
-GET /api/search?keywords=projecteur&building=main&type=device
+GET /api/search?keywords=projecteur&building=Turing&type=device
 ```
 
 Réponse `200` :
@@ -141,8 +141,76 @@ Réponse `200` :
   "data": []
 }
 ```
+## Consultation et modification des devices
 
-Note : la validation autorise `event`, mais le service de recherche contient aussi un cas `events` côté code. Pour le front, utilise `event` ou `all`.
+### `GET /api/devices/:id`
+Retourne les détails d’un device par son identifiant.
+inclus les informations liés au champs ainsi que la possibilité de faire des actions (ex: activer/désactiver un device IoT)
+
+```http
+GET /api/devices/1
+```
+Réponse 
+```json
+{
+  success: true,
+  data: {
+    "id": 1,
+    "name": "Capteur de température peu cher",
+    "description": "Un capteur de température basique pour les projets étudiants",
+    "etc": "...",
+    "area": {
+      "id": 3,
+      "name": "Salle 101",
+      "description": "Salle de classe 101 du bâtiment Turing",
+      "type": "CLASSROOM"
+    },
+    "specific": {
+      "value": null,
+      "timestamp": null
+    },
+    "form": {
+      "role": "USER",
+      "editableFieldKeys": [],
+      "fields": [
+        {
+          "key": "id",
+          "label": "Identifiant",
+          "kind": "number",
+          "editableBy": [],
+          "readOnly": true,
+          "section": "general",
+          "value": 1,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "Nom",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 120,
+          "editableBy": ["ADMIN"],
+          "section": "general",
+          "value": "Capteur de température peu cher",
+          "editable": false
+        },
+        {"...etc": "..."}
+      ],
+      "suportedSpecificFields": ["sensor.value", "sensor.timestamp"]
+}
+```
+
+
+### `POST /api/devices/:id`
+Permet de modifier un device IoT (ex: activer/désactiver).
+Body JSON :
+
+```json
+{
+  "a tester"
+}
+```
+*a tester*
 
 ## Schéma rapide des retours
 

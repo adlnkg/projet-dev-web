@@ -88,6 +88,7 @@ Réponse `200` :
 
 ## Utilisateur
 
+
 ### `GET /api/user/me`
 
 Retourne le profil de l’utilisateur connecté.
@@ -100,7 +101,7 @@ Authorization: Bearer <token>
 
 Réponse `200` : objet utilisateur sans mot de passe.
 
-### `GET /api/user/get/:id`
+### `GET /api/user/:id`
 
 Retourne le profil d’un utilisateur par identifiant.
 
@@ -110,7 +111,35 @@ Header requis :
 Authorization: Bearer <token>
 ```
 
-Accès limité aux rôles autorisés par le middleware `authorizeMiddleware("USER")`.
+Note : L’accès à cette route n’est pas restreint par un middleware d’autorisation spécifique, tout utilisateur authentifié peut consulter le profil d’un autre utilisateur.
+
+### `PUT /api/user/:id`
+
+Met à jour le profil de l’utilisateur identifié par `:id`.
+
+Header requis :
+
+```http
+Authorization: Bearer <token>
+```
+
+Seul l’utilisateur concerné ou un administrateur (`ADMIN`) peut modifier le profil. Un administrateur peut donc modifier le profil de n’importe quel utilisateur via cette route.
+
+Body JSON (exemple) :
+
+```json
+{
+  "password": "nouveaumdp",
+  "firstName": "NouveauPrénom",
+  "lastName": "NouveauNom",
+  "age": 25,
+  "sex": "F",
+  "memberType": "STAFF",
+  "avatarUrl": "https://..."
+}
+```
+
+Réponse `200` : objet utilisateur mis à jour (sans mot de passe).
 
 ## Recherche
 

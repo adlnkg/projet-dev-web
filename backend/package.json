@@ -20,7 +20,7 @@
     "express": "^5.2.1",
     "fuse.js": "^7.3.0",
     "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^8.0.5",
+    "nodemailer": "^8.0.6",
     "prisma": "^7.6.0"
   },
   "devDependencies": {

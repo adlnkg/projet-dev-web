@@ -43,6 +43,8 @@ Réponse `201` :
 
 Connexion utilisateur.
 
+**Important** : La connexion quotidienne récompense automatiquement 10 points à l'utilisateur (une seule fois par jour).
+
 Body JSON :
 
 ```json
@@ -140,6 +142,41 @@ Body JSON (exemple) :
 ```
 
 Réponse `200` : objet utilisateur mis à jour (sans mot de passe).
+
+## Système de Points
+
+Les utilisateurs peuvent accumuler des points. À partir d'un certain seuil de points, un utilisateur `USER` est automatiquement promu en `SUPER_USER`.
+
+**Seuil de promotion** : 100 points
+
+### Fonctionnement
+
+- Les utilisateurs commencent avec 0 points.
+- Chaque connexion quotidienne récompense **10 points** (une seule fois par jour).
+- Lorsqu'un utilisateur atteint 100 points, son rôle passe automatiquement de `USER` à `SUPER_USER`.
+- Les points sont tracés dans l'historique `PointHistory` avec la raison et le timestamp.
+
+### Structure du modèle User
+
+Le modèle `User` inclut :
+- `points` (Integer) : nombre de points accumulés par l'utilisateur (défaut : 0)
+- `pointHistories` (Relation) : historique des modifications de points
+- `role` (Enum) : `USER`, `SUPER_USER`, `ADMIN`
+
+### Modèle PointHistory
+
+```json
+{
+  "id": "uuid",
+  "userId": "uuid",
+  "amount": 10,
+  "reason": "Daily login",
+  "createdAt": "2026-04-24T12:00:00Z"
+}
+```
+
+- `amount` : nombre de points ajoutés (positif) ou retirés (négatif)
+- `reason` : raison de la modification (ex: "Daily login", "Points awarded", etc.)
 
 ## Recherche
 

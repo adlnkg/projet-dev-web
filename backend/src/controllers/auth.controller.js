@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/otp.js";
 import { sendOTP } from "../services/mailer.services.js";
+import { addDailyLoginPoints } from "../services/points.services.js";
 
 export const login = async (req, res) => {
   try {
@@ -37,6 +38,17 @@ export const login = async (req, res) => {
       res.status(403).json({
         error: "Compte non vérifié",
       });
+    }
+
+    // Ajouter les points de connexion quotidienne
+    try {
+      await addDailyLoginPoints(user.id);
+    } catch (pointsError) {
+      console.warn(
+        "Erreur lors de l'ajout des points de connexion :",
+        pointsError,
+      );
+      // Ne pas bloquer la connexion si l'ajout de points échoue
     }
 
     const token = jwt.sign(

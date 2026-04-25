@@ -19,7 +19,7 @@ const getRoleChain = (role) => {
     if (!ROLE_HIERARCHY.hasOwnProperty(role)) {
         throw new Error(`Rôle inconnu: ${role}`);
     }
-    let currentRole = ROLE_HIERARCHY[role];
+    let currentRole = role;
 
     while (currentRole) {
         chain.push(currentRole);
@@ -99,7 +99,7 @@ const buildFormFields = ({
 
     const generalFields = Object.values(generalFieldDefinitions).map((definition) => ({
         ...definition,
-        value: entity[definition.key] ?? null,
+        value: definition.valueGetter ? definition.valueGetter(entity) : (entity[definition.key] ?? null),
         editable: editableFieldKeys.has(definition.key),
     }));
 
@@ -226,8 +226,137 @@ const validateAndBuildUpdates = ({
     return { generalUpdates, specificUpdates };
 };
 
+/**
+ * Validates and normalizes payload for entity creation.
+ * It accepts general fields and type-specific fields, rejects unknown keys, and enforces required fields.
+ * @param {object} params
+ * @param {object} params.payload - Raw request payload
+ * @param {string} params.entityType - Logical type used for specific field definitions
+ * @param {object} params.generalFieldDefinitions - General field definitions map
+ * @param {object} params.entityTypeFieldDefinitions - Specific field definitions map by type
+ * @param {object} params.validatorsByField - Validators map by field key
+ * @param {string[]} [params.requiredFieldKeys=[]] - Required keys for creation
+ * @returns {{ generalCreateData: object, specificCreateData: object }}
+ */
+const validateAndBuildCreateData = ({
+    payload,
+    entityType,
+    generalFieldDefinitions,
+    entityTypeFieldDefinitions,
+    validatorsByField,
+    requiredFieldKeys = [],
+}) => {
+    const flattenedPayload = normalizeRawUpdatePayload(payload);
+    const allowedFieldDefinitions = new Map([
+        ...Object.values(generalFieldDefinitions),
+        ...(entityTypeFieldDefinitions[entityType] ?? []),
+    ].map((definition) => [definition.key, definition]));
+
+    const providedKeys = Object.keys(flattenedPayload);
+    const unknownKeys = [];
+    const validationErrors = [];
+    const generalCreateData = {};
+    const specificCreateData = {};
+
+    for (const key of providedKeys) {
+        const definition = allowedFieldDefinitions.get(key);
+        const value = flattenedPayload[key];
+
+        if (!definition) {
+            unknownKeys.push(key);
+            continue;
+        }
+
+        if (definition.readOnly) {
+            continue;
+        }
+
+        const validator = validatorsByField[key];
+        if (!validator) {
+            unknownKeys.push(key);
+            continue;
+        }
+
+        try {
+            const normalizedValue = validator(value, definition);
+
+            if (definition.section === "specific") {
+                const source = definition.source;
+                if (!specificCreateData[source]) {
+                    specificCreateData[source] = {};
+                }
+                specificCreateData[source][definition.field] = normalizedValue;
+            } else {
+                const targetField = definition.persistedKey ?? definition.key;
+                generalCreateData[targetField] = normalizedValue;
+            }
+        } catch (error) {
+            validationErrors.push(error.message);
+        }
+    }
+
+    if (unknownKeys.length > 0) {
+        const error = new Error(`Champ(s) non reconnu(s) pour cet élément: ${unknownKeys.join(", ")}.`);
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const missingRequiredKeys = requiredFieldKeys.filter((key) => {
+        if (key.includes(".")) {
+            const [source, field] = key.split(".");
+            return specificCreateData[source]?.[field] === undefined;
+        }
+
+        return generalCreateData[key] === undefined;
+    });
+
+    if (missingRequiredKeys.length > 0) {
+        const error = new Error(`Champ(s) requis manquant(s): ${missingRequiredKeys.join(", ")}.`);
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (validationErrors.length > 0) {
+        const error = new Error(validationErrors.join(" "));
+        error.statusCode = 400;
+        throw error;
+    }
+
+    return { generalCreateData, specificCreateData };
+};
+
+/**
+ * Ensures the caller is an admin and the creator user exists.
+ * @param {object} params
+ * @param {string} params.role
+ * @param {string | undefined} params.ownerId
+ * @param {(ownerId: string) => Promise<object|null>} params.findUserById
+ */
+const assertAdminCreator = async ({ role, ownerId, findUserById }) => {
+    if (role !== "ADMIN") {
+        const error = new Error("Seuls les admins peuvent creer du contenu.");
+        error.statusCode = 403;
+        throw error;
+    }
+
+    if (!ownerId) {
+        const error = new Error("Createur introuvable dans la requete authentifiee.");
+        error.statusCode = 401;
+        throw error;
+    }
+
+    const user = await findUserById(ownerId);
+    if (!user) {
+        const error = new Error("Le createur n'existe pas en base.");
+        error.statusCode = 400;
+        throw error;
+    }
+};
+
 export {
     getEditableFieldKeys,
     buildFormFields,
     validateAndBuildUpdates,
+    validateAndBuildCreateData,
+    assertAdminCreator,
 };

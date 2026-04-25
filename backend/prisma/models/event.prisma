@@ -15,6 +15,9 @@ model Event {
     area   Area @relation("AreaEvents", fields: [areaId], references: [id], onDelete: Cascade)
     areaId Int
 
+    owner   User?   @relation("UserCreatedEvents", fields: [ownerId], references: [id], onDelete: SetNull)
+    ownerId String?
+
     type EventType @default(WORKSHOP)
 }
 
@@ -23,6 +26,7 @@ enum EventType {
     WORKSHOP
     CONFERENCE
     MEETING
+    COURSE
 }
 
 
@@ -35,4 +39,7 @@ model Actuality {
     imageUrl  String   @default("images/actualities/default-actuality.png")
 
     createdAt DateTime @default(now())
+
+    owner   User?   @relation("UserCreatedActualities", fields: [ownerId], references: [id], onDelete: SetNull)
+    ownerId String?
 }

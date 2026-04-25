@@ -3,6 +3,7 @@ import {
     normalizeTextValue,
     normalizeNumberValue,
     normalizeEnumValue,
+    normalizeRawUpdatePayload,
 } from "../utils/normalize.js";
 import {
     DEVICE_STATUS_VALUES,
@@ -13,7 +14,9 @@ import {
     getEditableFieldKeys,
     buildFormFields,
     validateAndBuildUpdates,
-} from "./resource-common.services.js";
+    validateAndBuildCreateData,
+    assertAdminCreator,
+} from "./entity-edit-resource-common.services.js";
 
 const GENERAL_FIELD_DEFINITIONS = {
     id: {
@@ -21,6 +24,14 @@ const GENERAL_FIELD_DEFINITIONS = {
         label: "Identifiant",
         kind: "number",
         readOnly: true,
+        section: "general",
+    },
+    uniqueName: {
+        key: "uniqueName",
+        label: "Nom unique",
+        kind: "text",
+        minLength: 3,
+        maxLength: 120,
         section: "general",
     },
     name: {
@@ -62,6 +73,15 @@ const GENERAL_FIELD_DEFINITIONS = {
         maxLength: 80,
         section: "general",
     },
+    electricityConsumption: {
+        key: "electricityConsumption",
+        label: "Consommation electrique",
+        kind: "number",
+        min: 0,
+        max: 100000,
+        step: 0.01,
+        section: "general",
+    },
     status: {
         key: "status",
         label: "Statut",
@@ -74,6 +94,21 @@ const GENERAL_FIELD_DEFINITIONS = {
         label: "Type",
         kind: "select",
         options: DEVICE_TYPES,
+        readOnly: true,
+        section: "general",
+    },
+    areaId: {
+        key: "areaId",
+        label: "Zone",
+        kind: "number",
+        readOnly: true,
+        section: "general",
+    },
+    ownerName: {
+        key: "ownerName",
+        label: "Createur",
+        kind: "text",
+        valueGetter: (device) => device.owner?.login ?? null,
         readOnly: true,
         section: "general",
     },
@@ -243,6 +278,11 @@ const DEVICE_TYPE_SUPPORT = {
 };
 
 const DEVICE_FIELD_VALIDATORS = {
+    uniqueName: (value, definition) => normalizeTextValue(value, {
+        minLength: definition.minLength ?? 1,
+        maxLength: definition.maxLength,
+        fieldName: definition.label,
+    }),
     name: (value, definition) => normalizeTextValue(value, {
         minLength: definition.minLength ?? 1,
         maxLength: definition.maxLength,
@@ -261,6 +301,12 @@ const DEVICE_FIELD_VALIDATORS = {
     model: (value, definition) => normalizeTextValue(value, {
         minLength: definition.minLength ?? 1,
         maxLength: definition.maxLength,
+        fieldName: definition.label,
+    }),
+    electricityConsumption: (value, definition) => normalizeNumberValue(value, {
+        min: definition.min,
+        max: definition.max,
+        step: definition.step,
         fieldName: definition.label,
     }),
     status: (value, definition) => normalizeEnumValue(value, DEVICE_STATUS_VALUES, definition.label),
@@ -283,6 +329,64 @@ const DEVICE_FIELD_VALIDATORS = {
         fieldName: definition.label,
     }),
     "thermostat.mode": (value, definition) => normalizeEnumValue(value, THERMOSTAT_MODE_VALUES, definition.label),
+    "sensor.value": (value, definition) => normalizeNumberValue(value, {
+        fieldName: definition.label,
+    }),
+    "thermostat.temperature": (value, definition) => normalizeNumberValue(value, {
+        fieldName: definition.label,
+    }),
+    "camera.resolution": (value, definition) => normalizeTextValue(value, {
+        minLength: 1,
+        maxLength: 80,
+        fieldName: definition.label,
+    }),
+    "camera.frameRate": (value, definition) => normalizeNumberValue(value, {
+        min: 1,
+        max: 240,
+        step: 0.1,
+        fieldName: definition.label,
+    }),
+    "whiteboard.resolution": (value, definition) => normalizeTextValue(value, {
+        minLength: 1,
+        maxLength: 80,
+        fieldName: definition.label,
+    }),
+    "whiteboard.screenSize": (value, definition) => normalizeNumberValue(value, {
+        min: 1,
+        max: 200,
+        step: 0.1,
+        fieldName: definition.label,
+    }),
+    "accessControl.status": (value, definition) => normalizeTextValue(value, {
+        minLength: 1,
+        maxLength: 80,
+        fieldName: definition.label,
+    }),
+};
+
+const REQUIRED_CREATE_FIELDS_BY_TYPE = {
+    LIGHT: ["uniqueName", "name", "description", "brand", "model", "light.brightness", "light.color"],
+    SENSOR: ["uniqueName", "name", "description", "brand", "model", "sensor.value"],
+    THERMOSTAT: [
+        "uniqueName",
+        "name",
+        "description",
+        "brand",
+        "model",
+        "thermostat.temperature",
+        "thermostat.targetTemp",
+    ],
+    CAMERA: ["uniqueName", "name", "description", "brand", "model", "camera.resolution", "camera.frameRate"],
+    ACCESS_CONTROL: ["uniqueName", "name", "description", "brand", "model", "accessControl.status"],
+    WHITEBOARD: [
+        "uniqueName",
+        "name",
+        "description",
+        "brand",
+        "model",
+        "whiteboard.resolution",
+        "whiteboard.screenSize",
+    ],
 };
 
 /**
@@ -342,6 +446,14 @@ const getDeviceForUpdate = async (deviceId) => prisma.ioTDevice.findUnique({
         thermostat: true,
         camera: true,
         accessControl: true,
+        owner: {
+            select: {
+                id: true,
+                login: true,
+                firstName: true,
+                lastName: true,
+            },
+        },
     },
 });
 
@@ -360,13 +472,25 @@ const buildDeviceResponse = (device, role) => {
 
     return {
         id: device.id,
+        uniqueName: device.uniqueName,
         name: device.name,
         description: device.description,
         createdAt: device.createdAt,
         brand: device.brand,
         model: device.model,
+        electricityConsumption: device.electricityConsumption,
         status: device.status,
         type: device.type,
+        areaId: device.areaId,
+        owner: device.owner
+            ? {
+                id: device.owner.id,
+                login: device.owner.login,
+                firstName: device.owner.firstName,
+                lastName: device.owner.lastName,
+            }
+            : null,
+        ownerName: device.owner?.login ?? null,
         area: device.area
             ? {
                 id: device.area.id,
@@ -478,7 +602,133 @@ const updateDevice = async (deviceId, role, payload) => {
     return getDeviceDetails(deviceId, role);
 };
 
+const createDevice = async ({ role, ownerId, payload, imageUrl }) => {
+    await assertAdminCreator({
+        role,
+        ownerId,
+        findUserById: (id) => prisma.user.findUnique({ where: { id }, select: { id: true } }),
+    });
+
+    const flattenedPayload = normalizeRawUpdatePayload(payload);
+    const deviceType = normalizeEnumValue(flattenedPayload.type, DEVICE_TYPES, "Type");
+
+    const { generalCreateData, specificCreateData } = validateAndBuildCreateData({
+        payload,
+        entityType: deviceType,
+        generalFieldDefinitions: GENERAL_FIELD_DEFINITIONS,
+        entityTypeFieldDefinitions: DEVICE_TYPE_FIELD_DEFINITIONS,
+        validatorsByField: DEVICE_FIELD_VALIDATORS,
+        requiredFieldKeys: REQUIRED_CREATE_FIELDS_BY_TYPE[deviceType],
+    });
+
+    const areaId = normalizeNumberValue(flattenedPayload.areaId, {
+        min: 1,
+        step: 1,
+        integer: true,
+        fieldName: "Zone",
+    });
+
+    const areaExists = await prisma.area.findUnique({
+        where: { id: areaId },
+        select: { id: true },
+    });
+
+    if (!areaExists) {
+        const error = new Error("La zone renseignee est introuvable.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const uniqueNameExists = await prisma.ioTDevice.findUnique({
+        where: { uniqueName: generalCreateData.uniqueName },
+        select: { id: true },
+    });
+
+    if (uniqueNameExists) {
+        const error = new Error("Le nom unique est deja utilise.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (imageUrl) {
+        generalCreateData.imageUrl = imageUrl;
+    }
+
+    const createdDevice = await prisma.$transaction(async (transaction) => {
+        const device = await transaction.ioTDevice.create({
+            data: {
+                ...generalCreateData,
+                areaId,
+                type: deviceType,
+                ownerId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (deviceType === "LIGHT") {
+            await transaction.light.create({
+                data: {
+                    deviceId: device.id,
+                    ...specificCreateData.light,
+                },
+            });
+        }
+
+        if (deviceType === "SENSOR") {
+            await transaction.sensor.create({
+                data: {
+                    deviceId: device.id,
+                    ...specificCreateData.sensor,
+                },
+            });
+        }
+
+        if (deviceType === "THERMOSTAT") {
+            await transaction.thermostat.create({
+                data: {
+                    deviceId: device.id,
+                    ...specificCreateData.thermostat,
+                },
+            });
+        }
+
+        if (deviceType === "CAMERA") {
+            await transaction.camera.create({
+                data: {
+                    deviceId: device.id,
+                    ...specificCreateData.camera,
+                },
+            });
+        }
+
+        if (deviceType === "WHITEBOARD") {
+            await transaction.interactiveWhiteboard.create({
+                data: {
+                    deviceId: device.id,
+                    ...specificCreateData.whiteboard,
+                },
+            });
+        }
+
+        if (deviceType === "ACCESS_CONTROL") {
+            await transaction.accessControl.create({
+                data: {
+                    deviceId: device.id,
+                    ...specificCreateData.accessControl,
+                },
+            });
+        }
+
+        return device;
+    });
+
+    return getDeviceDetails(createdDevice.id, role);
+};
+
 export default {
     getDeviceDetails,
     updateDevice,
+    createDevice,
 };

@@ -41,7 +41,30 @@ export const postDevice = async (req, res, next) => {
   }
 };
 
+export const createDevice = async (req, res, next) => {
+  try {
+    const role = req.user?.role ?? "USER";
+    const ownerId = req.user?.id;
+
+    const device = await deviceService.createDevice({
+      role,
+      ownerId,
+      payload: req.body,
+      imageUrl: req.uploadedImageUrl,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Appareil cree.",
+      data: device,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default {
   getDevice,
   postDevice,
+  createDevice,
 };

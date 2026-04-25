@@ -1,3 +1,5 @@
+import { DeviceType, DeviceStatus, AreaType, EventType, ThermostatMode } from "@prisma/client";
+
 
 export const LIMITS = {
     DEFAULT_STRING: 200,
@@ -9,8 +11,9 @@ export const LIMITS = {
 
 export const ALLOWED_SEARCH_TYPES = ["device", "area", "event", "all"]; //DO NOT RENAME
 
-export const DEVICE_STATUS_VALUES = ["ACTIVE", "INACTIVE", "DISCONNECTED", "ERROR"];
-export const DEVICE_TYPES = ["LIGHT", "SENSOR", "THERMOSTAT", "CAMERA", "ACCESS_CONTROL", "WHITEBOARD"];
-export const THERMOSTAT_MODE_VALUES = ["OFF", "HEAT", "COOL", "AUTO"];
-export const AREA_TYPES = ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM"];
-export const EVENT_TYPES = ["WORKSHOP", "CONFERENCE", "MEETING"];
+//TODO stop using this (use enums imported from prisma instead)
+export const DEVICE_STATUS_VALUES = Array.from(Object.values(DeviceStatus));
+export const DEVICE_TYPES = Array.from(Object.values(DeviceType));
+export const THERMOSTAT_MODE_VALUES = Array.from(Object.values(ThermostatMode));
+export const AREA_TYPES = Array.from(Object.values(AreaType));
+export const EVENT_TYPES = Array.from(Object.values(EventType));

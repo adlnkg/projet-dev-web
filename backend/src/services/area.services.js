@@ -2,13 +2,17 @@ import prisma from "../config/db.js";
 import {
   normalizeTextValue,
   normalizeNumberValue,
+  normalizeEnumValue,
+  normalizeRawUpdatePayload,
 } from "../utils/normalize.js";
 import { AREA_TYPES } from "../utils/constants.js";
 import {
   getEditableFieldKeys,
   buildFormFields,
   validateAndBuildUpdates,
-} from "./resource-common.services.js";
+  validateAndBuildCreateData,
+  assertAdminCreator,
+} from "./entity-edit-resource-common.services.js";
 
 const GENERAL_FIELD_DEFINITIONS = {
   id: {
@@ -54,6 +58,14 @@ const GENERAL_FIELD_DEFINITIONS = {
     key: "parentAreaId",
     label: "Zone parente",
     kind: "number",
+    readOnly: true,
+    section: "general",
+  },
+  ownerName: {
+    key: "ownerName",
+    label: "Createur",
+    kind: "text",
+    valueGetter: (area) => area.owner?.login ?? null,
     readOnly: true,
     section: "general",
   },
@@ -183,6 +195,13 @@ const AREA_FIELD_VALIDATORS = {
   }),
 };
 
+const REQUIRED_CREATE_FIELDS_BY_TYPE = {
+  BUILDING: ["name", "description", "building.address"],
+  FLOOR: ["name", "description", "floor.floorNumber"],
+  CLASSROOM: ["name", "description", "classroom.classroomNumber"],
+  TECHNICAL_ROOM: ["name", "description", "technicalRoom.roomNumber"],
+};
+
 /**
  * Builds the specific payload for an area based on its type.
  * @param {object} area - The area object for which to build the specific payload.
@@ -224,6 +243,14 @@ const getAreaForUpdate = async (areaId) => prisma.area.findUnique({
     floor: true,
     classroom: true,
     technicalRoom: true,
+    owner: {
+      select: {
+        id: true,
+        login: true,
+        firstName: true,
+        lastName: true,
+      },
+    },
   },
 });
 
@@ -247,6 +274,15 @@ const buildAreaResponse = (area, role) => {
     description: area.description,
     type: area.type,
     imageUrl: area.imageUrl,
+    owner: area.owner
+      ? {
+        id: area.owner.id,
+        login: area.owner.login,
+        firstName: area.owner.firstName,
+        lastName: area.owner.lastName,
+      }
+      : null,
+    ownerName: area.owner?.login ?? null,
     parentArea: area.parentArea
       ? {
         id: area.parentArea.id,
@@ -376,7 +412,106 @@ const updateArea = async (areaId, role, payload) => {
   return getAreaDetails(areaId, role);
 };
 
+const createArea = async ({ role, ownerId, payload, imageUrl }) => {
+  await assertAdminCreator({
+    role,
+    ownerId,
+    findUserById: (id) => prisma.user.findUnique({ where: { id }, select: { id: true } }),
+  });
+
+  const flattenedPayload = normalizeRawUpdatePayload(payload);
+  const areaType = normalizeEnumValue(flattenedPayload.type, AREA_TYPES, "Type");
+
+  const { generalCreateData, specificCreateData } = validateAndBuildCreateData({
+    payload,
+    entityType: areaType,
+    generalFieldDefinitions: GENERAL_FIELD_DEFINITIONS,
+    entityTypeFieldDefinitions: AREA_TYPE_FIELD_DEFINITIONS,
+    validatorsByField: AREA_FIELD_VALIDATORS,
+    requiredFieldKeys: REQUIRED_CREATE_FIELDS_BY_TYPE[areaType],
+  });
+
+  const parentAreaId = flattenedPayload.parentAreaId !== undefined
+    ? normalizeNumberValue(flattenedPayload.parentAreaId, {
+      min: 1,
+      step: 1,
+      integer: true,
+      fieldName: "Zone parente",
+    })
+    : null;
+
+  if (parentAreaId !== null) {
+    const parentArea = await prisma.area.findUnique({
+      where: { id: parentAreaId },
+      select: { id: true },
+    });
+
+    if (!parentArea) {
+      const error = new Error("La zone parente renseignee est introuvable.");
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+
+  if (imageUrl) {
+    generalCreateData.imageUrl = imageUrl;
+  }
+
+  const createdArea = await prisma.$transaction(async (transaction) => {
+    const area = await transaction.area.create({
+      data: {
+        ...generalCreateData,
+        type: areaType,
+        parentAreaId,
+        ownerId,
+      },
+      select: { id: true },
+    });
+
+    if (areaType === "BUILDING") {
+      await transaction.building.create({
+        data: {
+          areaId: area.id,
+          ...specificCreateData.building,
+        },
+      });
+    }
+
+    if (areaType === "FLOOR") {
+      await transaction.floor.create({
+        data: {
+          areaId: area.id,
+          ...specificCreateData.floor,
+        },
+      });
+    }
+
+    if (areaType === "CLASSROOM") {
+      await transaction.classroom.create({
+        data: {
+          areaId: area.id,
+          ...specificCreateData.classroom,
+        },
+      });
+    }
+
+    if (areaType === "TECHNICAL_ROOM") {
+      await transaction.technicalRoom.create({
+        data: {
+          areaId: area.id,
+          ...specificCreateData.technicalRoom,
+        },
+      });
+    }
+
+    return area;
+  });
+
+  return getAreaDetails(createdArea.id, role);
+};
+
 export default {
   getAreaDetails,
   updateArea,
+  createArea,
 };

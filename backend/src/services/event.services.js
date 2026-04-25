@@ -4,13 +4,16 @@ import {
     normalizeTextValue,
     normalizeNumberValue,
     normalizeEnumValue,
+    normalizeRawUpdatePayload,
 } from "../utils/normalize.js";
 import { EVENT_TYPES } from "../utils/constants.js";
 import {
     getEditableFieldKeys,
     buildFormFields,
     validateAndBuildUpdates,
-} from "./resource-common.services.js";
+    validateAndBuildCreateData,
+    assertAdminCreator,
+} from "./entity-edit-resource-common.services.js";
 
 const EVENT_RESOURCE_TYPE = "EVENT";
 
@@ -112,6 +115,14 @@ const GENERAL_FIELD_DEFINITIONS = {
         readOnly: true,
         section: "general",
     },
+    ownerName: {
+        key: "ownerName",
+        label: "Createur",
+        kind: "text",
+        valueGetter: (event) => event.owner?.login ?? null,
+        readOnly: true,
+        section: "general",
+    },
 };
 
 const EVENT_TYPE_FIELD_DEFINITIONS = {
@@ -182,6 +193,8 @@ const EVENT_FIELD_VALIDATORS = {
     type: (value, definition) => normalizeEnumValue(value, EVENT_TYPES, definition.label),
 };
 
+const REQUIRED_CREATE_FIELDS = ["title", "description", "organizer", "startTime", "endTime", "maxParticipants"];
+
 const buildEventSpecificPayload = () => ({});   //No specific fields for events for now
 
 /** Retrieves an event by its ID, including related area information, for the purpose of updating it.
@@ -192,6 +205,14 @@ const getEventForUpdate = async (eventId) => prisma.event.findUnique({
     where: { id: eventId },
     include: {
         area: true,
+        owner: {
+            select: {
+                id: true,
+                login: true,
+                firstName: true,
+                lastName: true,
+            },
+        },
     },
 });
 
@@ -222,6 +243,15 @@ const buildEventResponse = (event, role) => {
         maxParticipants: event.maxParticipants,
         type: event.type,
         areaId: event.areaId,
+        owner: event.owner
+            ? {
+                id: event.owner.id,
+                login: event.owner.login,
+                firstName: event.owner.firstName,
+                lastName: event.owner.lastName,
+            }
+            : null,
+        ownerName: event.owner?.login ?? null,
         area: event.area
             ? {
                 id: event.area.id,
@@ -327,7 +357,84 @@ const updateEvent = async (eventId, role, payload) => {
     return getEventDetails(eventId, role);
 };
 
+const createEvent = async ({ role, ownerId, payload, imageUrl }) => {
+    await assertAdminCreator({
+        role,
+        ownerId,
+        findUserById: (id) => prisma.user.findUnique({ where: { id }, select: { id: true } }),
+    });
+
+    const flattenedPayload = normalizeRawUpdatePayload(payload);
+
+    const { generalCreateData } = validateAndBuildCreateData({
+        payload,
+        entityType: EVENT_RESOURCE_TYPE,
+        generalFieldDefinitions: GENERAL_FIELD_DEFINITIONS,
+        entityTypeFieldDefinitions: EVENT_TYPE_FIELD_DEFINITIONS,
+        validatorsByField: EVENT_FIELD_VALIDATORS,
+        requiredFieldKeys: REQUIRED_CREATE_FIELDS,
+    });
+
+    const areaId = normalizeNumberValue(flattenedPayload.areaId, {
+        min: 1,
+        step: 1,
+        integer: true,
+        fieldName: "Zone",
+    });
+
+    const numberOfParticipants = flattenedPayload.numberOfParticipants !== undefined
+        ? normalizeNumberValue(flattenedPayload.numberOfParticipants, {
+            min: 0,
+            step: 1,
+            integer: true,
+            fieldName: "Participants",
+        })
+        : 0;
+
+    if (generalCreateData.startTime >= generalCreateData.endTime) {
+        const error = new Error("La date de debut doit etre strictement anterieure a la date de fin.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (generalCreateData.maxParticipants < numberOfParticipants) {
+        const error = new Error("La capacite maximale ne peut pas etre inferieure au nombre de participants initial.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const areaExists = await prisma.area.findUnique({
+        where: { id: areaId },
+        select: { id: true },
+    });
+
+    if (!areaExists) {
+        const error = new Error("La zone renseignee est introuvable.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (imageUrl) {
+        generalCreateData.imageUrl = imageUrl;
+    }
+
+    const createdEvent = await prisma.event.create({
+        data: {
+            ...generalCreateData,
+            areaId,
+            numberOfParticipants,
+            ownerId,
+        },
+        select: {
+            id: true,
+        },
+    });
+
+    return getEventDetails(createdEvent.id, role);
+};
+
 export default {
     getEventDetails,
     updateEvent,
+    createEvent,
 };

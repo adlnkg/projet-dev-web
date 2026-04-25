@@ -15,6 +15,10 @@ model User {
   avatarUrl    String?
   points       Int            @default(0)
   pointHistory PointHistory[]
+  createdAreas       Area[]      @relation("UserCreatedAreas")
+  createdDevices     IoTDevice[] @relation("UserCreatedDevices")
+  createdEvents      Event[]     @relation("UserCreatedEvents")
+  createdActualities Actuality[] @relation("UserCreatedActualities")
   createdAt    DateTime       @default(now())
 }
 

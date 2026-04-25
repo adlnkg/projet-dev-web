@@ -41,7 +41,30 @@ export const postArea = async (req, res, next) => {
   }
 };
 
+export const createArea = async (req, res, next) => {
+  try {
+    const role = req.user?.role ?? "USER";
+    const ownerId = req.user?.id;
+
+    const area = await areaService.createArea({
+      role,
+      ownerId,
+      payload: req.body,
+      imageUrl: req.uploadedImageUrl,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Zone creee.",
+      data: area,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default {
   getArea,
   postArea,
+  createArea,
 };

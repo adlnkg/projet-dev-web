@@ -30,6 +30,12 @@ app.use("/api", routes);
 app.use("/images", express.static(path.join(__dirname, "../public/images")));
 
 app.use((error, req, res, next) => {
+  if (error.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({
+      error: "Fichier trop volumineux. Taille maximale: 5 Mo.",
+    });
+  }
+
   const statusCode = error.statusCode ?? 500;
   const message = error.message ?? "Erreur interne du serveur.";
 

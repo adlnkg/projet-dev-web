@@ -41,7 +41,30 @@ export const postEvent = async (req, res, next) => {
   }
 };
 
+export const createEvent = async (req, res, next) => {
+  try {
+    const role = req.user?.role ?? "USER";
+    const ownerId = req.user?.id;
+
+    const event = await eventService.createEvent({
+      role,
+      ownerId,
+      payload: req.body,
+      imageUrl: req.uploadedImageUrl,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Evenement cree.",
+      data: event,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default {
   getEvent,
   postEvent,
+  createEvent,
 };

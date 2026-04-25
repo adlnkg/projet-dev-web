@@ -11,6 +11,9 @@ model Area {
   parentAreaId Int?
   childAreas   Area[] @relation("AreaHierarchy")
 
+  owner   User?   @relation("UserCreatedAreas", fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId String?
+
   type          AreaType
   building      Building?      @relation("AreaTypeBuilding")
   floor         Floor?         @relation("AreaTypeFloor")

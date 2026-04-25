@@ -129,23 +129,6 @@ const buildHierarchyFields = (lineage, prefix) => {
  */
 const buildAreaHierarchySearchPayload = (items, hierarchy, areaIdField, prefix) => {
 
-
-
-
-
-    /** Determines the maximum hierarchy depth present in the items based on the specified prefix.
-     * @param {Array<Object>} items - The list of items to analyze.
-     * @param {string} prefix - The prefix used for hierarchy fields (e.g., "areaLevel").
-     * @returns {number} The maximum hierarchy depth found in the items.
-     */
-    const getMaxHierarchyDepth = (items, prefix) => items.reduce((depth, item) => {
-        const itemDepth = Object.keys(item).reduce((count, key) => (
-            key.startsWith(prefix) && key.endsWith("Name") ? count + 1 : count
-        ), 0);
-
-        return Math.max(depth, itemDepth - 1);
-    }, 0);
-
     const itemsWithHierarchy = items.map((item) => ({
         ...item,
         ...buildHierarchyFields(hierarchy.get(item[areaIdField]) || [], prefix)
@@ -153,6 +136,19 @@ const buildAreaHierarchySearchPayload = (items, hierarchy, areaIdField, prefix) 
 
     return itemsWithHierarchy;
 };
+
+/** Determines the maximum hierarchy depth present in the items based on the specified prefix.
+ * @param {Array<Object>} items - The list of items to analyze.
+ * @param {string} prefix - The prefix used for hierarchy fields (e.g., "areaLevel").
+ * @returns {number} The maximum hierarchy depth found in the items.
+ */
+const getMaxHierarchyDepth = (items, prefix) => items.reduce((depth, item) => {
+    const itemDepth = Object.keys(item).reduce((count, key) => (
+        key.startsWith(prefix) && key.endsWith("Name") ? count + 1 : count
+    ), 0);
+
+    return Math.max(depth, itemDepth - 1);
+}, 0);
 
 /** Builds the keys for Fuse.js search based on the hierarchy depth and specified weights.
  * @param {number} maxDepth - The maximum hierarchy depth to consider.

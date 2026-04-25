@@ -76,6 +76,8 @@ export const login = async (req, res) => {
 
 export const register = async (req, res) => {
   try {
+    console.log(req.body);
+    
     const {
       login,
       password,
@@ -135,8 +137,9 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-
     res.status(500).json({
+      details : error.message, 
+      test: req.body,
       error: "Erreur serveur.",
     });
   }

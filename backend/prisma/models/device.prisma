@@ -5,10 +5,10 @@ model IoTDevice {
     name        String
     description String
     createdAt   DateTime @default(now())
-    lastUpdated DateTime @updatedAt @default(now())
+    lastUpdated DateTime @default(now()) @updatedAt
     imageUrl    String   @default("images/devices/default-device.png")
 
-    electricityConsumption Float @default(0) // in kWh
+    electricityConsumption Float  @default(0) // in kWh
     brand                  String
     model                  String
 
@@ -18,13 +18,16 @@ model IoTDevice {
     area   Area @relation("AreaDevices", fields: [areaId], references: [id], onDelete: Cascade)
     areaId Int
 
+    owner   User?   @relation("UserCreatedDevices", fields: [ownerId], references: [id], onDelete: SetNull)
+    ownerId String?
+
     // inheritance-like relations for device types
-    type       DeviceType
-    sensor     Sensor?
-    whiteboard InteractiveWhiteboard?
-    light      Light?
-    thermostat Thermostat?
-    camera     Camera?
+    type          DeviceType
+    sensor        Sensor?
+    whiteboard    InteractiveWhiteboard?
+    light         Light?
+    thermostat    Thermostat?
+    camera        Camera?
     accessControl AccessControl?
 }
 
@@ -50,7 +53,6 @@ model Sensor {
     deviceId  Int      @unique
     timestamp DateTime @default(now())
     value     Float
-
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -93,9 +95,9 @@ model Camera {
 }
 
 model AccessControl {
-    id         Int    @id @default(autoincrement())
-    deviceId   Int    @unique
-    status     String
+    id       Int    @id @default(autoincrement())
+    deviceId Int    @unique
+    status   String
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }

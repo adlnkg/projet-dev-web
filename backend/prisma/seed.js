@@ -12,6 +12,15 @@ async function main() {
   await prisma.event.deleteMany();
   await prisma.ioTDevice.deleteMany();
   await prisma.area.deleteMany();
+  await prisma.accessControl.deleteMany();
+  await prisma.whiteboard.deleteMany();
+  await prisma.thermostat.deleteMany();
+  await prisma.sensor.deleteMany();
+  await prisma.camera.deleteMany();
+  await prisma.building.deleteMany();
+  await prisma.floor.deleteMany();
+  await prisma.classroom.deleteMany();
+  await prisma.technicalRoom.deleteMany();
   await prisma.area.createMany({
     data: [
       {
@@ -55,6 +64,50 @@ async function main() {
         name: "Salle 106",
         description: "Salle de classe 106 du bâtiment Cauchy",
         parentAreaId: 5,
+      },
+    ],
+  });
+  await prisma.building.createMany({
+    data: [
+      {
+        id: 1,
+        areaId: 1,
+        address: "Cergy-Pontoise, 95000",
+        numFloors: 3,
+      },
+      {
+        id: 2,
+        areaId: 4,
+        address: "Cergy-Pontoise, 95000",
+        numFloors: 4,
+      },
+    ],
+  });
+  await prisma.floor.createMany({
+    data: [
+      {
+        id: 1,
+        areaId: 2,
+        floorNumber: 0,
+      },
+      {
+        id: 2,
+        areaId: 5,
+        floorNumber: 1,
+      },
+    ],
+  });
+  await prisma.classroom.createMany({
+    data: [
+      {
+        id: 1,
+        areaId: 3,
+        capacity: 30,
+      },
+      {
+        id: 2,
+        areaId: 6,
+        capacity: 25,
       },
     ],
   });
@@ -146,6 +199,67 @@ async function main() {
       },
     ],
   });
+  await prisma.accessControl.createMany({
+    data: [
+      {
+        id: 1,
+        ioTDeviceId: 4,
+        accessLevel: "CARD",
+      },
+    ],
+  });
+  await prisma.whiteboard.createMany({
+    data: [
+      {
+        id: 1,
+        ioTDeviceId: 5,
+        interactive: false,
+      },
+    ],
+  });
+  await prisma.thermostat.createMany({
+    data: [
+      {
+        id: 1,
+        ioTDeviceId: 3,
+        currentTemp: 22.5,
+        targetTemp: 24.0,
+        mode: "HEAT",
+      },
+    ],
+  });
+  await prisma.sensor.createMany({
+    data: [
+      {
+        id: 1,
+        ioTDeviceId: 1,
+        reading: 22.5,
+        unit: "°C",
+      },
+      {
+        id: 2,
+        ioTDeviceId: 6,
+        reading: 0,
+        unit: "motion",
+      },
+      {
+        id: 3,
+        ioTDeviceId: 7,
+        reading: 350,
+        unit: "lux",
+      },
+    ],
+  });
+  await prisma.camera.createMany({
+    data: [
+      {
+        id: 1,
+        ioTDeviceId: 2,
+        resolution: "720p",
+        frameRate: 30,
+      },
+    ],
+  });
 
   await prisma.event.createMany({
     data: [
@@ -160,6 +274,7 @@ async function main() {
         maxParticipants: 30,
         numberOfParticipants: 25,
         organizer: "Prof. Smith",
+        price: 1000,
       },
       {
         id: 2,
@@ -195,9 +310,11 @@ async function main() {
         maxParticipants: 30,
         numberOfParticipants: 28,
         organizer: "Prof. Brown",
+        type: "COURSE",
       },
     ],
   });
+
 
   await prisma.user.createMany({
     data: [

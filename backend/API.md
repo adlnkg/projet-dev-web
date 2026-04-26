@@ -754,6 +754,27 @@ Champs modifiables :
 - `SUPER_USER` : `status`, `light.brightness`, `light.color`, `thermostat.targetTemp`, `thermostat.mode`
 - `ADMIN` : `name`, `description`, `brand`, `model`, `status` + droits du `SUPER_USER`
 
+## Home
+### `GET /api/home`
+Retourne les données d’accueil : actualités récentes, événements à venir, devices récemment ajoutés.
+```json
+{
+  "success": true,
+  "data": {
+    "actualities": [
+      {
+        "id": 1,
+        "title": "first actuality",
+        "content": "Actualité test, elle démontre les capacités du modèle",
+        "imageUrl": "images/actualities/default-actuality.png",
+        "createdAt": "2026-04-26T19:52:37.000Z",
+        "ownerId": null,
+        "owner": null
+      }
+    ]
+  }
+}```
+
 ## Schéma rapide des retours
 
 - Login : `{ token, user }`

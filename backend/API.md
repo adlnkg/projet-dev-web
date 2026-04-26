@@ -185,7 +185,7 @@ Les utilisateurs peuvent accumuler des points. À partir d'un certain seuil de p
 
 Le modèle `User` inclut :
 - `points` (Integer) : nombre de points accumulés par l'utilisateur (défaut : 0)
-- `pointHistories` (Relation) : historique des modifications de points
+- `pointHistory` (Relation) : historique des modifications de points
 - `role` (Enum) : `USER`, `SUPER_USER`, `ADMIN`
 
 ### Modèle PointHistory
@@ -322,6 +322,58 @@ Réponse `200` :
 }
 ```
 
+### Formulaire de création
+
+`GET /api/actualities/create-form`
+
+Accès : `ADMIN` uniquement.
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "data": {
+    "resource": "ACTUALITY",
+    "role": "ADMIN",
+    "create": {
+      "method": "POST",
+      "endpoint": "/api/actualities",
+      "contentType": "multipart/form-data",
+      "imageField": "image",
+      "requiredFieldKeys": ["title", "content"],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Titre",
+          "kind": "text",
+          "minLength": 3,
+          "maxLength": 160,
+          "section": "general",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Contenu",
+          "kind": "textarea",
+          "minLength": 10,
+          "maxLength": 5000,
+          "section": "general",
+          "required": true
+        },
+        {
+          "key": "imageUrl",
+          "label": "URL image",
+          "kind": "text",
+          "section": "general",
+          "required": false
+        }
+      ]
+    }
+  }
+}
+```
+
 ### Création
 
 `POST /api/actualities`
@@ -369,6 +421,52 @@ Champs modifiables :
 `GET /api/events/:id`
 
 Réponse `200` : structure identique au contrat commun, avec `area`, `owner`, `specific`, `form`.
+
+### Formulaire de création
+
+`GET /api/events/create-form`
+
+Accès : `ADMIN` uniquement.
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "data": {
+    "resource": "EVENT",
+    "role": "ADMIN",
+    "create": {
+      "method": "POST",
+      "endpoint": "/api/events",
+      "contentType": "multipart/form-data",
+      "imageField": "image",
+      "requiredFieldKeys": [
+        "areaId",
+        "title",
+        "description",
+        "organizer",
+        "startTime",
+        "endTime",
+        "maxParticipants"
+      ],
+      "fields": [
+        { "key": "title", "kind": "text", "required": true },
+        { "key": "description", "kind": "textarea", "required": true },
+        { "key": "organizer", "kind": "text", "required": true },
+        { "key": "startTime", "kind": "datetime", "required": true },
+        { "key": "endTime", "kind": "datetime", "required": true },
+        { "key": "maxParticipants", "kind": "number", "required": true },
+        { "key": "areaId", "kind": "number", "required": true },
+        { "key": "type", "kind": "select", "required": false },
+        { "key": "price", "kind": "number", "required": false },
+        { "key": "numberOfParticipants", "kind": "number", "required": false },
+        { "key": "imageUrl", "kind": "text", "required": false }
+      ]
+    }
+  }
+}
+```
 
 ### Création
 
@@ -424,6 +522,40 @@ Champs modifiables :
 `GET /api/areas/:id`
 
 Réponse `200` : structure identique au contrat commun, avec `parentArea`, `owner`, `specific`, `form`.
+
+### Formulaire de création
+
+`GET /api/areas/create-form`
+
+Accès : `ADMIN` uniquement.
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "data": {
+    "resource": "AREA",
+    "role": "ADMIN",
+    "create": {
+      "method": "POST",
+      "endpoint": "/api/areas",
+      "contentType": "multipart/form-data",
+      "imageField": "image",
+      "typeOptions": ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM"],
+      "byType": {
+        "BUILDING": {
+          "requiredFieldKeys": ["type", "name", "description", "building.address"],
+          "supportedSpecificFields": ["building.address"],
+          "fields": [{ "key": "building.address", "kind": "text", "required": true }]
+        }
+      }
+    }
+  }
+}
+```
+
+Remarque : chaque entrée de `byType.*.fields` contient aussi les champs généraux (`name`, `description`, `type`, `parentAreaId`, `imageUrl`) ; l’exemple est volontairement réduit.
 
 ### Création
 
@@ -516,50 +648,49 @@ Réponse `200` :
     "form": {
       "role": "USER",
       "editableFieldKeys": [],
-      "fields": [
-        {
-          "key": "id",
-          "label": "Identifiant",
-          "kind": "number",
-          "readOnly": true,
-          "section": "general",
-          "value": 1,
-          "editable": false
-        },
-        {
-          "key": "uniqueName",
-          "label": "Nom unique",
-          "kind": "text",
-          "minLength": 3,
-          "maxLength": 120,
-          "section": "general",
-          "value": "temp-sensor-101",
-          "editable": false
-        },
-        {
-          "key": "status",
-          "label": "Statut",
-          "kind": "select",
-          "options": ["ACTIVE", "INACTIVE", "DISCONNECTED", "ERROR"],
-          "section": "general",
-          "value": "ACTIVE",
-          "editable": false
-        },
-        {
-          "key": "sensor.value",
-          "label": "Valeur",
-          "kind": "number",
-          "readOnly": true,
-          "section": "specific",
-          "value": 22.5,
-          "editable": false
-        }
-      ],
+      "fields": ["..."],
       "supportedSpecificFields": ["sensor.value", "sensor.timestamp"]
     }
   }
 }
 ```
+
+### Formulaire de création
+
+`GET /api/devices/create-form`
+
+Accès : `ADMIN` uniquement.
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "data": {
+    "resource": "IOT_DEVICE",
+    "role": "ADMIN",
+    "create": {
+      "method": "POST",
+      "endpoint": "/api/devices",
+      "contentType": "multipart/form-data",
+      "imageField": "image",
+      "typeOptions": ["LIGHT", "SENSOR", "THERMOSTAT", "CAMERA", "ACCESS_CONTROL", "WHITEBOARD"],
+      "byType": {
+        "LIGHT": {
+          "requiredFieldKeys": ["type", "areaId", "uniqueName", "name", "description", "brand", "model", "light.brightness", "light.color"],
+          "supportedSpecificFields": ["light.brightness", "light.color"],
+          "fields": [
+            { "key": "light.brightness", "kind": "number", "required": true },
+            { "key": "light.color", "kind": "text", "required": true }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
+Remarque : chaque entrée de `byType.*.fields` contient aussi les champs généraux (`uniqueName`, `name`, `description`, `brand`, `model`, `type`, `areaId`, `status`, `electricityConsumption`, `imageUrl`) ; l’exemple est volontairement réduit.
 
 ### Création
 

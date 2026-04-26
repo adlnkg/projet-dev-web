@@ -9,7 +9,7 @@ import searchRoutes from "./search.routes.js";
 
 
 const router = express.Router();
-
+//routes on /api/...
 router.use("/auth", authRoutes);
 
 router.use("/user", userRoutes);

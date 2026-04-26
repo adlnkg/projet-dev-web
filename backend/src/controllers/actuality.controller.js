@@ -1,5 +1,19 @@
 import actualityService from "../services/actuality.services.js";
 
+export const getActualityCreateForm = async (req, res, next) => {
+  try {
+    const role = req.user?.role ?? "USER";
+    const form = await actualityService.getActualityCreateForm(role);
+
+    return res.status(200).json({
+      success: true,
+      data: form,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getActuality = async (req, res, next) => {
   try {
     const actualityId = Number(req.params.id);
@@ -64,6 +78,7 @@ export const createActuality = async (req, res, next) => {
 };
 
 export default {
+  getActualityCreateForm,
   getActuality,
   postActuality,
   createActuality,

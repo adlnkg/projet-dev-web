@@ -1,5 +1,19 @@
 import deviceService from "../services/device.services.js";
 
+export const getDeviceCreateForm = async (req, res, next) => {
+  try {
+    const role = req.user?.role ?? "USER";
+    const form = await deviceService.getDeviceCreateForm(role);
+
+    return res.status(200).json({
+      success: true,
+      data: form,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getDevice = async (req, res, next) => {
   try {
     const deviceId = Number(req.params.id);
@@ -64,6 +78,7 @@ export const createDevice = async (req, res, next) => {
 };
 
 export default {
+  getDeviceCreateForm,
   getDevice,
   postDevice,
   createDevice,

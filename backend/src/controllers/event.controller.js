@@ -1,5 +1,19 @@
 import eventService from "../services/event.services.js";
 
+export const getEventCreateForm = async (req, res, next) => {
+  try {
+    const role = req.user?.role ?? "USER";
+    const form = await eventService.getEventCreateForm(role);
+
+    return res.status(200).json({
+      success: true,
+      data: form,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getEvent = async (req, res, next) => {
   try {
     const eventId = Number(req.params.id);
@@ -64,6 +78,7 @@ export const createEvent = async (req, res, next) => {
 };
 
 export default {
+  getEventCreateForm,
   getEvent,
   postEvent,
   createEvent,

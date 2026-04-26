@@ -13,6 +13,7 @@ import {
 import {
     getEditableFieldKeys,
     buildFormFields,
+    buildCreateFormFields,
     validateAndBuildUpdates,
     validateAndBuildCreateData,
     assertAdminCreator,
@@ -389,6 +390,43 @@ const REQUIRED_CREATE_FIELDS_BY_TYPE = {
     ],
 };
 
+const getDeviceCreateForm = (role) => {
+    const typeForms = DEVICE_TYPES.reduce((accumulator, deviceType) => {
+        const requiredFieldKeys = [
+            "type",
+            "areaId",
+            ...(REQUIRED_CREATE_FIELDS_BY_TYPE[deviceType] ?? []),
+        ];
+
+        accumulator[deviceType] = {
+            requiredFieldKeys,
+            supportedSpecificFields: (DEVICE_TYPE_FIELD_DEFINITIONS[deviceType] ?? []).map((field) => field.key),
+            fields: buildCreateFormFields({
+                entityType: deviceType,
+                generalFieldDefinitions: GENERAL_FIELD_DEFINITIONS,
+                entityTypeFieldDefinitions: DEVICE_TYPE_FIELD_DEFINITIONS,
+                requiredFieldKeys,
+                forcedEditableFieldKeys: requiredFieldKeys,
+            }),
+        };
+
+        return accumulator;
+    }, {});
+
+    return {
+        resource: "IOT_DEVICE",
+        role,
+        create: {
+            method: "POST",
+            endpoint: "/api/devices",
+            contentType: "multipart/form-data",
+            imageField: "image",
+            typeOptions: DEVICE_TYPES,
+            byType: typeForms,
+        },
+    };
+};
+
 /**
  * Builds the specific payload for a device based on its type.
  * @param {object} device - The device object.
@@ -728,6 +766,7 @@ const createDevice = async ({ role, ownerId, payload, imageUrl }) => {
 };
 
 export default {
+    getDeviceCreateForm,
     getDeviceDetails,
     updateDevice,
     createDevice,

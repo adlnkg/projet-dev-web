@@ -2,7 +2,7 @@ import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
-import { getArea, postArea, createArea } from "../controllers/area.controller.js";
+import { getAreaCreateForm, getArea, postArea, createArea } from "../controllers/area.controller.js";
 
 const router = express.Router();
 
@@ -13,6 +13,8 @@ router.post(
 	...createImageUploadMiddleware("areas"),
 	createArea,
 );
+
+router.get("/create-form", authMiddleware, authorizeMiddleware("ADMIN"), getAreaCreateForm);
 
 router.get("/:id", authMiddleware, getArea);
 router.post("/:id", authMiddleware, postArea);

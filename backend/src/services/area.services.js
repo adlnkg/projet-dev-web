@@ -9,6 +9,7 @@ import { AREA_TYPES } from "../utils/constants.js";
 import {
   getEditableFieldKeys,
   buildFormFields,
+  buildCreateFormFields,
   validateAndBuildUpdates,
   validateAndBuildCreateData,
   assertAdminCreator,
@@ -200,6 +201,42 @@ const REQUIRED_CREATE_FIELDS_BY_TYPE = {
   FLOOR: ["name", "description", "floor.floorNumber"],
   CLASSROOM: ["name", "description", "classroom.classroomNumber"],
   TECHNICAL_ROOM: ["name", "description", "technicalRoom.roomNumber"],
+};
+
+const getAreaCreateForm = (role) => {
+  const typeForms = AREA_TYPES.reduce((accumulator, areaType) => {
+    const requiredFieldKeys = [
+      "type",
+      ...(REQUIRED_CREATE_FIELDS_BY_TYPE[areaType] ?? []),
+    ];
+
+    accumulator[areaType] = {
+      requiredFieldKeys,
+      supportedSpecificFields: (AREA_TYPE_FIELD_DEFINITIONS[areaType] ?? []).map((field) => field.key),
+      fields: buildCreateFormFields({
+        entityType: areaType,
+        generalFieldDefinitions: GENERAL_FIELD_DEFINITIONS,
+        entityTypeFieldDefinitions: AREA_TYPE_FIELD_DEFINITIONS,
+        requiredFieldKeys,
+        forcedEditableFieldKeys: ["type", "parentAreaId"],
+      }),
+    };
+
+    return accumulator;
+  }, {});
+
+  return {
+    resource: "AREA",
+    role,
+    create: {
+      method: "POST",
+      endpoint: "/api/areas",
+      contentType: "multipart/form-data",
+      imageField: "image",
+      typeOptions: AREA_TYPES,
+      byType: typeForms,
+    },
+  };
 };
 
 /**
@@ -511,6 +548,7 @@ const createArea = async ({ role, ownerId, payload, imageUrl }) => {
 };
 
 export default {
+  getAreaCreateForm,
   getAreaDetails,
   updateArea,
   createArea,

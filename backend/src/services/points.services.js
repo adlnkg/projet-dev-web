@@ -37,7 +37,7 @@ export const addPoints = async (
       data: {
         points: newPoints,
         role: newRole,
-        pointHistories: {
+        pointHistory: {
           create: {
             amount: pointsToAdd,
             reason: reason,
@@ -85,7 +85,7 @@ export const removePoints = async (
       where: { id: userId },
       data: {
         points: newPoints,
-        pointHistories: {
+        pointHistory: {
           create: {
             amount: -actualPointsRemoved,
             reason: reason,

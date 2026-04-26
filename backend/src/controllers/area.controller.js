@@ -1,5 +1,19 @@
 import areaService from "../services/area.services.js";
 
+export const getAreaCreateForm = async (req, res, next) => {
+  try {
+    const role = req.user?.role ?? "USER";
+    const form = await areaService.getAreaCreateForm(role);
+
+    return res.status(200).json({
+      success: true,
+      data: form,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getArea = async (req, res, next) => {
   try {
     const areaId = Number(req.params.id);
@@ -64,6 +78,7 @@ export const createArea = async (req, res, next) => {
 };
 
 export default {
+  getAreaCreateForm,
   getArea,
   postArea,
   createArea,

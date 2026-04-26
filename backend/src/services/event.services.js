@@ -10,6 +10,7 @@ import { EVENT_TYPES } from "../utils/constants.js";
 import {
     getEditableFieldKeys,
     buildFormFields,
+    buildCreateFormFields,
     validateAndBuildUpdates,
     validateAndBuildCreateData,
     assertAdminCreator,
@@ -194,6 +195,32 @@ const EVENT_FIELD_VALIDATORS = {
 };
 
 const REQUIRED_CREATE_FIELDS = ["title", "description", "organizer", "startTime", "endTime", "maxParticipants"];
+
+const getEventCreateForm = (role) => {
+    const requiredFieldKeys = [
+        "areaId",
+        ...REQUIRED_CREATE_FIELDS,
+    ];
+
+    return {
+        resource: "EVENT",
+        role,
+        create: {
+            method: "POST",
+            endpoint: "/api/events",
+            contentType: "multipart/form-data",
+            imageField: "image",
+            requiredFieldKeys,
+            fields: buildCreateFormFields({
+                entityType: EVENT_RESOURCE_TYPE,
+                generalFieldDefinitions: GENERAL_FIELD_DEFINITIONS,
+                entityTypeFieldDefinitions: EVENT_TYPE_FIELD_DEFINITIONS,
+                requiredFieldKeys,
+                forcedEditableFieldKeys: ["areaId", "numberOfParticipants"],
+            }),
+        },
+    };
+};
 
 const buildEventSpecificPayload = () => ({});   //No specific fields for events for now
 
@@ -434,6 +461,7 @@ const createEvent = async ({ role, ownerId, payload, imageUrl }) => {
 };
 
 export default {
+    getEventCreateForm,
     getEventDetails,
     updateEvent,
     createEvent,

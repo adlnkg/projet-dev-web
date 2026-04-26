@@ -113,6 +113,42 @@ const buildFormFields = ({
 };
 
 /**
+ * Builds field metadata for creation forms.
+ * Read-only fields are excluded unless explicitly forced as editable.
+ * @param {object} params
+ * @param {string} params.entityType
+ * @param {object} params.generalFieldDefinitions
+ * @param {object} params.entityTypeFieldDefinitions
+ * @param {string[]} [params.requiredFieldKeys=[]]
+ * @param {string[]} [params.forcedEditableFieldKeys=[]]
+ * @returns {object[]}
+ */
+const buildCreateFormFields = ({
+    entityType,
+    generalFieldDefinitions,
+    entityTypeFieldDefinitions,
+    requiredFieldKeys = [],
+    forcedEditableFieldKeys = [],
+}) => {
+    const requiredSet = new Set(requiredFieldKeys);
+    const forcedEditableSet = new Set(forcedEditableFieldKeys);
+    const definitions = [
+        ...Object.values(generalFieldDefinitions),
+        ...(entityTypeFieldDefinitions[entityType] ?? []),
+    ];
+
+    return definitions
+        .filter((definition) => !definition.readOnly || forcedEditableSet.has(definition.key))
+        .map((definition) => ({
+            ...definition,
+            readOnly: false,
+            value: null,
+            editable: true,
+            required: requiredSet.has(definition.key),
+        }));
+};
+
+/**
  * Validates the provided update payload against the allowed fields and their definitions, and builds the general and specific updates.
  * It checks for unknown fields, forbidden fields based on the user's role, and validates the values using provided validators.
  * If any validation fails, it throws an error with details about the issues found in the payload.
@@ -356,6 +392,7 @@ const assertAdminCreator = async ({ role, ownerId, findUserById }) => {
 export {
     getEditableFieldKeys,
     buildFormFields,
+    buildCreateFormFields,
     validateAndBuildUpdates,
     validateAndBuildCreateData,
     assertAdminCreator,

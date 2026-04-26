@@ -3,6 +3,7 @@ import { normalizeTextValue } from "../utils/normalize.js";
 import {
   getEditableFieldKeys,
   buildFormFields,
+  buildCreateFormFields,
   validateAndBuildUpdates,
   validateAndBuildCreateData,
   assertAdminCreator,
@@ -97,6 +98,26 @@ const ACTUALITY_FIELD_VALIDATORS = {
 };
 
 const REQUIRED_CREATE_FIELDS = ["title", "content"];
+
+const getActualityCreateForm = (role) => {
+  return {
+    resource: "ACTUALITY",
+    role,
+    create: {
+      method: "POST",
+      endpoint: "/api/actualities",
+      contentType: "multipart/form-data",
+      imageField: "image",
+      requiredFieldKeys: REQUIRED_CREATE_FIELDS,
+      fields: buildCreateFormFields({
+        entityType: ACTUALITY_RESOURCE_TYPE,
+        generalFieldDefinitions: GENERAL_FIELD_DEFINITIONS,
+        entityTypeFieldDefinitions: ACTUALITY_TYPE_FIELD_DEFINITIONS,
+        requiredFieldKeys: REQUIRED_CREATE_FIELDS,
+      }),
+    },
+  };
+};
 
 const buildActualitySpecificPayload = () => ({});
 
@@ -232,6 +253,7 @@ const createActuality = async ({ role, ownerId, payload, imageUrl }) => {
 };
 
 export default {
+  getActualityCreateForm,
   getActualityDetails,
   updateActuality,
   createActuality,

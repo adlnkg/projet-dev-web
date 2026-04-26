@@ -756,7 +756,7 @@ Champs modifiables :
 
 ## Home
 ### `GET /api/home`
-Retourne les données d’accueil : actualités récentes, événements à venir, devices récemment ajoutés.
+Retourne les données d’accueil : actualités récentes et événements à venir.
 ```json
 {
   "success": true,
@@ -771,7 +771,8 @@ Retourne les données d’accueil : actualités récentes, événements à venir
         "ownerId": null,
         "owner": null
       }
-    ]
+    ],
+    "events":[]
   }
 }```
 

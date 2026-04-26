@@ -16,7 +16,7 @@ router.post(
 
 router.get("/create-form", authMiddleware, authorizeMiddleware("ADMIN"), getEventCreateForm);
 
-router.get("/:id", authMiddleware, getEvent);
+router.get("/:id", getEvent);
 router.post("/:id", authMiddleware, postEvent);
 
 export default router;

@@ -1,8 +1,9 @@
 import areaService from "../services/area.services.js";
+import { getUserRole } from "../services/user.services.js";
 
 export const getAreaCreateForm = async (req, res, next) => {
   try {
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const form = await areaService.getAreaCreateForm(role);
 
     return res.status(200).json({
@@ -22,7 +23,7 @@ export const getArea = async (req, res, next) => {
       return res.status(400).json({ error: "Identifiant de zone invalide." });
     }
 
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const area = await areaService.getAreaDetails(areaId, role);
 
     return res.status(200).json({
@@ -42,7 +43,7 @@ export const postArea = async (req, res, next) => {
       return res.status(400).json({ error: "Identifiant de zone invalide." });
     }
 
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const area = await areaService.updateArea(areaId, role, req.body);
 
     return res.status(200).json({
@@ -57,7 +58,7 @@ export const postArea = async (req, res, next) => {
 
 export const createArea = async (req, res, next) => {
   try {
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const ownerId = req.user?.id;
 
     const area = await areaService.createArea({

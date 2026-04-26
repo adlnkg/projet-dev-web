@@ -16,6 +16,9 @@ const ROLE_HIERARCHY = {
  */
 const getRoleChain = (role) => {
     const chain = [];
+    if (role === "GUEST") {
+        role = "USER"; // Guests have same permissions as users for forms
+    }
     if (!ROLE_HIERARCHY.hasOwnProperty(role)) {
         throw new Error(`Rôle inconnu: ${role}`);
     }

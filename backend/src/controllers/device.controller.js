@@ -1,8 +1,10 @@
 import deviceService from "../services/device.services.js";
+import { getUserRole } from "../services/user.services.js";
+
 
 export const getDeviceCreateForm = async (req, res, next) => {
   try {
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const form = await deviceService.getDeviceCreateForm(role);
 
     return res.status(200).json({
@@ -22,7 +24,7 @@ export const getDevice = async (req, res, next) => {
       return res.status(400).json({ error: "Identifiant d'appareil invalide." });
     }
 
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const device = await deviceService.getDeviceDetails(deviceId, role);
 
     return res.status(200).json({
@@ -42,7 +44,7 @@ export const postDevice = async (req, res, next) => {
       return res.status(400).json({ error: "Identifiant d'appareil invalide." });
     }
 
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const device = await deviceService.updateDevice(deviceId, role, req.body);
 
     return res.status(200).json({
@@ -57,7 +59,7 @@ export const postDevice = async (req, res, next) => {
 
 export const createDevice = async (req, res, next) => {
   try {
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const ownerId = req.user?.id;
 
     const device = await deviceService.createDevice({

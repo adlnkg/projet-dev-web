@@ -1,8 +1,9 @@
 import eventService from "../services/event.services.js";
+import { getUserRole } from "../services/user.services.js";
 
 export const getEventCreateForm = async (req, res, next) => {
   try {
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const form = await eventService.getEventCreateForm(role);
 
     return res.status(200).json({
@@ -22,7 +23,7 @@ export const getEvent = async (req, res, next) => {
       return res.status(400).json({ error: "Identifiant d'evenement invalide." });
     }
 
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const event = await eventService.getEventDetails(eventId, role);
 
     return res.status(200).json({
@@ -42,7 +43,7 @@ export const postEvent = async (req, res, next) => {
       return res.status(400).json({ error: "Identifiant d'evenement invalide." });
     }
 
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const event = await eventService.updateEvent(eventId, role, req.body);
 
     return res.status(200).json({
@@ -57,7 +58,7 @@ export const postEvent = async (req, res, next) => {
 
 export const createEvent = async (req, res, next) => {
   try {
-    const role = req.user?.role ?? "USER";
+    const role = getUserRole(req);
     const ownerId = req.user?.id;
 
     const event = await eventService.createEvent({

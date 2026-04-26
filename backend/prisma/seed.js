@@ -334,6 +334,34 @@ async function main() {
       },
     ],
   });
+
+  await prisma.actuality.createMany({
+    data: [
+      {
+        id: 1,
+        title: "first actuality",
+        content: "Actualité test, elle démontre les capacités du modèle",
+        imageUrl: "images/actualities/default-actuality.png",
+      },
+    ],
+  });
+
+  await prisma.event.createMany({
+    data: [
+      {
+        id: 5,
+        title: "Hackathon de rentrée",
+        description:
+          "Participez à notre hackathon de rentrée pour gagner des prix et rencontrer d'autres étudiants passionnés de technologie !",
+        areaId: 3,
+        startTime: new Date("2027-09-05T18:00:00Z"),
+        endTime: new Date("2027-09-06T18:00:00Z"),
+        maxParticipants: 100,
+        numberOfParticipants: 0,
+        organizer: "Tech Club",
+      },
+    ],
+  });
 }
 
 main()

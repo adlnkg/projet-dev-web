@@ -4,6 +4,21 @@ import prisma from "../config/db.js";
 const AREA_HIERARCHY_DECAY = 0.875;
 
 
+const getBuildingList = async () => {
+    const buildings = await prisma.area.findMany({
+        select: {
+            name: true
+        },
+        where: {
+            type: {
+                equals: "BUILDING"
+            }
+        },
+        distinct: ["name"]
+    });
+    return buildings.map((building) => building.name);
+};
+
 /** 
  * Fetches the area hierarchy based on the searched building filter and returns a list of valid areas lineage.
  * If a specific building is searched, only areas that are within that building's hierarchy will be included.
@@ -476,5 +491,5 @@ const search = async (filters) => {
     }
 };
 
-export default { search, searchActualities };
+export default { search, searchActualities, getBuildingList };
 

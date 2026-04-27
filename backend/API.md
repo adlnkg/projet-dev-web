@@ -321,6 +321,7 @@ Réponse `200` :
   }
 }
 ```
+Lecture possible pour utilisateurs non connectés.
 
 ### Recherche
 
@@ -786,6 +787,104 @@ Champs modifiables :
 - `SUPER_USER` : `status`, `light.brightness`, `light.color`, `thermostat.targetTemp`, `thermostat.mode`
 - `ADMIN` : `name`, `description`, `brand`, `model`, `status` + droits du `SUPER_USER`
 
+## Demandes de suppression
+
+Les utilisateurs ayant le rôle `SUPER_USER` peuvent demander la suppression d'une entité depuis sa page de détail. La suppression réelle n'est effectuée qu'après validation par un `ADMIN`.
+
+### Création d'une demande
+
+`POST /api/areas/:id/deletion-request`
+
+`POST /api/events/:id/deletion-request`
+
+`POST /api/actualities/:id/deletion-request`
+
+`POST /api/devices/:id/deletion-request`
+
+Accès : `SUPER_USER` uniquement.
+
+Réponse `201` :
+
+```json
+{
+  "success": true,
+  "message": "Demande de suppression envoyee.",
+  "data": {
+    "id": "uuid",
+    "entityType": "AREA",
+    "entityTypeLabel": "Zone",
+    "entityId": 2,
+    "entityLabel": "Bâtiment Turing",
+    "entityPath": "/areas/2",
+    "status": "PENDING",
+    "requestedAt": "2026-04-27T08:00:00.000Z",
+    "reviewedAt": null,
+    "requestedBy": {
+      "id": "user1",
+      "login": "super1",
+      "firstName": "Super",
+      "lastName": "User"
+    },
+    "reviewedBy": null,
+    "entitySnapshot": {}
+  }
+}
+```
+
+Règles :
+
+- une seule demande `PENDING` peut exister à la fois pour une même entité ;
+- les snapshots servent à afficher la demande côté admin même si l'entité évolue entre-temps ;
+- l'entité doit exister au moment de la création de la demande.
+
+### Liste des demandes
+
+`GET /api/deletion-requests`
+
+Accès : `ADMIN` uniquement.
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": []
+}
+```
+
+### Validation ou refus
+
+`PATCH /api/deletion-requests/:id`
+
+Accès : `ADMIN` uniquement.
+
+Body JSON :
+
+```json
+{
+  "decision": "APPROVE"
+}
+```
+
+Valeurs possibles :
+
+- `APPROVE` : l'entité est supprimée puis la demande passe à `APPROVED` ;
+- `REJECT` : la demande passe à `REJECTED` sans suppression.
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "message": "Demande acceptee.",
+  "data": {
+    "id": "uuid",
+    "status": "APPROVED"
+  }
+}
+```
+
 ## Home
 ### `GET /api/home`
 Retourne les données d’accueil : actualités récentes et événements à venir.
@@ -816,6 +915,8 @@ Retourne les données d’accueil : actualités récentes et événements à ven
 - Me : objet utilisateur
 - Get user by id : objet utilisateur
 - Search : `{ success, count, data }`
+- Demande de suppression : `{ success, message, data }`
+- Liste des demandes de suppression : `{ success, count, data }`
 - CRUD contenus : `{ success, data }` ou `{ success, message, data }`
 
 ## Notes utiles pour le front
@@ -825,3 +926,5 @@ Retourne les données d’accueil : actualités récentes et événements à ven
 - Les modèles utiles côté UI sont `User`, `Area`, `IoTDevice`, `Event` et `Actuality`.
 - Pour les créations avec image, envoyer un `multipart/form-data` et placer le fichier dans le champ `image`.
 - Les champs du formulaire fournis par l’API doivent piloter le composant UI côté client : `kind`, `options`, `min`, `max`, `step`, `readOnly`, `editable`, `supportedSpecificFields`.
+- Les pages de détail exposent désormais les routes frontend `/areas/:id`, `/events/:id`, `/actualities/:id` et `/devices/:id`.
+- La page d'administration des demandes de suppression se trouve sur `/admin/deletion-requests`.

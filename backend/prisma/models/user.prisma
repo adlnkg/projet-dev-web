@@ -19,6 +19,8 @@ model User {
   createdDevices     IoTDevice[] @relation("UserCreatedDevices")
   createdEvents      Event[]     @relation("UserCreatedEvents")
   createdActualities Actuality[] @relation("UserCreatedActualities")
+  deletionRequestsCreated DeletionRequest[] @relation("DeletionRequestsCreated")
+  deletionRequestsReviewed DeletionRequest[] @relation("DeletionRequestsReviewed")
   createdAt    DateTime       @default(now())
 }
 

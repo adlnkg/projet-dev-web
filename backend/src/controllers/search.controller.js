@@ -3,10 +3,12 @@ import searchService from "../services/search.services.js";
 export const search = async (req, res, next) => {
   try {
     const results = await searchService.search(req.searchFilters);
+    const buildingList = await searchService.getBuildingList(req.searchFilters);
     return res.status(200).json({
       success: true,
       count: results.length,
       data: results,
+      buildingList: buildingList,
     });
   } catch (error) {
     return next(error);

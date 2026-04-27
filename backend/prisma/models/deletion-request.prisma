@@ -1,0 +1,27 @@
+model DeletionRequest {
+  id             String                     @id @default(uuid())
+  entityType     DeletionRequestEntityType
+  entityId       Int
+  entityLabel    String
+  entitySnapshot Json
+  status         DeletionRequestStatus      @default(PENDING)
+  requestedAt    DateTime                   @default(now())
+  reviewedAt     DateTime?
+  requestedBy    User                       @relation("DeletionRequestsCreated", fields: [requestedById], references: [id], onDelete: Cascade)
+  requestedById  String
+  reviewedBy     User?                      @relation("DeletionRequestsReviewed", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedById   String?
+}
+
+enum DeletionRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DeletionRequestEntityType {
+  AREA
+  EVENT
+  ACTUALITY
+  IOT_DEVICE
+}

@@ -1,10 +1,10 @@
 <script setup>
 const sponsors = [
-  { nom: 'Google', logo: 'G' },
-  { nom: 'Microsoft', logo: 'M' },
-  { nom: 'Thales', logo: 'T' },
-  { nom: 'Airbus', logo: 'A' },
-  { nom: 'Orange', logo: 'O' },
+  { nom: 'Capgemini' },
+  { nom: 'Thales' },
+  { nom: 'Schneider Electric' },
+  { nom: 'Sopra Steria' },
+  { nom: 'SAP' },
 ]
 </script>
 
@@ -15,7 +15,6 @@ const sponsors = [
       <p class="sponsors-titre">Nos partenaires</p>
       <div class="sponsors-list">
         <div class="sponsor-item" v-for="s in sponsors" :key="s.nom">
-          <div class="sponsor-logo">{{ s.logo }}</div>
           <span class="sponsor-nom">{{ s.nom }}</span>
         </div>
       </div>
@@ -26,10 +25,7 @@ const sponsors = [
 
         <div class="footer-col">
           <div class="footer-brand">
-            <svg viewBox="0 0 60 60" class="footer-logo" xmlns="http://www.w3.org/2000/svg">
-              <rect width="60" height="60" rx="12" fill="#1a5c9e"/>
-              <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-size="22" font-weight="800" font-family="Arial">CY</text>
-            </svg>
+            <img src="/cytech-logo.png" alt="CYTech" class="footer-logo-img" />
             <span class="footer-brand-name">CYTech</span>
           </div>
           <p class="footer-desc">École d'Ingénieurs — Campus de Cergy. Former les ingénieurs de demain dans un environnement connecté et innovant.</p>
@@ -88,15 +84,27 @@ const sponsors = [
 .footer { background: #f4f6f9; }
 
 .sponsors-bar {
-  background: white; border-top: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb; padding: 2rem; text-align: center;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 2rem;
+  text-align: center;
 }
-.sponsors-titre { font-size: 13px; font-weight: 700; color: #999; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem; }
-.sponsors-list { display: flex; justify-content: center; align-items: center; gap: 3rem; flex-wrap: wrap; }
-.sponsor-item { display: flex; align-items: center; gap: 8px; opacity: 0.6; transition: opacity 0.2s; cursor: pointer; }
+.sponsors-titre {
+  font-size: 13px; font-weight: 700; color: #999;
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1.5rem;
+}
+.sponsors-list {
+  display: flex; justify-content: center;
+  align-items: center; gap: 3rem; flex-wrap: wrap;
+}
+.sponsor-item {
+  opacity: 0.6; transition: opacity 0.2s; cursor: pointer;
+}
 .sponsor-item:hover { opacity: 1; }
-.sponsor-logo { width: 36px; height: 36px; background: #1a5c9e; color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
-.sponsor-nom { font-weight: 700; font-size: 15px; color: #333; }
+.sponsor-nom {
+  font-weight: 800; font-size: 18px; color: #0d2d5e; letter-spacing: 1px;
+}
 
 .footer-main { padding: 4rem 2rem; }
 .footer-inner {
@@ -104,7 +112,7 @@ const sponsors = [
   display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem;
 }
 .footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
-.footer-logo { width: 40px; height: 40px; }
+.footer-logo-img { height: 45px; width: auto; object-fit: contain; }
 .footer-brand-name { font-weight: 800; font-size: 20px; color: #0d2d5e; letter-spacing: 2px; }
 .footer-desc { font-size: 14px; color: #666; line-height: 1.7; margin-bottom: 1.5rem; }
 .footer-socials { display: flex; gap: 10px; }
@@ -114,14 +122,21 @@ const sponsors = [
   font-weight: 700; font-size: 13px; text-decoration: none; transition: background 0.2s;
 }
 .social-btn:hover { background: #0d2d5e; }
-.footer-col-titre { font-size: 15px; font-weight: 700; color: #0d2d5e; margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 2px solid #1a5c9e; }
-.footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.footer-col-titre {
+  font-size: 15px; font-weight: 700; color: #0d2d5e;
+  margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 2px solid #1a5c9e;
+}
+.footer-links {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
 .footer-links li { font-size: 14px; color: #555; cursor: pointer; transition: color 0.2s; }
 .footer-links li:hover { color: #1a5c9e; }
 
 .footer-bottom {
   background: #0d2d5e; padding: 1rem 2rem;
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+  display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 10px;
 }
 .footer-bottom p { color: #a8cbf0; font-size: 13px; }
 

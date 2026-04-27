@@ -80,10 +80,7 @@ function fermerRecherche() {
     <!-- NAVBAR PRINCIPALE -->
     <nav class="navbar">
       <div class="navbar-brand">
-        <svg class="navbar-logo" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-          <rect width="60" height="60" rx="12" fill="#1a5c9e"/>
-          <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" fill="white" font-size="22" font-weight="800" font-family="Arial">CY</text>
-        </svg>
+        <img src="/cytech-logo.png" alt="CYTech" class="navbar-logo" />
         <div>
           <div class="navbar-name">CYTech</div>
           <div class="navbar-sub">École d'Ingénieurs</div>
@@ -176,21 +173,12 @@ function fermerRecherche() {
 
 <style scoped>
 .topbar {
-  background: #1a5c9e;
-  color: white;
-  padding: 10px 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  letter-spacing: 1px;
+  background: #1a5c9e; color: white;
+  padding: 10px 2rem; display: flex;
+  justify-content: space-between; align-items: center;
+  font-size: 13px; letter-spacing: 1px;
 }
-.topbar-links {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #d6e8f7;
-}
+.topbar-links { display: flex; align-items: center; gap: 14px; color: #d6e8f7; }
 .topbar-links span:not(.sep):hover { color: white; cursor: pointer; }
 .topbar-right { display: flex; align-items: center; gap: 14px; color: #d6e8f7; }
 .sep { color: #5a8ab8; }
@@ -202,19 +190,13 @@ function fermerRecherche() {
 .langue-dropdown span:hover { background: #f0f5ff; color: #1a5c9e; }
 
 .navbar {
-  background: white;
-  border-bottom: 2px solid #1a5c9e;
-  padding: 0 2rem;
-  height: 75px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  background: white; border-bottom: 2px solid #1a5c9e;
+  padding: 0 2rem; height: 80px; display: flex;
+  align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
 }
 .navbar-brand { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-.navbar-logo { height: 50px; width: 50px; }
+.navbar-logo { height: 65px; width: auto; }
 .navbar-name { font-weight: 800; font-size: 22px; color: #0d2d5e; letter-spacing: 2px; }
 .navbar-sub { font-size: 11px; color: #999; letter-spacing: 1px; text-transform: uppercase; }
 
@@ -244,65 +226,16 @@ function fermerRecherche() {
 .resultat-date { font-size: 12px; color: #999; margin-top: 2px; }
 .no-resultat { text-align: center; font-size: 13px; color: #999; padding: 10px; }
 
-/* MENU MOBILE */
-.menu-mobile-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #0d2d5e;
-  padding: 4px 8px;
-}
-.menu-mobile {
-  background: white;
-  border-bottom: 2px solid #1a5c9e;
-  padding: 1rem 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  position: sticky;
-  top: 75px;
-  z-index: 99;
-}
-.mobile-search {
-  display: flex;
-  gap: 8px;
-}
-.mobile-search-input {
-  flex: 1;
-  padding: 10px 14px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-}
+.menu-mobile-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #0d2d5e; padding: 4px 8px; }
+.menu-mobile { background: white; border-bottom: 2px solid #1a5c9e; padding: 1rem 2rem; display: flex; flex-direction: column; gap: 12px; position: sticky; top: 80px; z-index: 99; }
+.mobile-search { display: flex; gap: 8px; }
+.mobile-search-input { flex: 1; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
 .mobile-search-input:focus { border-color: #1a5c9e; }
-.mobile-search-btn {
-  padding: 10px 14px;
-  background: #1a5c9e;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-}
-.mobile-links {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.mobile-links span {
-  padding: 10px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0d2d5e;
-  cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
-  letter-spacing: 0.5px;
-}
+.mobile-search-btn { padding: 10px 14px; background: #1a5c9e; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+.mobile-links { display: flex; flex-direction: column; gap: 4px; }
+.mobile-links span { padding: 10px 0; font-size: 14px; font-weight: 600; color: #0d2d5e; cursor: pointer; border-bottom: 1px solid #f0f0f0; letter-spacing: 0.5px; }
 .mobile-links span:hover { color: #1a5c9e; }
 
-/* RESPONSIVE */
 .desktop-only { display: flex; }
 .mobile-only { display: none; }
 
@@ -312,7 +245,6 @@ function fermerRecherche() {
   .topbar-links { display: none; }
   .navbar-name { font-size: 18px; }
 }
-
 @media (max-width: 480px) {
   .topbar { padding: 8px 1rem; }
   .navbar { padding: 0 1rem; }

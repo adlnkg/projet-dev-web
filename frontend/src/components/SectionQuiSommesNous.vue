@@ -33,14 +33,10 @@
 
       <div class="qui-right">
         <img
-          src="https://images.unsplash.com/photo-1562774053-701939374585?w=600&q=80"
-          alt="Campus CYTech"
+          src="/equipe.jpg"
+          alt="Équipe CYTech"
           class="qui-img"
         />
-        <div class="qui-badge">
-          <div class="badge-chiffre">+30 ans</div>
-          <div class="badge-label">d'excellence académique</div>
-        </div>
       </div>
 
     </div>
@@ -51,7 +47,7 @@
 .qui-section {
   background: #1a5c9e;
   padding: 5rem 2rem;
-  border-bottom: 1px solid #1550888;
+  border-bottom: 1px solid #155088;
 }
 .qui-inner {
   max-width: 1100px;
@@ -115,62 +111,27 @@
 }
 .qui-img {
   width: 100%;
-  height: 500px;
-  object-fit: cover;
+  height: 400px;
+  object-fit: contain;
   border-radius: 20px;
   display: block;
-}
-.qui-badge {
-  position: absolute;
-  bottom: 20px;
-  left: -20px;
-  background: white;
-  border-radius: 14px;
-  padding: 1rem 1.5rem;
-  text-align: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-}
-.badge-chiffre {
-  color: #1a5c9e;
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-.badge-label {
-  color: #555;
-  font-size: 12px;
-  margin-top: 4px;
+  background: rgba(255,255,255,0.05);
 }
 
-/* RESPONSIVE */
 @media (max-width: 900px) {
   .qui-inner {
     flex-direction: column;
     gap: 2rem;
   }
-  .qui-right {
-    width: 100%;
-  }
-  .qui-img {
-    height: 300px;
-  }
-  .qui-badge {
-    left: 10px;
-    bottom: 10px;
-  }
-  .section-titre {
-    font-size: 1.7rem;
-  }
+  .qui-right { width: 100%; }
+  .qui-img { height: 280px; }
+  .section-titre { font-size: 1.7rem; }
 }
 
 @media (max-width: 480px) {
-  .qui-section {
-    padding: 3rem 1rem;
-  }
-  .valeurs-grid {
-    grid-template-columns: 1fr;
-  }
-  .section-titre {
-    font-size: 1.5rem;
-  }
+  .qui-section { padding: 3rem 1rem; }
+  .valeurs-grid { grid-template-columns: 1fr; }
+  .section-titre { font-size: 1.5rem; }
+  .qui-img { height: 220px; }
 }
 </style>

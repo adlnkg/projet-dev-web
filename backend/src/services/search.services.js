@@ -315,6 +315,135 @@ const searchEvents = async (keywords, validAreasIds, hierarchy) => {
     return fuse.search(keywords).map((result) => result.item);
 };
 
+/**
+ * Search for actualities with dedicated filters.
+ * @param {{ keywords: string, type: string, createdFrom: Date | null, createdTo: Date | null }} filters
+ * @returns {Promise<import('@prisma/client').Actuality[]>}
+ */
+const searchActualities = async (filters) => {
+    const {
+        keywords = "",
+        type = "ALL",
+        createdFrom = null,
+        createdTo = null,
+    } = filters;
+
+    const where = {
+        ...(type && type !== "ALL" ? { type } : {}),
+        ...(createdFrom || createdTo
+            ? {
+                createdAt: {
+                    ...(createdFrom ? { gte: createdFrom } : {}),
+                    ...(createdTo ? { lte: createdTo } : {}),
+                },
+            }
+            : {}),
+    };
+
+    const isMissingActualityTypeColumnError = (error) => {
+        const message = String(error?.message ?? "");
+        return error?.code === "P2022" && message.includes("Actuality.type");
+    };
+
+    const buildDateWhere = () => ({
+        ...(createdFrom || createdTo
+            ? {
+                createdAt: {
+                    ...(createdFrom ? { gte: createdFrom } : {}),
+                    ...(createdTo ? { lte: createdTo } : {}),
+                },
+            }
+            : {}),
+    });
+
+    let actualities;
+    try {
+        actualities = await prisma.actuality.findMany({
+            where,
+            include: {
+                owner: {
+                    select: {
+                        id: true,
+                        login: true,
+                        firstName: true,
+                        lastName: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+    } catch (error) {
+        if (!isMissingActualityTypeColumnError(error)) {
+            throw error;
+        }
+
+        // Fallback for non-migrated databases where Actuality.type is missing.
+        if (type && type !== "ALL") {
+            const unsupportedFilterError = new Error("Le filtre 'type' des actualites n'est pas disponible car la base n'est pas a jour (colonne 'Actuality.type' manquante).");
+            unsupportedFilterError.statusCode = 400;
+            throw unsupportedFilterError;
+        }
+
+        actualities = await prisma.actuality.findMany({
+            where: buildDateWhere(),
+            select: {
+                id: true,
+                title: true,
+                content: true,
+                imageUrl: true,
+                createdAt: true,
+                ownerId: true,
+                owner: {
+                    select: {
+                        id: true,
+                        login: true,
+                        firstName: true,
+                        lastName: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        });
+    }
+
+    if (!keywords || !keywords.trim()) {
+        return actualities;
+    }
+
+    const searchableActualities = actualities.map((actuality) => ({
+        ...actuality,
+        ownerSearch: [
+            actuality.owner?.login,
+            actuality.owner?.firstName,
+            actuality.owner?.lastName,
+        ]
+            .filter(Boolean)
+            .join(" "),
+    }));
+
+    const fuse = new Fuse(searchableActualities, {
+        threshold: 0.35,
+        ignoreLocation: true,
+        keys: [
+            { name: "title", weight: 0.42 },
+            { name: "content", weight: 0.28 },
+            { name: "type", weight: 0.15 },
+            {
+                name: "createdAt",
+                weight: 0.05,
+                getFn: (actuality) => actuality.createdAt?.toISOString?.() ?? "",
+            },
+            { name: "ownerSearch", weight: 0.1 },
+        ],
+    });
+
+    return fuse.search(keywords).map((result) => result.item);
+};
+
 
 /** * Main search function that routes to specific search functions based on filters.
  * @param {Object} filters - The search filters containing keywords, building, and type.
@@ -347,5 +476,5 @@ const search = async (filters) => {
     }
 };
 
-export default { search };
+export default { search, searchActualities };
 

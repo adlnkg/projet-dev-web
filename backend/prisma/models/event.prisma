@@ -37,9 +37,17 @@ model Actuality {
     content   String
 
     imageUrl  String   @default("images/actualities/default-actuality.png")
-
+    type      ActualityType @default(NEWS)
     createdAt DateTime @default(now())
 
     owner   User?   @relation("UserCreatedActualities", fields: [ownerId], references: [id], onDelete: SetNull)
     ownerId String?
+}
+
+enum ActualityType {
+    //A remplir ...
+    NEWS
+    ANNOUNCEMENT
+    UPDATE
+    OTHER
 }

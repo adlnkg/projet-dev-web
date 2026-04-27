@@ -209,7 +209,7 @@ Le modèle `User` inclut :
 
 Recherche globale sur les devices, areas et events.
 
-Route publique : pas de token requis actuellement.
+Route protégée : token requis (`Authorization: Bearer <token>`).
 
 Query params :
 
@@ -319,6 +319,38 @@ Réponse `200` :
       "supportedSpecificFields": []
     }
   }
+}
+```
+
+### Recherche
+
+`GET /api/actualities/search`
+
+Recherche dédiée aux actualités.
+
+Route publique : pas de token requis.
+
+Query params :
+
+- `keywords` : texte libre recherché avec Fuse.js sur `title`, `content`, `type`, `createdAt` et `owner`.
+- `type` : type d'actualité, optionnel (`NEWS`, `ANNOUNCEMENT`, `UPDATE`, `OTHER`) ou `all`.
+- `createdFrom` : borne basse de date de création (format date/ISO), optionnel.
+- `createdTo` : borne haute de date de création (format date/ISO), optionnel.
+
+Exemples :
+
+```http
+GET /api/actualities/search?keywords=maintenance&type=NEWS
+GET /api/actualities/search?createdFrom=2026-04-01&createdTo=2026-04-30&type=all
+```
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "count": 3,
+  "data": []
 }
 ```
 

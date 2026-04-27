@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, triggerRef } from "vue";
 
 /**
  * @template T
@@ -31,6 +31,37 @@ export function useData(fn) {
 
   return {
     data,
+    loading,
+    error,
+  };
+}
+
+/**
+ * @function
+ * @template Args extends unknown[]
+ * @template Result
+ * @param {(...args: Args) => Promise<Result>} fn
+ * @returns {{fn: (...args: Args) => Promise<Result>, loading: Ref<boolean>, error: Ref<Error | null>}}
+ */
+export function useMutation(fn) {
+  const loading = ref(false);
+  /** @type {Ref<Error | null>} */
+  const error = ref(null);
+
+  const newFn = async (...args) => {
+    loading.value = true;
+    error.value = null;
+    try {
+      return await fn(...args);
+    } catch (e) {
+      error.value = e;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  return {
+    fn: newFn,
     loading,
     error,
   };

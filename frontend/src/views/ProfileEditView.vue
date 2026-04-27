@@ -1,15 +1,10 @@
 <script setup>
-import { Button, DatePicker, InputText, Select, Skeleton } from "primevue";
-import { Form, FormField } from "@primevue/forms";
-import { fetchUser } from "@/utils/user";
+import { Button, InputText, Select, Skeleton } from "primevue";
+import { Form } from "@primevue/forms";
+import FieldDate from "@/components/FieldDate.vue";
+import { fetchUser, SELECT_GENDER } from "@/utils/user";
 import { useData } from "@/utils/useData";
 import { useRouter } from "vue-router";
-
-const SELECT_GENDER = [
-  { label: "Homme", value: "male" },
-  { label: "Femme", value: "female" },
-  { label: "Autre", value: "other" },
-];
 
 const router = useRouter();
 const { data: user, loading, error } = useData(async () => {
@@ -62,14 +57,7 @@ function onSubmit(e) {
           Né{{ form.gender?.value === "female" ? "e" : "" }} le
         </label>
 
-        <FormField v-slot="field" name="birthdate" id="birthdate">
-          <DatePicker
-            :modelValue="field.value"
-            @update:modelValue="(v) => (field.value = v)"
-            updateModelType="string"
-            :disabled="loading"
-          />
-        </FormField>
+        <FieldDate name="birthdate" id="birthdate" :disabled="loading" />
       </div>
 
       <Button type="submit" :disabled="loading">Enregistrer</Button>

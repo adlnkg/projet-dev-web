@@ -13,7 +13,7 @@ const loading = ref(false)
 const erreur = ref(null)
 const rechercheLancee = ref(false)
 
-const types = ['NEWS', 'ANNOUNCEMENT', 'UPDATE', 'OTHER']
+const types = ['CONFERENCE', 'WORKSHOP', 'SEMINAR', 'SPORT', 'OTHER']
 
 async function lancerRecherche() {
   loading.value = true
@@ -22,11 +22,11 @@ async function lancerRecherche() {
   resultats.value = []
 
   try {
-    let url = 'http://localhost:3000/api/actualities/search?'
+    let url = 'http://localhost:3000/api/events/search?'
     if (recherche.value) url += `keywords=${encodeURIComponent(recherche.value)}&`
     if (typeChoisi.value) url += `type=${typeChoisi.value}&`
-    if (dateDebut.value) url += `createdFrom=${dateDebut.value}&`
-    if (dateFin.value) url += `createdTo=${dateFin.value}&`
+    if (dateDebut.value) url += `startFrom=${dateDebut.value}&`
+    if (dateFin.value) url += `startTo=${dateFin.value}&`
 
     const response = await fetch(url)
     const data = await response.json()
@@ -63,8 +63,8 @@ onMounted(() => {
     <div class="page-header">
       <div class="header-inner">
         <a @click="router.push('/')" class="back-btn">← Retour à l'accueil</a>
-        <h1 class="page-titre">Recherche d'actualités</h1>
-        <p class="page-sous-titre">Retrouvez toutes les actualités du campus de Cergy</p>
+        <h1 class="page-titre">Recherche d'événements</h1>
+        <p class="page-sous-titre">Retrouvez tous les événements du campus de Cergy</p>
       </div>
     </div>
 
@@ -77,7 +77,7 @@ onMounted(() => {
             <input
               v-model="recherche"
               type="text"
-              placeholder="Rechercher une actualité..."
+              placeholder="Rechercher un événement..."
               class="search-input"
               @keyup.enter="lancerRecherche"
             />
@@ -108,6 +108,7 @@ onMounted(() => {
     <!-- RÉSULTATS -->
     <div class="resultats-section">
       <div class="resultats-inner">
+
         <div v-if="loading" class="loading">
           <div class="spinner"></div>
           <p>Recherche en cours...</p>
@@ -122,29 +123,35 @@ onMounted(() => {
         <div class="resultats-liste" v-if="resultats.length > 0">
           <div class="resultat-card" v-for="r in resultats" :key="r.id">
             <img
-              :src="r.imageUrl ? `http://localhost:3000/${r.imageUrl}` : 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=80'"
+              :src="r.imageUrl ? `http://localhost:3000/${r.imageUrl}` : 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&q=80'"
               :alt="r.title"
               class="resultat-img"
             />
             <div class="resultat-body">
               <div class="resultat-header">
                 <span class="resultat-type" v-if="r.type">{{ r.type }}</span>
-                <span class="resultat-date">{{ new Date(r.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
+                <span class="resultat-date" v-if="r.startTime">
+                  {{ new Date(r.startTime).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) }}
+                </span>
               </div>
               <h3 class="resultat-titre">{{ r.title }}</h3>
-              <p class="resultat-content">{{ r.content }}</p>
-              <div class="resultat-auteur" v-if="r.owner">
-                Par {{ r.owner.firstName || r.owner.login }}
+              <p class="resultat-content">{{ r.description }}</p>
+              <div class="resultat-infos">
+                <span v-if="r.organizer">👤 {{ r.organizer }}</span>
+                <span v-if="r.maxParticipants">👥 {{ r.maxParticipants }} places</span>
+                <span v-if="r.price !== undefined">💰 {{ r.price === 0 ? 'Gratuit' : r.price + '€' }}</span>
               </div>
+              <button class="btn-inscrire">Je m'inscris</button>
             </div>
           </div>
         </div>
 
         <div v-else-if="rechercheLancee && !loading" class="vide">
           <div class="vide-icon">🔎</div>
-          <p>Aucune actualité trouvée.</p>
+          <p>Aucun événement trouvé.</p>
           <p class="vide-sub">Essayez avec d'autres mots-clés ou modifiez les filtres.</p>
         </div>
+
       </div>
     </div>
 
@@ -239,14 +246,32 @@ onMounted(() => {
   box-shadow: 0 4px 16px rgba(26,92,158,0.1);
   transform: translateY(-2px);
 }
-.resultat-img { width: 200px; height: 150px; object-fit: cover; flex-shrink: 0; }
-.resultat-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.resultat-img { width: 200px; height: 160px; object-fit: cover; flex-shrink: 0; }
+.resultat-body {
+  padding: 1.25rem; flex: 1;
+  display: flex; flex-direction: column; gap: 8px;
+}
 .resultat-header { display: flex; align-items: center; gap: 10px; }
-.resultat-type { background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+.resultat-type {
+  background: #dbeafe; color: #1e40af;
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+}
 .resultat-date { font-size: 12px; color: #999; }
 .resultat-titre { font-size: 18px; font-weight: 700; color: #0d2d5e; }
 .resultat-content { font-size: 14px; color: #666; line-height: 1.6; flex: 1; }
-.resultat-auteur { font-size: 12px; color: #aaa; }
+.resultat-infos {
+  display: flex; gap: 16px;
+  font-size: 12px; color: #999; flex-wrap: wrap;
+}
+.btn-inscrire {
+  padding: 10px 20px;
+  background: #1a5c9e; color: white;
+  border: none; border-radius: 8px;
+  cursor: pointer; font-size: 14px; font-weight: 600;
+  transition: background 0.2s; align-self: flex-start;
+}
+.btn-inscrire:hover { background: #0d2d5e; }
 .loading { text-align: center; padding: 3rem; color: #666; }
 .spinner {
   width: 40px; height: 40px; border: 4px solid #e5e7eb;

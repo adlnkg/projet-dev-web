@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const evenements = ref([])
 const loading = ref(true)
 const erreur = ref(null)
@@ -60,6 +62,11 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+
+      <div class="actu-footer" v-if="evenements.length > 0">
+        <button class="btn-plus" @click="router.push('/evenements')">Voir tous les événements</button>
+      </div>
+
     </div>
   </section>
 </template>
@@ -111,49 +118,46 @@ onMounted(async () => {
 }
 .evenement-date {
   position: absolute;
-  bottom: 12px;
-  left: 12px;
-  background: #1a5c9e;
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
+  bottom: 12px; left: 12px;
+  background: #1a5c9e; color: white;
+  font-size: 12px; font-weight: 600;
+  padding: 4px 12px; border-radius: 20px;
 }
 .evenement-body { padding: 1.25rem; }
 .evenement-titre {
-  color: #0d2d5e;
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  color: #0d2d5e; font-size: 16px;
+  font-weight: 700; margin-bottom: 8px;
 }
 .evenement-desc {
-  color: #666;
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 10px;
+  color: #666; font-size: 14px;
+  line-height: 1.6; margin-bottom: 10px;
 }
 .evenement-infos {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+  display: flex; gap: 12px;
+  font-size: 12px; color: #999;
+  margin-bottom: 1rem; flex-wrap: wrap;
 }
 .btn-inscrire {
-  width: 100%;
-  padding: 10px;
-  background: #1a5c9e;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
+  width: 100%; padding: 10px;
+  background: #1a5c9e; color: white;
+  border: none; border-radius: 8px;
+  cursor: pointer; font-size: 14px; font-weight: 600;
   transition: background 0.2s;
 }
 .btn-inscrire:hover { background: #0d2d5e; }
+.actu-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+.btn-plus {
+  padding: 12px 36px;
+  background: #1a5c9e; color: white;
+  border: none; border-radius: 8px;
+  cursor: pointer; font-size: 15px; font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-plus:hover { background: #0d2d5e; }
 .loading { text-align: center; padding: 3rem; color: #666; }
 .spinner {
   width: 40px; height: 40px;

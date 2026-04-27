@@ -10,14 +10,24 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: "/actualites",
+      name: "actualites",
+      component: () => import("../views/ActualitesView.vue"),
+    },
+    {
+      path: "/evenements",
+      name: "evenements",
+      component: () => import("../views/EvenementsView.vue"),
+    },
+    {
       path: "/login",
       name: "login",
-      component: () => import("../views/LoginView.vue"),
+      component: () => import("../views/AuthLoginView.vue"),
     },
     {
       path: "/register",
       name: "register",
-      component: () => import("../views/RegisterView.vue"),
+      component: () => import("../views/AuthSigninView.vue"),
     },
     {
       path: "/verify-otp",
@@ -38,16 +48,6 @@ const router = createRouter({
       path: "/user",
       name: "user",
       component: () => import("../views/UserView.vue"),
-    },
-    {
-      path: '/login',
-      name: 'auth-login',
-      component: () => import('../views/AuthLoginView.vue'),
-    },
-    {
-      path: '/signin',
-      name: 'auth-signin',
-      component: () => import('../views/AuthSigninView.vue'),
     },
   ],
 });

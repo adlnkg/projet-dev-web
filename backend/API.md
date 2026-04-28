@@ -256,6 +256,7 @@ Chaque réponse de détail contient :
       "lastName": null
     },
     "ownerName": "fanck",
+    "userIsRegistered": false,
     "specific": {},
     "form": {
       "role": "USER",
@@ -285,8 +286,7 @@ Règles communes :
 - La création est réservée à `ADMIN`.
 - Les créations avec image utilisent `multipart/form-data` avec un champ fichier nommé `image`.
 - Les images sont enregistrées dans `public/images/<ressource>/...`.
-- Le créateur est injecté automatiquement depuis l’utilisateur authentifié via `owner`.
-
+- Le créateur est injecté automatiquement depuis l’utilisateur authentifié via `owner`.- **Pour les Events uniquement** : le champ `userIsRegistered` indique si l'utilisateur connecté est inscrit à l'événement. Ce champ est `false` pour les utilisateurs non authentifiés.
 ## Actuality
 
 ### Lecture
@@ -547,6 +547,58 @@ Champs modifiables :
 
 - `SUPER_USER` : `startTime`, `endTime`, `maxParticipants`, `type`
 - `ADMIN` : `title`, `description`, `organizer`, `price`, `imageUrl` + droits du `SUPER_USER`
+
+### Inscription
+
+`POST /api/events/:id/register`
+
+Route protégée : token requis (`Authorization: Bearer <token>`).
+
+Permet à un utilisateur connecté de s'inscrire à un événement.
+
+Réponse `201` :
+
+```json
+{
+  "success": true,
+  "message": "Inscription à l'événement réussie.",
+  "data": {
+    "id": "uuid",
+    "userId": "user-uuid",
+    "eventId": 5,
+    "createdAt": "2026-04-27T21:45:00Z"
+  }
+}
+```
+
+Erreurs possibles :
+
+- `401` : Authentification requise
+- `404` : Événement introuvable
+- `400` : Utilisateur déjà inscrit ou événement complet
+
+### Désinscription
+
+`POST /api/events/:id/unregister`
+
+Route protégée : token requis (`Authorization: Bearer <token>`).
+
+Permet à un utilisateur connecté de se désinscrire d'un événement.
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "message": "Désinscription de l'événement réussie."
+}
+```
+
+Erreurs possibles :
+
+- `401` : Authentification requise
+- `404` : Événement introuvable
+- `400` : Utilisateur non inscrit à cet événement
 
 ## Area
 

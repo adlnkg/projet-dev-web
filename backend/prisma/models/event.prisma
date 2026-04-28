@@ -18,7 +18,20 @@ model Event {
     owner   User?   @relation("UserCreatedEvents", fields: [ownerId], references: [id], onDelete: SetNull)
     ownerId String?
 
+    registrations EventRegistration[] @relation("EventRegistrations")
+
     type EventType @default(WORKSHOP)
+}
+
+model EventRegistration {
+    id        String   @id @default(uuid())
+    user      User     @relation("UserEventRegistrations", fields: [userId], references: [id], onDelete: Cascade)
+    userId    String
+    event     Event    @relation("EventRegistrations", fields: [eventId], references: [id], onDelete: Cascade)
+    eventId   Int
+    createdAt DateTime @default(now())
+
+    @@unique([userId, eventId])
 }
 
 enum EventType {

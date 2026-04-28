@@ -7,6 +7,7 @@ import { requestDeletionForEntity } from "../controllers/deletion-request.contro
 
 const router = express.Router();
 
+
 router.post(
 	"/",
 	authMiddleware,

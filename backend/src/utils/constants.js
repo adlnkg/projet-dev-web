@@ -9,6 +9,15 @@ export const LIMITS = {
     DESCRIPTION: 1000,
 };
 
+export const ROLE_HIERARCHY = {
+    GUEST: null,
+    USER: "GUEST",
+    SUPER_USER: "USER",
+    ADMIN: "SUPER_USER",
+};
+
+
+
 export const ALLOWED_SEARCH_TYPES = ["device", "area", "event", "all"]; //DO NOT RENAME
 
 //TODO stop using this (use enums imported from prisma instead)

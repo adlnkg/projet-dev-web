@@ -1,5 +1,6 @@
 import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
+import optionalAuthMiddleware from "../middlewares/optionalAuth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
 import { getActualityCreateForm, getActuality, postActuality, createActuality } from "../controllers/actuality.controller.js";
@@ -26,9 +27,9 @@ router.post(
 	requestDeletionForEntity("ACTUALITY", "Actualite"),
 );
 
-router.get("/search", validateAndNormalizeActualitySearch, searchActualities);
+router.get("/search", optionalAuthMiddleware, validateAndNormalizeActualitySearch, searchActualities);
 
-router.get("/:id", getActuality);
+router.get("/:id", optionalAuthMiddleware, getActuality);
 router.post("/:id", authMiddleware, postActuality);
 
 export default router;

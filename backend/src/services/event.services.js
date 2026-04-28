@@ -226,36 +226,50 @@ const buildEventSpecificPayload = () => ({});   //No specific fields for events 
 
 /** Retrieves an event by its ID, including related area information, for the purpose of updating it.
  * @param {number} eventId - The ID of the event to retrieve.
+ * @param {string} [userId] - Optional user ID to check if user is registered to the event.
  * @returns {object|null} The event object with related area data, or null if not found.
  */
-const getEventForUpdate = async (eventId) => prisma.event.findUnique({
-    where: { id: eventId },
-    include: {
-        area: true,
-        owner: {
-            select: {
-                id: true,
-                login: true,
-                firstName: true,
-                lastName: true,
+const getEventForUpdate = async (eventId, userId = null) => {
+    const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        include: {
+            area: true,
+            owner: {
+                select: {
+                    id: true,
+                    login: true,
+                    firstName: true,
+                    lastName: true,
+                },
             },
+            registrations: userId ? {
+                where: {
+                    userId: userId,
+                },
+                select: {
+                    id: true,
+                },
+            } : false,
         },
-    },
-});
+    });
+    //resulting event id:
+    console.log("Fetched event:", event ? { id: event.id, title: event.title } : null);
+    return event;
+};
 
 /** Builds the response object for an event, including its details and form configuration based on the user's role.
  * @param {object} event - The event object to build the response for.
  * @param {string} role - The role of the user requesting the event details (e.g., "USER", "SUPER_USER", "ADMIN").
+ * @param {boolean} userIsRegistered - Whether the user is registered to the event (only for authenticated users).
  * @returns {object} The response object containing event details and form configuration.
  */
-const buildEventResponse = (event, role) => {
+const buildEventResponse = (event, role, userIsRegistered = false) => {
     const editableFieldKeys = getEditableFieldKeys({
         role,
         entityType: EVENT_RESOURCE_TYPE,
         editableFieldKeysByRole: EDITABLE_FIELD_KEYS_BY_ROLE,
         entityTypeSupport: EVENT_TYPE_SUPPORT,
     });
-
     return {
         id: event.id,
         title: event.title,
@@ -287,6 +301,7 @@ const buildEventResponse = (event, role) => {
                 type: event.area.type,
             }
             : null,
+        userIsRegistered: userIsRegistered,
         specific: {},
         form: {
             role,
@@ -309,11 +324,12 @@ const buildEventResponse = (event, role) => {
 /** Retrieves the details of an event by its ID, including related area information, and builds the response based on the user's role.
  * @param {number} eventId - The ID of the event to retrieve.
  * @param {string} role - The role of the user requesting the event details (e.g., "USER", "SUPER_USER", "ADMIN").
+ * @param {string} [userId] - Optional user ID for checking registration status.
  * @returns {object} The response object containing event details and form configuration.
  * @throws {Error} If the event is not found, an error with status code 404 is thrown.
  */
-const getEventDetails = async (eventId, role) => {
-    const event = await getEventForUpdate(eventId);
+const getEventDetails = async (eventId, role, userId = null) => {
+    const event = await getEventForUpdate(eventId, userId);
 
     if (!event) {
         const error = new Error("Evenement introuvable.");
@@ -321,7 +337,8 @@ const getEventDetails = async (eventId, role) => {
         throw error;
     }
 
-    return buildEventResponse(event, role);
+    const userIsRegistered = userId && event.registrations && event.registrations.length > 0;
+    return buildEventResponse(event, role, userIsRegistered);
 };
 
 /** Updates an event by its ID with the provided payload, applying validation and building the response based on the user's role.
@@ -460,9 +477,132 @@ const createEvent = async ({ role, ownerId, payload, imageUrl }) => {
     return getEventDetails(createdEvent.id, role);
 };
 
+/**
+ * Registers a user to an event.
+ * @param {number} eventId - The ID of the event to register to.
+ * @param {string} userId - The ID of the user registering.
+ * @returns {object} The registration object.
+ * @throws {Error} If the event or user is not found, or if the user is already registered.
+ */
+const registerToEvent = async (eventId, userId) => {
+    const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: { id: true, numberOfParticipants: true, maxParticipants: true },
+    });
+
+    if (!event) {
+        const error = new Error("Evenement introuvable.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (event.numberOfParticipants >= event.maxParticipants) {
+        const error = new Error("L'événement est complet.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+    });
+
+    if (!user) {
+        const error = new Error("Utilisateur introuvable.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const existingRegistration = await prisma.eventRegistration.findUnique({
+        where: {
+            userId_eventId: {
+                userId: userId,
+                eventId: eventId,
+            },
+        },
+    });
+
+    if (existingRegistration) {
+        const error = new Error("Vous êtes déjà inscrit à cet événement.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    // Create registration and increment numberOfParticipants atomically
+    const registration = await prisma.eventRegistration.create({
+        data: {
+            userId: userId,
+            eventId: eventId,
+        },
+    });
+
+    await prisma.event.update({
+        where: { id: eventId },
+        data: {
+            numberOfParticipants: {
+                increment: 1,
+            },
+        },
+    });
+
+    return registration;
+};
+
+/**
+ * Unregisters a user from an event.
+ * @param {number} eventId - The ID of the event to unregister from.
+ * @param {string} userId - The ID of the user unregistering.
+ * @throws {Error} If the event is not found or if the user is not registered.
+ */
+const unregisterFromEvent = async (eventId, userId) => {
+    const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: { id: true },
+    });
+
+    if (!event) {
+        const error = new Error("Evenement introuvable.");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const registration = await prisma.eventRegistration.findUnique({
+        where: {
+            userId_eventId: {
+                userId: userId,
+                eventId: eventId,
+            },
+        },
+    });
+
+    if (!registration) {
+        const error = new Error("Vous n'êtes pas inscrit à cet événement.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    // Delete registration and decrement numberOfParticipants atomically
+    await prisma.eventRegistration.delete({
+        where: {
+            id: registration.id,
+        },
+    });
+
+    await prisma.event.update({
+        where: { id: eventId },
+        data: {
+            numberOfParticipants: {
+                decrement: 1,
+            },
+        },
+    });
+};
+
 export default {
     getEventCreateForm,
     getEventDetails,
     updateEvent,
     createEvent,
+    registerToEvent,
+    unregisterFromEvent,
 };

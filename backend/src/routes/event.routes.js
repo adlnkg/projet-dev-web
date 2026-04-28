@@ -2,7 +2,8 @@ import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
-import { getEventCreateForm, getEvent, postEvent, createEvent } from "../controllers/event.controller.js";
+import { getEventCreateForm, getEvent, postEvent, createEvent, registerToEvent, unregisterFromEvent } from "../controllers/event.controller.js";
+import optionalAuthMiddleware from "../middlewares/optionalAuth.middleware.js";
 import { requestDeletionForEntity } from "../controllers/deletion-request.controller.js";
 
 const router = express.Router();
@@ -24,7 +25,10 @@ router.post(
 	requestDeletionForEntity("EVENT", "Evenement"),
 );
 
-router.get("/:id", getEvent);
+router.post("/:id/register", authMiddleware, registerToEvent);
+router.post("/:id/unregister", authMiddleware, unregisterFromEvent);
+
+router.get("/:id", optionalAuthMiddleware, getEvent);
 router.post("/:id", authMiddleware, postEvent);
 
 export default router;

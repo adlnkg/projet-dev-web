@@ -1,6 +1,6 @@
 <script setup>
 import { useData } from "@/utils/useData";
-import { fetchUser } from "@/utils/user";
+import { getMe, DEFAULT_AVATAR } from "@/utils/user";
 import { Button, Skeleton } from "primevue";
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
@@ -8,11 +8,12 @@ import { RouterLink } from "vue-router";
 const MILLIS_IN_YEAR = 31536000000;
 
 const UI_GENDERS = {
-  male: "Homme",
-  female: "Femme",
+  H: "Homme",
+  F: "Femme",
+  O: "Autre",
 };
 
-const { data: user, loading, error } = useData(fetchUser);
+const { data: user, loading, error } = useData(getMe);
 const age = computed(() => user === null ? null :
   Math.floor((new Date() - user.value.birthdate) / MILLIS_IN_YEAR
 ));
@@ -24,12 +25,12 @@ const age = computed(() => user === null ? null :
   </main>
   <main v-else>
     <Skeleton v-if="loading" width="100%" height="100%" id="avatar" />
-    <img v-else :src="user.avatar" alt="avatar" id="avatar" />
+    <img v-else :src="user.avatarURL || DEFAULT_AVATAR" alt="avatar" id="avatar" />
 
     <Skeleton v-if="loading" width="50%" height="2em" />
     <h1 v-else>
-      {{ user.firstname }} {{ user.lastname }}
-      <span>@{{ user.pseudo }}</span>
+      {{ user.firstName }} {{ user.lastName }}
+      <span>@{{ user.login }}</span>
     </h1>
 
     <div>

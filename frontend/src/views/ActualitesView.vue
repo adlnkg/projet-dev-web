@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import NavBar from '../components/NavBar.vue'
 
 const router = useRouter()
+const route = useRoute()
 const recherche = ref('')
 const typeChoisi = ref('')
 const dateDebut = ref('')
@@ -14,6 +15,10 @@ const erreur = ref(null)
 const rechercheLancee = ref(false)
 
 const types = ['NEWS', 'ANNOUNCEMENT', 'UPDATE', 'OTHER']
+
+function allerAuDetail(id) {
+  router.push(`/actualites/${id}`)
+}
 
 async function lancerRecherche() {
   loading.value = true
@@ -50,6 +55,9 @@ function reinitialiser() {
 }
 
 onMounted(() => {
+  if (route.query.keywords) {
+    recherche.value = route.query.keywords
+  }
   lancerRecherche()
 })
 </script>
@@ -108,6 +116,7 @@ onMounted(() => {
     <!-- RÉSULTATS -->
     <div class="resultats-section">
       <div class="resultats-inner">
+
         <div v-if="loading" class="loading">
           <div class="spinner"></div>
           <p>Recherche en cours...</p>
@@ -120,7 +129,7 @@ onMounted(() => {
         </div>
 
         <div class="resultats-liste" v-if="resultats.length > 0">
-          <div class="resultat-card" v-for="r in resultats" :key="r.id">
+          <div class="resultat-card" v-for="r in resultats" :key="r.id" @click="allerAuDetail(r.id)">
             <img
               :src="r.imageUrl ? `http://localhost:3000/${r.imageUrl}` : 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&q=80'"
               :alt="r.title"
@@ -145,6 +154,7 @@ onMounted(() => {
           <p>Aucune actualité trouvée.</p>
           <p class="vide-sub">Essayez avec d'autres mots-clés ou modifiez les filtres.</p>
         </div>
+
       </div>
     </div>
 
@@ -234,6 +244,7 @@ onMounted(() => {
   background: white; border-radius: 14px; overflow: hidden;
   display: flex; border: 1px solid #e5e7eb;
   transition: box-shadow 0.2s, transform 0.15s;
+  cursor: pointer;
 }
 .resultat-card:hover {
   box-shadow: 0 4px 16px rgba(26,92,158,0.1);

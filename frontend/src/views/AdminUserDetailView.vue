@@ -1,11 +1,12 @@
 <script setup>
 import NavBar from '../components/NavBar.vue'
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { getMe, DEFAULT_AVATAR } from '../utils/user'
+import { useRouter, useRoute } from 'vue-router'
+import { DEFAULT_AVATAR } from '../utils/user'
 import { useMutation } from '../utils/useData'
 
 const router = useRouter()
+const route = useRoute()
 const user = ref(null)
 const loading = ref(true)
 const error = ref(null)
@@ -19,25 +20,46 @@ const formData = ref({
   age: '',
   sex: '',
   memberType: '',
-  password: '',
-  passwordConfirm: '',
+  role: '',
   avatarUrl: '',
 })
 
 const avatarUrl = computed(() => formData.value.avatarUrl || user.value?.avatarUrl || DEFAULT_AVATAR)
 
-async function updateProfile(payload) {
-  const token = localStorage.getItem('token')
-  const userId = user.value.id
-  console.log('updateProfile - userId:', userId)
-  console.log('updateProfile - user.value:', user.value)
-  
-  if (!userId) {
-    throw new Error('ID utilisateur introuvable')
+async function fetchUser() {
+  try {
+    const token = localStorage.getItem('token')
+    const userId = route.params.id
+    const res = await fetch(`http://localhost:3000/api/user/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Utilisateur introuvable')
+    user.value = data
+    formData.value = {
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      email: data.email || '',
+      age: data.age || '',
+      sex: data.sex || '',
+      memberType: data.memberType || '',
+      role: data.role || '',
+      avatarUrl: data.avatarUrl || '',
+    }
+  } catch (e) {
+    error.value = e.message || 'Erreur lors du chargement'
+  } finally {
+    loading.value = false
   }
-  
-  const res = await fetch(`http://localhost:3000/api/user/${userId}`, {
-    method: 'PUT',
+}
+
+async function updateUserAdmin(payload) {
+  const token = localStorage.getItem('token')
+  const userId = route.params.id
+  const res = await fetch(`http://localhost:3000/api/user/${userId}/admin`, {
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
@@ -49,28 +71,10 @@ async function updateProfile(payload) {
   return data
 }
 
-const { fn: submit, loading: submitting } = useMutation(updateProfile)
+const { fn: submit, loading: submitting } = useMutation(updateUserAdmin)
 
-onMounted(async () => {
-  try {
-    const data = await getMe()
-    user.value = data
-    formData.value = {
-      firstName: data.firstName || '',
-      lastName: data.lastName || '',
-      email: data.email || '',
-      age: data.age || '',
-      sex: data.sex || '',
-      memberType: data.memberType || '',
-      password: '',
-      passwordConfirm: '',
-      avatarUrl: data.avatarUrl || '',
-    }
-  } catch (e) {
-    error.value = e.message || 'Erreur lors du chargement du profil'
-  } finally {
-    loading.value = false
-  }
+onMounted(() => {
+  fetchUser()
 })
 
 async function onSubmit(e) {
@@ -78,24 +82,8 @@ async function onSubmit(e) {
   formError.value = ''
   formSuccess.value = ''
 
-  // Validations
   if (!formData.value.firstName || !formData.value.lastName) {
     formError.value = 'Le prénom et le nom sont obligatoires.'
-    return
-  }
-
-  if (formData.value.age && (isNaN(formData.value.age) || formData.value.age < 1 || formData.value.age > 120)) {
-    formError.value = 'L\'âge doit être entre 1 et 120.'
-    return
-  }
-
-  if (formData.value.password && formData.value.password !== formData.value.passwordConfirm) {
-    formError.value = 'Les mots de passe ne correspondent pas.'
-    return
-  }
-
-  if (formData.value.password && formData.value.password.length < 6) {
-    formError.value = 'Le mot de passe doit contenir au moins 6 caractères.'
     return
   }
 
@@ -105,31 +93,32 @@ async function onSubmit(e) {
     age: formData.value.age ? parseInt(formData.value.age, 10) : undefined,
     sex: formData.value.sex || undefined,
     memberType: formData.value.memberType || undefined,
+    role: formData.value.role || undefined,
     avatarUrl: formData.value.avatarUrl || undefined,
-  }
-
-  if (formData.value.password) {
-    payload.password = formData.value.password
   }
 
   const res = await submit(payload)
   if (res) {
-    formSuccess.value = 'Profil mise à jour avec succès! Redirection...'
-    setTimeout(() => router.push('/profile'), 1500)
+    formSuccess.value = 'Utilisateur mis à jour avec succès!'
+    setTimeout(() => {
+      fetchUser()
+      formSuccess.value = ''
+    }, 1500)
   }
 }
 
 function resetForm() {
-  formData.value = {
-    firstName: user.value.firstName || '',
-    lastName: user.value.lastName || '',
-    email: user.value.email || '',
-    age: user.value.age || '',
-    sex: user.value.sex || '',
-    memberType: user.value.memberType || '',
-    password: '',
-    passwordConfirm: '',
-    avatarUrl: user.value.avatarUrl || '',
+  if (user.value) {
+    formData.value = {
+      firstName: user.value.firstName || '',
+      lastName: user.value.lastName || '',
+      email: user.value.email || '',
+      age: user.value.age || '',
+      sex: user.value.sex || '',
+      memberType: user.value.memberType || '',
+      role: user.value.role || '',
+      avatarUrl: user.value.avatarUrl || '',
+    }
   }
   formError.value = ''
   formSuccess.value = ''
@@ -140,7 +129,8 @@ function resetForm() {
   <NavBar />
   <div class="page-container">
     <header class="page-header">
-      <h1>Modifier mon profil</h1>
+      <button class="btn-back" @click="router.push('/admin/users')">← Retour</button>
+      <h1>Modifier utilisateur</h1>
     </header>
 
     <div v-if="error" class="error-message">
@@ -159,6 +149,7 @@ function resetForm() {
         <div class="preview-info">
           <h2>{{ formData.firstName }} {{ formData.lastName }}</h2>
           <p>@{{ user.login }}</p>
+          <p class="email">{{ user.email }}</p>
         </div>
       </div>
 
@@ -203,49 +194,46 @@ function resetForm() {
               </select>
             </div>
             <div class="form-field">
-              <label>Type de membre</label>
-              <select v-model="formData.memberType" disabled>
-                <option value="">— Sélectionner —</option>
-                <option value="STUDENT">Étudiant</option>
-                <option value="STAFF">Personnel</option>
-                <option value="VISITOR">Visiteur</option>
-                <option value="ADMIN">Administrateur</option>
-              </select>
-              <small>Non modifiable</small>
+              <label>URL Avatar</label>
+              <input v-model="formData.avatarUrl" type="url" placeholder="https://..." />
             </div>
-          </div>
-
-          <div class="form-field">
-            <label>URL Avatar</label>
-            <input v-model="formData.avatarUrl" type="url" placeholder="https://..." />
           </div>
         </div>
 
         <div class="form-section">
-          <h3>Mot de passe</h3>
-          <p class="section-info">Laissez vide pour ne pas modifier</p>
+          <h3>Paramètres d'administration</h3>
 
           <div class="form-row">
             <div class="form-field">
-              <label>Nouveau mot de passe</label>
-              <input v-model="formData.password" type="password" placeholder="Min. 6 caractères" />
+              <label>Type de membre</label>
+              <select v-model="formData.memberType">
+                <option value="">— Sélectionner —</option>
+                <option value="STUDENT">Étudiant</option>
+                <option value="STAFF">Personnel</option>
+                <option value="VISITOR">Visiteur</option>
+              </select>
             </div>
             <div class="form-field">
-              <label>Confirmer le mot de passe</label>
-              <input v-model="formData.passwordConfirm" type="password" />
+              <label>Rôle</label>
+              <select v-model="formData.role">
+                <option value="">— Sélectionner —</option>
+                <option value="USER">User</option>
+                <option value="SUPER_USER">Super User</option>
+                <option value="ADMIN">Admin</option>
+              </select>
             </div>
           </div>
         </div>
 
         <div class="form-actions">
           <button type="submit" class="btn-primary" :disabled="submitting">
-            {{ submitting ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+            {{ submitting ? 'Mise à jour...' : 'Mettre à jour' }}
           </button>
           <button type="button" class="btn-secondary" @click="resetForm">
             Annuler
           </button>
-          <button type="button" class="btn-tertiary" @click="router.push('/profile')">
-            Retour au profil
+          <button type="button" class="btn-tertiary" @click="router.push('/admin/users')">
+            Retour à la liste
           </button>
         </div>
       </form>
@@ -262,6 +250,24 @@ function resetForm() {
 
 .page-header {
   margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-back {
+  background: white;
+  color: #1a5c9e;
+  border: 2px solid #1a5c9e;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  background: #f0f5ff;
 }
 
 .page-header h1 {
@@ -341,6 +347,11 @@ function resetForm() {
   color: #d6e8f7;
 }
 
+.preview-info .email {
+  font-size: 12px;
+  margin-top: 0.5rem;
+}
+
 /* Form */
 .edit-form {
   padding: 2rem;
@@ -355,12 +366,6 @@ function resetForm() {
   color: #0d2d5e;
   font-size: 16px;
   font-weight: 700;
-}
-
-.section-info {
-  margin: 0 0 1rem;
-  font-size: 12px;
-  color: #999;
 }
 
 .form-row {
@@ -495,8 +500,9 @@ function resetForm() {
     padding: 1rem;
   }
 
-  .page-header h1 {
-    font-size: 20px;
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .preview-avatar {

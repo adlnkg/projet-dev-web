@@ -7,6 +7,10 @@ const evenements = ref([])
 const loading = ref(true)
 const erreur = ref(null)
 
+function allerAuDetail(id) {
+  router.push(`/evenements/${id}`)
+}
+
 onMounted(async () => {
   try {
     const response = await fetch('http://localhost:3000/api/home')
@@ -40,7 +44,7 @@ onMounted(async () => {
       </div>
 
       <div v-else class="evenements-cards">
-        <div class="evenement-card" v-for="e in evenements" :key="e.id">
+        <div class="evenement-card" v-for="e in evenements" :key="e.id" @click="allerAuDetail(e.id)">
           <div class="evenement-img-wrapper">
             <img
               :src="e.imageUrl ? `http://localhost:3000/${e.imageUrl}` : 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=500&q=80'"

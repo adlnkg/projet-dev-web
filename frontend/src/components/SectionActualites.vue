@@ -7,6 +7,10 @@ const actualites = ref([])
 const loading = ref(true)
 const erreur = ref(null)
 
+function allerAuDetail(id) {
+  router.push(`/actualites/${id}`)
+}
+
 onMounted(async () => {
   try {
     const response = await fetch('http://localhost:3000/api/home')
@@ -40,7 +44,7 @@ onMounted(async () => {
       </div>
 
       <div v-else class="actu-cards">
-        <div class="actu-card" v-for="a in actualites" :key="a.id">
+        <div class="actu-card" v-for="a in actualites" :key="a.id" @click="allerAuDetail(a.id)">
           <img
             :src="a.imageUrl ? `http://localhost:3000/${a.imageUrl}` : 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&q=80'"
             :alt="a.title"

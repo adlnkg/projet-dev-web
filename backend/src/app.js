@@ -17,14 +17,10 @@ app.use(
   }),
 );
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  /* Frontend static*/
-  res.send("Hello World");
-});
+app.use("/", express.static(path.join(__dirname, "../../frontend/dist")));
 
 app.use("/api", routes);
 

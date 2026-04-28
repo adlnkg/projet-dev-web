@@ -40,9 +40,14 @@ const router = createRouter({
       component: () => import("../views/RegisterView.vue"),
     },
     {
+      path: "/register-old",
+      name: "register-old",
+      component: () => import("../views/RegisterView.vue"),
+    },
+    {
       path: "/verify-otp",
       name: "verify-otp",
-      component: () => import("../views/VerifyOtpStyledView.vue"),
+      component: () => import("../views/AuthOTPView.vue"),
     },
     {
       path: "/profile",

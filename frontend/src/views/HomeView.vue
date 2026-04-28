@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import NavBar from '../components/NavBar.vue'
 
 const router = useRouter()
 
@@ -56,8 +55,6 @@ onMounted(loadHomeData)
 
 <template>
   <div class="home-page">
-    <NavBar />
-
     <section class="hero-modern">
       <div class="hero-content">
         <p class="hero-kicker">CY TECH • CAMPUS CONNECTÉ</p>
@@ -210,12 +207,6 @@ onMounted(loadHomeData)
           </div>
         </article>
       </div>
-    </section>
-
-    <section id="contact" class="contact-section">
-      <h2>Contact</h2>
-      <p>CY Tech Cergy • 33 Boulevard du Port, 95000 Cergy</p>
-      <p>Email : contact@cytech.fr • Tél : +33 1 23 45 67 89</p>
     </section>
   </div>
 </template>

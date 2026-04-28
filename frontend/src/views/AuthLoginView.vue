@@ -1,4 +1,5 @@
 <script setup>
+import Card from "@/components/Card.vue";
 import { useMutation } from "@/utils/useData";
 import { login } from "@/utils/user";
 import { Form } from "@primevue/forms";
@@ -17,35 +18,37 @@ function onSubmit(e) {
 </script>
 
 <template>
-  <Form :resolver @submit="onSubmit">
-    <Message v-if="error !== null" severity="error" closable>
-      {{ error.toString() }}
-    </Message>
-    <InputText name="pseudo" type="text" placeholder="Identifiant" fluid />
-    <Password
-      name="password"
-      placeholder="Mot de passe"
-      :feedback="false"
-      toggleMask
-      fluid
-    />
-    <Button type="submit" :disabled="loading">Se connecter</Button>
-  </Form>
+  <Card floating>
+    <Form :resolver @submit="onSubmit">
+      <h1>Connexion</h1>
+      <Message v-if="error !== null" severity="error" closable>
+        {{ error.toString() }}
+      </Message>
+      <InputText name="pseudo" type="text" placeholder="Identifiant" fluid />
+      <Password
+        name="password"
+        placeholder="Mot de passe"
+        :feedback="false"
+        toggleMask
+        fluid
+      />
+      <Button type="submit" :disabled="loading">Se connecter</Button>
+    </Form>
+  </Card>
 </template>
 
-<style>
+<style scoped>
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
 form {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 300px;
-
   display: flex;
   flex-direction: column;
   gap: 0.5em;
-}
-p-password {
-  width: 100%;
 }
 </style>

@@ -15,20 +15,6 @@ export const SELECT_GENDER = [
   { label: "Autre", value: "O" },
 ];
 
-// export async function fetchUser() {
-//   // TODO: only for dev
-//   await wait(1000);
-//   return {
-//     pseudo: "polnio",
-//     email: "paul.lagrange@etu.cyu.fr",
-//     firstname: "Paul",
-//     lastname: "Lagrange",
-//     birthdate: new Date("2005-07-07"),
-//     gender: "male",
-//     avatar: DEFAULT_AVATAR,
-//   };
-// }
-
 export async function getMe() {
   const token = localStorage.getItem("token");
   const response = await fetch("http://localhost:3000/api/user/me", {
@@ -74,6 +60,7 @@ export async function login(pseudo, password) {
   }
 
   localStorage.setItem("token", data.token);
+  localStorage.setItem("email", data.user.email);
 
   return data.user;
 }
@@ -85,17 +72,6 @@ export async function signin(user) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(user),
-    // body: JSON.stringify({
-    //   firstName: formData.value.firstName,
-    //   lastName: formData.value.lastName,
-    //   login: formData.value.login,
-    //   email: formData.value.email,
-    //   password: formData.value.password,
-    //   age: formData.value.age,
-    //   sex: formData.value.sex,
-    //   memberType: formData.value.memberType,
-    //   avatarUrl: formData.value.avatarUrl,
-    // }),
   });
   if (!response.ok) {
     const data = await response.json();
@@ -103,4 +79,43 @@ export async function signin(user) {
       new Error(data.error ?? "Erreur lors de la connexion"),
     );
   }
+}
+
+export async function checkOTP(email, otp) {
+  const response = await fetch("http://localhost:3000/api/auth/verify-otp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, otp }),
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    await Promise.reject(
+      new Error(data.error ?? "Erreur lors de la verification du code OTP"),
+    );
+    return false;
+  }
+  return true;
+}
+
+export async function editUser(id, user) {
+  user = Object.fromEntries(Object.entries(user).filter(([_, v]) => v !== null));
+  const token = localStorage.getItem("token");
+  const response = await fetch(`http://localhost:3000/api/user/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(user),
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    await Promise.reject(
+      new Error(data.error ?? "Erreur lors de la connexion"),
+    );
+    return false;
+  }
+  return true;
 }

@@ -1,9 +1,20 @@
 <script setup>
+import NavBar from './components/NavBar.vue'
+import SectionFooter from './components/SectionFooter.vue'
 import { RouterView } from "vue-router";
 </script>
 
 <template>
-  <RouterView />
+  <div id="page">
+    <NavBar />
+    <RouterView />
+  </div>
+  <SectionFooter />
 </template>
 
-<style scoped></style>
+<style scoped>
+#page {
+  position: relative;
+  min-height: 100dvh;
+}
+</style>

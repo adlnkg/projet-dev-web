@@ -1,524 +1,108 @@
 <script setup>
-import NavBar from '../components/NavBar.vue'
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { getMe, DEFAULT_AVATAR } from '../utils/user'
-import { useMutation } from '../utils/useData'
+import { Button, InputText, Select, Skeleton } from "primevue";
+import { Form } from "@primevue/forms";
+import FieldDate from "@/components/FieldDate.vue";
+import { editUser, getMe, SELECT_GENDER } from "@/utils/user";
+import { useData, useMutation } from "@/utils/useData";
+import { useRouter } from "vue-router";
+import { computed, watch } from "vue";
 
-const router = useRouter()
-const user = ref(null)
-const loading = ref(true)
-const error = ref(null)
-const formError = ref('')
-const formSuccess = ref('')
+const router = useRouter();
 
-const formData = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  age: '',
-  sex: '',
-  memberType: '',
-  password: '',
-  passwordConfirm: '',
-  avatarUrl: '',
-})
+const { fn: editUserFn, loading: submitLoading, error: submitError } = useMutation(editUser);
+const { data: user, loading: initLoading, error: initError } = useData(async () => {
+  const user = await getMe();
+  user.birthdate = user.birthdate.toLocaleDateString("fr-FR");
+  return user;
+});
 
-const avatarUrl = computed(() => formData.value.avatarUrl || user.value?.avatarUrl || DEFAULT_AVATAR)
+const loading = computed(() => initLoading || submitLoading);
+const error = computed(() => initError || submitError);
 
-async function updateProfile(payload) {
-  const token = localStorage.getItem('token')
-  const userId = user.value.id
-  console.log('updateProfile - userId:', userId)
-  console.log('updateProfile - user.value:', user.value)
-  
-  if (!userId) {
-    throw new Error('ID utilisateur introuvable')
-  }
-  
-  const res = await fetch(`http://localhost:3000/api/user/${userId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error || data.message || 'Erreur lors de la mise à jour')
-  return data
-}
-
-const { fn: submit, loading: submitting } = useMutation(updateProfile)
-
-onMounted(async () => {
-  try {
-    const data = await getMe()
-    user.value = data
-    formData.value = {
-      firstName: data.firstName || '',
-      lastName: data.lastName || '',
-      email: data.email || '',
-      age: data.age || '',
-      sex: data.sex || '',
-      memberType: data.memberType || '',
-      password: '',
-      passwordConfirm: '',
-      avatarUrl: data.avatarUrl || '',
-    }
-  } catch (e) {
-    error.value = e.message || 'Erreur lors du chargement du profil'
-  } finally {
-    loading.value = false
-  }
-})
+watch(error, (e) => console.log("Error", e));
+watch(loading, (e) => console.log("Loading", e));
+watch(user, (e) => console.log("User", e));
 
 async function onSubmit(e) {
-  e.preventDefault()
-  formError.value = ''
-  formSuccess.value = ''
-
-  // Validations
-  if (!formData.value.firstName || !formData.value.lastName) {
-    formError.value = 'Le prénom et le nom sont obligatoires.'
-    return
+  if (e.values.birthdate !== null) {
+    e.values.birthdate = new Date(e.values.birthdate);
   }
-
-  if (formData.value.age && (isNaN(formData.value.age) || formData.value.age < 1 || formData.value.age > 120)) {
-    formError.value = 'L\'âge doit être entre 1 et 120.'
-    return
-  }
-
-  if (formData.value.password && formData.value.password !== formData.value.passwordConfirm) {
-    formError.value = 'Les mots de passe ne correspondent pas.'
-    return
-  }
-
-  if (formData.value.password && formData.value.password.length < 6) {
-    formError.value = 'Le mot de passe doit contenir au moins 6 caractères.'
-    return
-  }
-
-  const payload = {
-    firstName: formData.value.firstName,
-    lastName: formData.value.lastName,
-    age: formData.value.age ? parseInt(formData.value.age, 10) : undefined,
-    sex: formData.value.sex || undefined,
-    memberType: formData.value.memberType || undefined,
-    avatarUrl: formData.value.avatarUrl || undefined,
-  }
-
-  if (formData.value.password) {
-    payload.password = formData.value.password
-  }
-
-  const res = await submit(payload)
-  if (res) {
-    formSuccess.value = 'Profil mise à jour avec succès! Redirection...'
-    setTimeout(() => router.push('/profile'), 1500)
-  }
-}
-
-function resetForm() {
-  formData.value = {
-    firstName: user.value.firstName || '',
-    lastName: user.value.lastName || '',
-    email: user.value.email || '',
-    age: user.value.age || '',
-    sex: user.value.sex || '',
-    memberType: user.value.memberType || '',
-    password: '',
-    passwordConfirm: '',
-    avatarUrl: user.value.avatarUrl || '',
-  }
-  formError.value = ''
-  formSuccess.value = ''
+  const ok = await editUserFn(user.value.id, e.values);
+  if (!ok) return;
+  router.push({ name: "profile" });
 }
 </script>
 
 <template>
-  <NavBar />
-  <div class="page-container">
-    <header class="page-header">
-      <h1>Modifier mon profil</h1>
-    </header>
+  <main v-if="error.value !== null">
+    Il y a une erreur lors de la récupération des données
+  </main>
+  <Form v-else v-slot="form" :initialValues="user" :resolver @submit="onSubmit">
+    <main>
+      <Skeleton v-if="initLoading" width="100%" height="100%" id="avatar" />
+      <img v-else :src="user.avatarURL" alt="avatar" id="avatar" />
+      <Message v-if="submitError !== null" severity="error" closable>
+        {{ submitError.toString() }}
+      </Message>
+      <div>
+        <label for="firstName">Prénom</label>
+        <InputText name="firstName" id="firstName" :disabled="initLoading" />
 
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
+        <label for="lastName">Nom de famille</label>
+        <InputText name="lastName" id="lastName" :disabled="initLoading" />
 
-    <div v-else-if="loading" class="skeleton-card">
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line"></div>
-      <div class="skeleton-line"></div>
-    </div>
+        <label for="login">Identifiant</label>
+        <InputText name="login" id="login" :disabled="initLoading" />
 
-    <div v-else-if="user" class="edit-card">
-      <div class="preview-section">
-        <img :src="avatarUrl" :alt="formData.firstName" class="preview-avatar" />
-        <div class="preview-info">
-          <h2>{{ formData.firstName }} {{ formData.lastName }}</h2>
-          <p>@{{ user.login }}</p>
-        </div>
+        <label for="email">Email</label>
+        <InputText name="email" id="email" type="email" :disabled="initLoading" />
+
+        <label for="sex">Genre</label>
+        <Select
+          name="sex"
+          id="sex"
+          :options="SELECT_GENDER"
+          optionValue="value"
+          optionLabel="label"
+          :disabled="initLoading"
+        />
+
+        <label for="birthdate">
+          Né{{ form.gender?.value === "female" ? "e" : "" }} le
+        </label>
+
+        <FieldDate name="birthdate" id="birthdate" :disabled="loading.value" />
       </div>
 
-      <form class="edit-form" @submit="onSubmit">
-        <div v-if="formError" class="error-message">{{ formError }}</div>
-        <div v-if="formSuccess" class="success-message">{{ formSuccess }}</div>
-
-        <div class="form-section">
-          <h3>Informations personnelles</h3>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label>Prénom *</label>
-              <input v-model="formData.firstName" type="text" required />
-            </div>
-            <div class="form-field">
-              <label>Nom *</label>
-              <input v-model="formData.lastName" type="text" required />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label>Email</label>
-              <input v-model="formData.email" type="email" disabled />
-              <small>Non modifiable</small>
-            </div>
-            <div class="form-field">
-              <label>Âge</label>
-              <input v-model="formData.age" type="number" min="1" max="120" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label>Genre</label>
-              <select v-model="formData.sex">
-                <option value="">— Sélectionner —</option>
-                <option value="M">Homme</option>
-                <option value="F">Femme</option>
-                <option value="O">Autre</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label>Type de membre</label>
-              <select v-model="formData.memberType" disabled>
-                <option value="">— Sélectionner —</option>
-                <option value="STUDENT">Étudiant</option>
-                <option value="STAFF">Personnel</option>
-                <option value="VISITOR">Visiteur</option>
-                <option value="ADMIN">Administrateur</option>
-              </select>
-              <small>Non modifiable</small>
-            </div>
-          </div>
-
-          <div class="form-field">
-            <label>URL Avatar</label>
-            <input v-model="formData.avatarUrl" type="url" placeholder="https://..." />
-          </div>
-        </div>
-
-        <div class="form-section">
-          <h3>Mot de passe</h3>
-          <p class="section-info">Laissez vide pour ne pas modifier</p>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label>Nouveau mot de passe</label>
-              <input v-model="formData.password" type="password" placeholder="Min. 6 caractères" />
-            </div>
-            <div class="form-field">
-              <label>Confirmer le mot de passe</label>
-              <input v-model="formData.passwordConfirm" type="password" />
-            </div>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn-primary" :disabled="submitting">
-            {{ submitting ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-          </button>
-          <button type="button" class="btn-secondary" @click="resetForm">
-            Annuler
-          </button>
-          <button type="button" class="btn-tertiary" @click="router.push('/profile')">
-            Retour au profil
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+      <Button type="submit" :disabled="loading.value">Enregistrer</Button>
+    </main>
+  </Form>
 </template>
 
 <style scoped>
-.page-container {
-  padding: 2rem;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.page-header {
-  margin-bottom: 2rem;
-}
-
-.page-header h1 {
-  margin: 0;
-  color: #0d2d5e;
-}
-
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.success-message {
-  background: #dcfce7;
-  color: #15803d;
-  padding: 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-/* Skeleton */
-.skeleton-card {
-  padding: 2rem;
-}
-
-.skeleton-line {
-  height: 20px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  margin: 1rem 0;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Edit Card */
-.edit-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-}
-
-.preview-section {
-  background: linear-gradient(135deg, #1a5c9e 0%, #0d2d5e 100%);
-  color: white;
-  padding: 2rem;
+main {
   display: flex;
+  gap: 1em;
+  flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  padding-top: 25vw;
 }
-
-.preview-avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid white;
-  flex-shrink: 0;
-}
-
-.preview-info h2 {
-  margin: 0 0 0.25rem;
-  font-size: 24px;
-}
-
-.preview-info p {
-  margin: 0;
-  font-size: 14px;
-  color: #d6e8f7;
-}
-
-/* Form */
-.edit-form {
-  padding: 2rem;
-}
-
-.form-section {
-  margin-bottom: 2rem;
-}
-
-.form-section h3 {
-  margin: 0 0 1rem;
-  color: #0d2d5e;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.section-info {
-  margin: 0 0 1rem;
-  font-size: 12px;
-  color: #999;
-}
-
-.form-row {
+main > div {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
 }
-
-.form-field {
-  margin-bottom: 1rem;
+#avatar {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  width: 25% !important;
 }
-
-.form-field label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-  color: #444;
-  font-size: 14px;
+h1 {
+  margin-block: 0;
 }
-
-.form-field input,
-.form-field select {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
+h1 span {
+  font-size: 0.5em;
 }
-
-.form-field input:focus,
-.form-field select:focus {
-  border-color: #1a5c9e;
-  box-shadow: 0 0 0 3px rgba(26, 92, 158, 0.1);
-}
-
-.form-field input:disabled {
-  background: #f9fafb;
-  color: #999;
-  cursor: not-allowed;
-}
-
-.form-field small {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 12px;
-  color: #999;
-}
-
-/* Actions */
-.form-actions {
-  padding-top: 2rem;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.btn-primary {
-  background: #1a5c9e;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: background 0.2s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #0d2d5e;
-}
-
-.btn-primary:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background: white;
-  color: #1a5c9e;
-  border: 2px solid #1a5c9e;
-  padding: 8px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  background: #f0f5ff;
-}
-
-.btn-tertiary {
-  background: #f0f5ff;
-  color: #666;
-  border: 1px solid #e5e7eb;
-  padding: 8px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: all 0.2s;
-}
-
-.btn-tertiary:hover {
-  background: #e5e7eb;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-  .page-container {
-    padding: 1rem;
-  }
-
-  .preview-section {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-}
-
-@media (max-width: 480px) {
-  .page-container {
-    padding: 1rem;
-  }
-
-  .page-header h1 {
-    font-size: 20px;
-  }
-
-  .preview-avatar {
-    width: 80px;
-    height: 80px;
-  }
-
-  .preview-info h2 {
-    font-size: 18px;
-  }
-
-  .edit-form {
-    padding: 1.5rem;
-  }
-
-  .form-section h3 {
-    font-size: 14px;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+:global(a.p-button) {
+  text-decoration: none;
 }
 </style>

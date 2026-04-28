@@ -3,6 +3,11 @@ import prisma from "../config/db.js";
 import { EventType,DeviceType,DeviceStatus,ActualityType } from '@prisma/client';
 const AREA_HIERARCHY_DECAY = 0.875;
 
+const annotateSearchResults = (items, entityType) => items.map((item) => ({
+    ...item,
+    entityType,
+}));
+
 
 const getBuildingList = async () => {
     const buildings = await prisma.area.findMany({
@@ -235,7 +240,7 @@ const searchDevices = async (keywords, validAreasIds, hierarchy) => {
         ]
     });
 
-    return fuse.search(keywords).map((result) => result.item);
+    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "DEVICE");
 };
 
 /**
@@ -281,7 +286,7 @@ const searchAreas = async (keywords, validAreasIds, hierarchy) => {
         keys: areaHierarchyFuseKeys
     });
 
-    return fuse.search(keywords).map((result) => result.item);
+    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "AREA");
 };
 
 /**
@@ -327,7 +332,7 @@ const searchEvents = async (keywords, validAreasIds, hierarchy) => {
         ]
     });
 
-    return fuse.search(keywords).map((result) => result.item);
+    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "EVENT");
 };
 
 /**
@@ -456,7 +461,7 @@ const searchActualities = async (filters) => {
         ],
     });
 
-    return fuse.search(keywords).map((result) => result.item);
+    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "ACTUALITY");
 };
 
 

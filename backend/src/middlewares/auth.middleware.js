@@ -14,6 +14,8 @@ const authMiddleware = (req, res, next) => {
     console.log(decodedUser);
 
     if (!decodedUser.isVerified) {
+      console.log("User is not verified:", decodedUser);
+      
       res.status(403).json({
         error: "Compte non vérifié",
       });

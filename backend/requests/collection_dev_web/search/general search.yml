@@ -5,13 +5,16 @@ info:
 
 http:
   method: GET
-  url: http://localhost:3000/api/search?keywords&type=all
+  url: http://localhost:3000/api/search?keywords&type=all&building=JJ
   params:
     - name: keywords
       value: ""
       type: query
     - name: type
       value: all
+      type: query
+    - name: building
+      value: JJ
       type: query
   auth: inherit
 

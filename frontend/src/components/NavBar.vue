@@ -64,6 +64,11 @@ function detectType(item) {
   return 'area'
 }
 
+function getResultType(item, fallback = '') {
+  const type = item.entityType ?? fallback ?? detectType(item)
+  return String(type).toLowerCase()
+}
+
 function getResultTitle(r) {
   return r.title ?? r.name ?? '—'
 }

@@ -260,22 +260,23 @@ Réponse `200` (utilisateur connecté) :
 
 Recherche globale unifiée sur toutes les entités (EVENT, AREA, ACTUALITY et optionnellement DEVICE).
 
+Chaque objet de `data` inclut `entityType` afin d'identifier directement la famille de l'entité retournée (`ACTUALITY`, `EVENT`, `AREA`, `DEVICE`).
+
 Route publique : pas de token requis.
 
 Query params :
 
 - `keywords` : texte à rechercher (optionnel)
-- `building` : nom du bâtiment pour filtrer les zones (optionnel)
 - `type` : type d'entité à rechercher
   - **Non connecté** : `ALL`, `EVENT`, `AREA`, `ACTUALITY`
   - **Connecté** : `ALL`, `EVENT`, `AREA`, `ACTUALITY`, `DEVICE`
-  - `ALL` : retourne tous types disponibles selon l'authentification
+  - `ALL` : retourne tous types disponibles selon l'authentification (valeur par défaut)
 
 Exemples :
 
 ```http
 GET /api/search?keywords=formation&type=ALL
-GET /api/search?keywords=camera&type=device&building=Turing
+GET /api/search?keywords=camera&type=device
 GET /api/search?type=event
 ```
 
@@ -286,9 +287,9 @@ Réponse `200` (non connecté) :
   "success": true,
   "count": 15,
   "data": [
-    { "id": 1, "title": "Événement", ... },
-    { "id": 2, "name": "Salle 101", ... },
-    { "id": 3, "title": "Actualité", ... }
+    { "id": 1, "title": "Événement", "entityType": "EVENT", ... },
+    { "id": 2, "name": "Salle 101", "entityType": "AREA", ... },
+    { "id": 3, "title": "Actualité", "entityType": "ACTUALITY", ... }
   ],
   "buildingList": ["Turing", "Church"],
   "pointGained": 0
@@ -302,10 +303,10 @@ Réponse `200` (connecté, incluant devices) :
   "success": true,
   "count": 18,
   "data": [
-    { "id": 1, "title": "Événement", ... },
-    { "id": 2, "name": "Salle 101", ... },
-    { "id": 3, "title": "Actualité", ... },
-    { "id": 4, "name": "Projecteur", "type": "CAMERA", ... }
+    { "id": 1, "title": "Événement", "entityType": "EVENT", ... },
+    { "id": 2, "name": "Salle 101", "entityType": "AREA", ... },
+    { "id": 3, "title": "Actualité", "entityType": "ACTUALITY", ... },
+    { "id": 4, "name": "Projecteur", "type": "CAMERA", "entityType": "DEVICE", ... }
   ],
   "buildingList": ["Turing", "Church"],
   "pointGained": 1
@@ -321,6 +322,8 @@ Erreurs possibles :
 Recherche dédiée aux événements avec filtres spécifiques.
 
 Route publique : pas de token requis.
+
+Les objets retournés dans `data` contiennent aussi `entityType` pour un routage simple côté client.
 
 Query params :
 

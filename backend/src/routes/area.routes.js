@@ -4,8 +4,12 @@ import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
 import { getAreaCreateForm, getArea, postArea, createArea } from "../controllers/area.controller.js";
 import { requestDeletionForEntity } from "../controllers/deletion-request.controller.js";
+import { searchAreas } from "../controllers/search.controller.js";
+import { validateAndNormalizeAreaSearch } from "../middlewares/search.middleware.js";
 
 const router = express.Router();
+
+router.get("/search", validateAndNormalizeAreaSearch, searchAreas);
 
 
 router.post(

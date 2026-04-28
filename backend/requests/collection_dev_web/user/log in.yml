@@ -42,8 +42,9 @@ runtime:
             // Store the token in the environment variable  
             bru.setEnvVar("access_token", response.token);
             
-            console.log("Bearer token saved to environment variable!");
-
+            console.log("Bearer token saved to environment variable!, ");
+        console.log("equality test :");
+        console.log(bru.getEnvVar("access_token") === response.token)
             // Optional: Store expiry time (for auto-refresh later)  
             const expiryTime = Date.now() + (response.expires_in * 1000); // Convert seconds to ms  
             bru.setEnvVar("token_expiry", expiryTime);

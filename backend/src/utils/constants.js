@@ -18,7 +18,7 @@ export const ROLE_HIERARCHY = {
 
 
 
-export const ALLOWED_SEARCH_TYPES = ["device", "area", "event", "all"]; //DO NOT RENAME
+export const ALLOWED_SEARCH_TYPES = ["device", "area", "event", "actuality", "all"]; //DO NOT RENAME
 
 //TODO stop using this (use enums imported from prisma instead)
 export const DEVICE_STATUS_VALUES = Array.from(Object.values(DeviceStatus));

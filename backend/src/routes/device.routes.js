@@ -4,8 +4,12 @@ import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
 import { getDeviceCreateForm, getDevice, postDevice, createDevice } from "../controllers/device.controller.js";
 import { requestDeletionForEntity } from "../controllers/deletion-request.controller.js";
+import { searchIoTDevices } from "../controllers/search.controller.js";
+import { validateAndNormalizeIoTDeviceSearch } from "../middlewares/search.middleware.js";
 
 const router = express.Router();
+
+router.get("/search", authMiddleware, validateAndNormalizeIoTDeviceSearch, searchIoTDevices);
 
 router.post(
 	"/",

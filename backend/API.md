@@ -205,22 +205,142 @@ Le modèle `User` inclut :
 
 ## Recherche
 
+### `GET /api/search/info`
+
+Récupère les métadonnées sur les filtres disponibles pour chaque type d'entité et la recherche globale.
+
+Route publique : pas de token requis (adaptée selon l'authentification).
+
+Réponse `200` (utilisateur non connecté) :
+
+```json
+{
+  "success": true,
+  "globalSearch": {
+    "description": "Recherche globale unifiée",
+    "requiresAuth": false,
+    "filters": [
+      { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+      { "name": "building", "type": "string", "required": false, "description": "Filtre par bâtiment" },
+      { "name": "type", "type": "enum", "required": false, "description": "Type d'entité", "values": ["ALL", "EVENT", "AREA", "ACTUALITY"] }
+    ]
+  },
+  "entityTypes": {
+    "event": { ... },
+    "area": { ... },
+    "actuality": { ... }
+  }
+}
+```
+
+Réponse `200` (utilisateur connecté) :
+
+```json
+{
+  "success": true,
+  "globalSearch": {
+    "description": "Recherche globale unifiée",
+    "requiresAuth": false,
+    "filters": [
+      { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+      { "name": "building", "type": "string", "required": false, "description": "Filtre par bâtiment" },
+      { "name": "type", "type": "enum", "required": false, "description": "Type d'entité", "values": ["ALL", "EVENT", "AREA", "ACTUALITY", "DEVICE"] }
+    ]
+  },
+  "entityTypes": {
+    "event": { ... },
+    "area": { ... },
+    "actuality": { ... },
+    "device": { ... }
+  }
+}
+```
+
 ### `GET /api/search`
 
-Recherche globale sur les devices, areas et events.
+Recherche globale unifiée sur toutes les entités (EVENT, AREA, ACTUALITY et optionnellement DEVICE).
 
-Route protégée : token requis (`Authorization: Bearer <token>`).
+Chaque objet de `data` inclut `entityType` afin d'identifier directement la famille de l'entité retournée (`ACTUALITY`, `EVENT`, `AREA`, `DEVICE`).
+
+Route publique : pas de token requis.
 
 Query params :
 
-- `keywords` : texte à rechercher, inclus le détail de la zone de la recherche (ex: "batiment turing etage 1 salle 101 camera")
-- `building` : nom du bâtiment, optionnel
-- `type` : `device`, `area`, `event`, `all`
+- `keywords` : texte à rechercher (optionnel)
+- `type` : type d'entité à rechercher
+  - **Non connecté** : `ALL`, `EVENT`, `AREA`, `ACTUALITY`
+  - **Connecté** : `ALL`, `EVENT`, `AREA`, `ACTUALITY`, `DEVICE`
+  - `ALL` : retourne tous types disponibles selon l'authentification (valeur par défaut)
 
-Exemple :
+Exemples :
 
 ```http
-GET /api/search?keywords=projecteur&building=Turing&type=device
+GET /api/search?keywords=formation&type=ALL
+GET /api/search?keywords=camera&type=device
+GET /api/search?type=event
+```
+
+Réponse `200` (non connecté) :
+
+```json
+{
+  "success": true,
+  "count": 15,
+  "data": [
+    { "id": 1, "title": "Événement", "entityType": "EVENT", ... },
+    { "id": 2, "name": "Salle 101", "entityType": "AREA", ... },
+    { "id": 3, "title": "Actualité", "entityType": "ACTUALITY", ... }
+  ],
+  "buildingList": ["Turing", "Church"],
+  "pointGained": 0
+}
+```
+
+Réponse `200` (connecté, incluant devices) :
+
+```json
+{
+  "success": true,
+  "count": 18,
+  "data": [
+    { "id": 1, "title": "Événement", "entityType": "EVENT", ... },
+    { "id": 2, "name": "Salle 101", "entityType": "AREA", ... },
+    { "id": 3, "title": "Actualité", "entityType": "ACTUALITY", ... },
+    { "id": 4, "name": "Projecteur", "type": "CAMERA", "entityType": "DEVICE", ... }
+  ],
+  "buildingList": ["Turing", "Church"],
+  "pointGained": 1
+}
+```
+
+Erreurs possibles :
+
+- `401` : Authentification requise si `type=device` et utilisateur non connecté
+
+### `GET /api/events/search`
+
+Recherche dédiée aux événements avec filtres spécifiques.
+
+Route publique : pas de token requis.
+
+Les objets retournés dans `data` contiennent aussi `entityType` pour un routage simple côté client.
+
+Query params :
+
+- `keywords` : texte libre recherché avec Fuse.js sur `title`, `description`, `organizer`, dates et horaires
+- `building` : filtre par bâtiment, optionnel
+- `type` : type d'événement (`WORKSHOP`, `CONFERENCE`, `MEETING`, `COURSE`) ou `ALL`, optionnel
+- `startMin` : borne basse de date de début (ISO 8601), optionnel
+- `startMax` : borne haute de date de début (ISO 8601), optionnel
+- `priceMin` : prix minimum, optionnel
+- `priceMax` : prix maximum, optionnel
+- `spotsMin` : nombre minimum de places restantes, optionnel
+
+Exemples :
+
+```http
+GET /api/events/search?keywords=robotique&type=WORKSHOP
+GET /api/events/search?startMin=2026-05-01&startMax=2026-05-31&priceMax=50
 ```
 
 Réponse `200` :
@@ -228,8 +348,106 @@ Réponse `200` :
 ```json
 {
   "success": true,
-  "count": 2,
-  "data": []
+  "count": 5,
+  "data": [],
+  "pointGained": 0
+}
+```
+
+### `GET /api/areas/search`
+
+Recherche dédiée aux zones avec filtres spécifiques.
+
+Route publique : pas de token requis.
+
+Query params :
+
+- `keywords` : texte libre recherché avec Fuse.js sur `name`, `description` et hiérarchie des zones (parents)
+- `building` : filtre par bâtiment, optionnel
+- `type` : type de zone (`BUILDING`, `FLOOR`, `CLASSROOM`, `TECHNICAL_ROOM`) ou `ALL`, optionnel
+
+Exemples :
+
+```http
+GET /api/areas/search?keywords=laboratoire&building=Turing
+GET /api/areas/search?type=CLASSROOM
+```
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "count": 12,
+  "data": [],
+  "pointGained": 0
+}
+```
+
+### `GET /api/devices/search`
+
+Recherche dédiée aux périphériques IoT avec filtres spécifiques.
+
+Route protégée : token requis (`Authorization: Bearer <token>`).
+
+Query params :
+
+- `keywords` : texte libre recherché avec Fuse.js sur `name`, `brand`, `model`, `description` et hiérarchie des zones
+- `building` : filtre par bâtiment, optionnel
+- `type` : type de périphérique (`LIGHT`, `SENSOR`, `THERMOSTAT`, `CAMERA`, `ACCESS_CONTROL`, `WHITEBOARD`) ou `ALL`, optionnel
+- `status` : statut du périphérique (`ACTIVE`, `INACTIVE`, `DISCONNECTED`, `ERROR`), optionnel
+- `active` : état actif (`true` ou `false`), optionnel
+- `consumptionMin` : consommation électrique minimale (en W), optionnel
+- `consumptionMax` : consommation électrique maximale (en W), optionnel
+- `lastPowerOnAfter` : date de dernière mise sous tension (ISO 8601), optionnel
+- `lastMaintenanceAfter` : date de dernière maintenance (ISO 8601), optionnel
+
+Exemples :
+
+```http
+GET /api/devices/search?keywords=camera&type=CAMERA&status=ACTIVE
+GET /api/devices/search?building=Turing&consumptionMin=0&consumptionMax=100&lastMaintenanceAfter=2026-04-01
+```
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "count": 8,
+  "data": [],
+  "pointGained": 1
+}
+```
+
+### `GET /api/actualities/search`
+
+Recherche dédiée aux actualités.
+
+Route publique : pas de token requis.
+
+Query params :
+
+- `keywords` : texte libre recherché avec Fuse.js sur `title`, `content`, `type`, `createdAt` et `owner`.
+- `type` : type d'actualité (`NEWS`, `ANNOUNCEMENT`, `UPDATE`, `OTHER`) ou `ALL`, optionnel.
+- `createdFrom` : borne basse de date de création (format date/ISO), optionnel.
+- `createdTo` : borne haute de date de création (format date/ISO), optionnel.
+
+Exemples :
+
+```http
+GET /api/actualities/search?keywords=maintenance&type=NEWS
+GET /api/actualities/search?createdFrom=2026-04-01&createdTo=2026-04-30&type=ALL
+```
+
+Réponse `200` :
+
+```json
+{
+  "success": true,
+  "count": 3,
+  "data": [],
+  "pointGained": 0
 }
 ```
 
@@ -334,7 +552,7 @@ Route publique : pas de token requis.
 Query params :
 
 - `keywords` : texte libre recherché avec Fuse.js sur `title`, `content`, `type`, `createdAt` et `owner`.
-- `type` : type d'actualité, optionnel (`NEWS`, `ANNOUNCEMENT`, `UPDATE`, `OTHER`) ou `all`.
+- `type` : type d'actualité, optionnel (`NEWS`, `ANNOUNCEMENT`, `UPDATE`, `OTHER`) ou `ALL`.
 - `createdFrom` : borne basse de date de création (format date/ISO), optionnel.
 - `createdTo` : borne haute de date de création (format date/ISO), optionnel.
 
@@ -342,7 +560,7 @@ Exemples :
 
 ```http
 GET /api/actualities/search?keywords=maintenance&type=NEWS
-GET /api/actualities/search?createdFrom=2026-04-01&createdTo=2026-04-30&type=all
+GET /api/actualities/search?createdFrom=2026-04-01&createdTo=2026-04-30&type=ALL
 ```
 
 Réponse `200` :
@@ -351,7 +569,8 @@ Réponse `200` :
 {
   "success": true,
   "count": 3,
-  "data": []
+  "data": [],
+  "pointGained": 0
 }
 ```
 

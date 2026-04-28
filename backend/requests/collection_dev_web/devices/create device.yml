@@ -8,6 +8,25 @@ http:
   url: http://localhost:3000/api/devices
   body:
     type: form-urlencoded
+    data:
+      - name: type
+        value: LIGHT
+      - name: uniqueName
+        value: lumiere auto 1
+      - name: name
+        value: Lumiere automatique
+      - name: brand
+        value: BAMBOUCORP
+      - name: model
+        value: lightbulb
+      - name: light.brightness
+        value: "2"
+      - name: light.color
+        value: blue
+      - name: description
+        value: une lampe quoi de plus classique qui s'allume et s'éteint automatiquement
+      - name: areaId
+        value: "1"
   auth: inherit
 
 runtime:

@@ -1,20 +1,17 @@
 info:
-  name: search
+  name: actuality resear
   type: http
   seq: 1
 
 http:
   method: GET
-  url: http://localhost:3000/api/search?keywords=thermostat&building=Turing&type=device
+  url: http://localhost:3000/api/actualities/search/?keywords&type=ANNOUNCEMENT
   params:
     - name: keywords
-      value: thermostat
-      type: query
-    - name: building
-      value: Turing
+      value: ""
       type: query
     - name: type
-      value: device
+      value: ANNOUNCEMENT
       type: query
   auth: inherit
 

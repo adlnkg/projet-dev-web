@@ -516,7 +516,7 @@ const createEvent = async ({ role, ownerId, payload, imageUrl }) => {
     min: 1,
     step: 1,
     integer: true,
-    fieldName: "Zone",
+    fieldName: "Zone (areaId)",
   });
 
   const numberOfParticipants =

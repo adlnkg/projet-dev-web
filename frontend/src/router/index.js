@@ -22,12 +22,12 @@ const router = createRouter({
     {
       path: "/login",
       name: "login",
-      component: () => import("../views/AuthLoginView.vue"),
+      component: () => import("../views/LoginView.vue"),
     },
     {
       path: "/register",
       name: "register",
-      component: () => import("../views/AuthSigninView.vue"),
+      component: () => import("../views/RegisterView.vue"),
     },
     {
       path: "/verify-otp",
@@ -58,6 +58,31 @@ const router = createRouter({
       path: "/signin",
       name: "auth-signin",
       component: () => import("../views/AuthSigninView.vue"),
+    },
+    {
+      path: "/admin",
+      name: "admin-dashboard",
+      component: () => import("../views/AdminDashboard.vue"),
+    },
+    {
+      path: "/admin/actualities/create",
+      name: "admin-actuality-create",
+      component: () => import("../views/AdminActualityCreate.vue"),
+    },
+    {
+      path: "/admin/events/create",
+      name: "admin-event-create",
+      component: () => import("../views/AdminEventCreate.vue"),
+    },
+    {
+      path: "/admin/users",
+      name: "admin-users",
+      component: () => import("../views/AdminUsersView.vue"),
+    },
+    {
+      path: "/admin/users/:id",
+      name: "admin-user-detail",
+      component: () => import("../views/AdminUserDetailView.vue"),
     },
   ],
 });

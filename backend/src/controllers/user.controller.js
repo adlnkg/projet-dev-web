@@ -13,10 +13,10 @@ export const getMe = async (req, res) => {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
 
-    // 2. Extraction des données sensibles (on enlève mdp et id comme demandé)
-    const { password, id, ...safeUserData } = user;
+    // 2. Extraction du mot de passe (on enlève seulement le mdp, pas l'id)
+    const { password, ...safeUserData } = user;
 
-    // 3. Réponse avec les infos du profil (public + privé)
+    // 3. Réponse avec les infos du profil (public + privé + id)
     res.json(safeUserData);
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la récupération du profil" });
@@ -58,8 +58,13 @@ export const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
 
-    if (userId !== req.user.id || req.user.role !== "ADMIN") {
-      res.status(403).json({
+    console.log("updateUser - userId from params:", userId);
+    console.log("updateUser - req.user.id:", req.user.id);
+    console.log("updateUser - req.user.role:", req.user.role);
+
+    // L'utilisateur peut modifier son propre profil, ou un ADMIN peut modifier n'importe quel profil
+    if (userId !== req.user.id && req.user.role !== "ADMIN") {
+      return res.status(403).json({
         error: "Accès refusé",
       });
     }
@@ -99,7 +104,13 @@ export const updateUser = async (req, res) => {
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.error(error);
+    console.error("updateUser error:", error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({
+        error: "Utilisateur non trouvé",
+      });
+    }
 
     res.status(500).json({
       error: "Erreur serveur",
@@ -121,6 +132,107 @@ export const getMyPointsHistory = async (req, res) => {
     );
     return res.status(500).json({
       error: "Erreur lors de la récupération de l'historique des points",
+    });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    // Vérifier que l'utilisateur est ADMIN
+    if (req.user.role !== "ADMIN") {
+      return res.status(403).json({
+        error: "Accès refusé - ADMIN requis",
+      });
+    }
+
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        login: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        age: true,
+        sex: true,
+        memberType: true,
+        role: true,
+        avatarUrl: true,
+        points: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users,
+    });
+  } catch (error) {
+    console.error("getAllUsers error:", error);
+    res.status(500).json({
+      error: "Erreur serveur",
+    });
+  }
+};
+
+export const adminUpdateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Vérifier que l'utilisateur est ADMIN
+    if (req.user.role !== "ADMIN") {
+      return res.status(403).json({
+        error: "Accès refusé - ADMIN requis",
+      });
+    }
+
+    const { role, memberType, firstName, lastName, age, sex, avatarUrl } =
+      req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(role !== undefined && { role }),
+        ...(memberType !== undefined && { memberType }),
+        ...(firstName !== undefined && { firstName }),
+        ...(lastName !== undefined && { lastName }),
+        ...(age !== undefined && { age }),
+        ...(sex !== undefined && { sex }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+      },
+      select: {
+        id: true,
+        login: true,
+        firstName: true,
+        lastName: true,
+        age: true,
+        sex: true,
+        memberType: true,
+        avatarUrl: true,
+        role: true,
+        email: true,
+        points: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    console.error("adminUpdateUser error:", error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({
+        error: "Utilisateur non trouvé",
+      });
+    }
+
+    res.status(500).json({
+      error: "Erreur serveur",
     });
   }
 };

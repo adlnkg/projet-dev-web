@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { getMe, DEFAULT_AVATAR } from '../utils/user'
 
 const router = useRouter()
 const recherche = ref('')
@@ -28,6 +29,26 @@ const typeConfig = {
   device:    { label: 'Objet connecté',color: '#7c3aed', bg: '#ede9fe', icon: '📡' },
   area:      { label: 'Espace',        color: '#c2410c', bg: '#ffedd5', icon: '🏫' },
 }
+
+const currentUser = ref(null)
+const showAdmin = computed(() => currentUser.value && (currentUser.value.role === 'ADMIN' || currentUser.value.role === 'SUPER_USER'))
+
+onMounted(async () => {
+  try {
+    currentUser.value = await getMe()
+  } catch (e) {
+    // silent
+  }
+})
+
+function goToProfile() {
+  router.push('/profile')
+}
+
+const avatarUrl = computed(() => {
+  if (!currentUser.value) return DEFAULT_AVATAR
+  return currentUser.value.avatarUrl || currentUser.value.avatar || DEFAULT_AVATAR
+})
 
 const areaTypeLabels = {
   BUILDING: 'Bâtiment',
@@ -197,7 +218,15 @@ function fermerRecherche() {
         <span class="nav-link" @click="scrollVers('quisommesnous')">QUI SOMMES NOUS</span>
         <span class="nav-link" @click="scrollVers('formations')">NOS FORMATIONS</span>
         <span class="nav-link" @click="scrollVers('objets')">OBJETS CONNECTÉS</span>
-        <span class="nav-link btn-inscrire" @click="router.push('/register')">S'INSCRIRE</span>
+        <span v-if="showAdmin" class="nav-link" @click="router.push('/admin')">ADMIN</span>
+        <template v-if="!currentUser">
+          <button class="nav-cta" @click="router.push('/login')">S'INSCRIRE / SE CONNECTER</button>
+        </template>
+        <template v-else>
+          <button class="avatar-btn" @click="goToProfile" :title="currentUser.firstName || currentUser.login">
+            <img :src="avatarUrl" alt="avatar" class="avatar-img" />
+          </button>
+        </template>
       </div>
 
       <!-- RECHERCHE DESKTOP -->
@@ -329,7 +358,16 @@ function fermerRecherche() {
         <span @click="scrollVers('actualites')">ACTUALITÉS</span>
         <span @click="scrollVers('evenements')">ÉVÉNEMENTS</span>
         <span @click="scrollVers('contact')">CONTACT</span>
-        <span @click="router.push('/register')" class="mobile-inscrire">S'INSCRIRE</span>
+        <span v-if="showAdmin" @click="router.push('/admin')">ADMIN</span>
+        <template v-if="!currentUser">
+          <button class="mobile-inscrire" @click="router.push('/login')">S'INSCRIRE / SE CONNECTER</button>
+        </template>
+        <template v-else>
+          <div class="mobile-avatar-row" @click="goToProfile" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <img :src="avatarUrl" alt="avatar" class="avatar-img mobile-avatar" />
+            <span style="font-weight:700;color:#0d2d5e">{{ currentUser.firstName || currentUser.login }}</span>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -510,6 +548,15 @@ function fermerRecherche() {
   padding: 10px 16px !important; border-radius: 8px !important;
   text-align: center !important; border-bottom: none !important;
 }
+
+/* CTA & Avatar */
+.nav-cta {
+  background: #1a5c9e; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight:700;
+}
+.nav-cta:hover { background: #0d2d5e }
+.avatar-btn { background: none; border: none; padding: 0; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; }
+.avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mobile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 
 /* ── Responsive ── */
 .desktop-only { display: flex; }

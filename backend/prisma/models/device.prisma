@@ -9,6 +9,12 @@ model IoTDevice {
     imageUrl    String   @default("images/devices/default-device.png")
 
     electricityConsumption Float  @default(0) // in kWh
+    nominalPowerWatts      Float  @default(0)
+    averageDailyUsageHours Float  @default(0)
+    maintenanceIntervalDays Int   @default(0)
+    lastPowerOnAt          DateTime?
+    lastPowerOffAt         DateTime?
+    lastMaintenanceAt      DateTime?
     brand                  String
     model                  String
 
@@ -29,6 +35,7 @@ model IoTDevice {
     thermostat    Thermostat?
     camera        Camera?
     accessControl AccessControl?
+    historyEntries IoTDeviceHistory[] @relation("IoTDeviceHistories")
 }
 
 enum DeviceType {
@@ -53,6 +60,9 @@ model Sensor {
     deviceId  Int      @unique
     timestamp DateTime @default(now())
     value     Float
+    samplingIntervalSeconds Int      @default(60)
+    batteryLevel            Float    @default(100)
+    lastReadingAt           DateTime?
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -62,6 +72,9 @@ model InteractiveWhiteboard {
     deviceId   Int    @unique
     resolution String
     screenSize Float
+    powerWatts  Float   @default(0)
+    lastSwitchedOnAt  DateTime?
+    lastSwitchedOffAt DateTime?
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -71,6 +84,10 @@ model Light {
     deviceId   Int    @unique
     brightness Int
     color      String
+    powerWatts       Float    @default(0)
+    colorTemperature  Int?
+    lastSwitchedOnAt  DateTime?
+    lastSwitchedOffAt DateTime?
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -81,6 +98,9 @@ model Thermostat {
     temperature Float
     targetTemp  Float
     mode        ThermostatMode @default(OFF)
+    powerWatts  Float          @default(0)
+    lastHeatingAt DateTime?
+    lastCoolingAt DateTime?
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -90,6 +110,10 @@ model Camera {
     deviceId   Int    @unique
     resolution String
     frameRate  Float
+    powerWatts          Float    @default(0)
+    streamingBitrateKbps Int      @default(0)
+    lastRecordingStartedAt DateTime?
+    lastRecordingStoppedAt  DateTime?
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -98,6 +122,9 @@ model AccessControl {
     id       Int    @id @default(autoincrement())
     deviceId Int    @unique
     status   String
+    powerWatts    Float    @default(0)
+    lastOpenedAt  DateTime?
+    lastClosedAt  DateTime?
 
     device IoTDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
 }
@@ -107,4 +134,30 @@ enum ThermostatMode {
     HEAT
     COOL
     AUTO
+}
+
+model IoTDeviceHistory {
+    id            String   @id @default(uuid())
+    deviceId      Int
+    kind          IoTDeviceHistoryKind
+    fieldKey      String
+    previousValue String?
+    currentValue  String?
+    numericValue  Float?
+    unit          String?
+    note          String?
+    recordedAt    DateTime @default(now())
+
+    device IoTDevice @relation("IoTDeviceHistories", fields: [deviceId], references: [id], onDelete: Cascade)
+
+    @@index([deviceId, recordedAt])
+    @@index([fieldKey])
+}
+
+enum IoTDeviceHistoryKind {
+    SNAPSHOT
+    MEASUREMENT
+    STATE_CHANGE
+    MAINTENANCE
+    USAGE
 }

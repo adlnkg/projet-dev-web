@@ -728,13 +728,53 @@ Réponse `200` :
     },
     "specific": {
       "value": 22.5,
-      "timestamp": "2026-04-25T08:00:00.000Z"
+      "timestamp": "2026-04-25T08:00:00.000Z",
+      "samplingIntervalSeconds": 60,
+      "batteryLevel": 92,
+      "lastReadingAt": "2026-04-25T08:05:00.000Z"
+    },
+    "statistics": {
+      "consumption": {
+        "electricityConsumptionKwh": 12.4,
+        "nominalPowerWatts": 18,
+        "averageDailyUsageHours": 6,
+        "estimatedDailyConsumptionKwh": 0.108,
+        "estimatedMonthlyConsumptionKwh": 3.24
+      },
+      "maintenance": {
+        "maintenanceIntervalDays": 90,
+        "lastMaintenanceAt": "2026-04-20T08:00:00.000Z"
+      },
+      "lifecycle": {
+        "lastPowerOnAt": "2026-04-25T07:50:00.000Z",
+        "lastPowerOffAt": null,
+        "lastActivityAt": "2026-04-25T08:05:00.000Z"
+      },
+      "history": {
+        "entriesCount": 4
+      }
+    },
+    "history": {
+      "count": 2,
+      "entries": [
+        {
+          "id": "uuid",
+          "kind": "MEASUREMENT",
+          "fieldKey": "electricityConsumption",
+          "previousValue": "12.0",
+          "currentValue": "12.4",
+          "numericValue": 12.4,
+          "unit": "kWh",
+          "note": null,
+          "recordedAt": "2026-04-25T08:05:00.000Z"
+        }
+      ]
     },
     "form": {
       "role": "USER",
       "editableFieldKeys": [],
       "fields": ["..."],
-      "supportedSpecificFields": ["sensor.value", "sensor.timestamp"]
+      "supportedSpecificFields": ["sensor.value", "sensor.timestamp", "sensor.samplingIntervalSeconds", "sensor.batteryLevel", "sensor.lastReadingAt"]
     }
   }
 }
@@ -763,7 +803,7 @@ Réponse `200` :
       "byType": {
         "LIGHT": {
           "requiredFieldKeys": ["type", "areaId", "uniqueName", "name", "description", "brand", "model", "light.brightness", "light.color"],
-          "supportedSpecificFields": ["light.brightness", "light.color"],
+          "supportedSpecificFields": ["light.brightness", "light.color", "light.powerWatts", "light.colorTemperature", "light.lastSwitchedOnAt", "light.lastSwitchedOffAt"],
           "fields": [
             { "key": "light.brightness", "kind": "number", "required": true },
             { "key": "light.color", "kind": "text", "required": true }
@@ -775,7 +815,9 @@ Réponse `200` :
 }
 ```
 
-Remarque : chaque entrée de `byType.*.fields` contient aussi les champs généraux (`uniqueName`, `name`, `description`, `brand`, `model`, `type`, `areaId`, `status`, `electricityConsumption`, `imageUrl`) ; l’exemple est volontairement réduit.
+Remarque : chaque entrée de `byType.*.fields` contient aussi les champs généraux (`uniqueName`, `name`, `description`, `brand`, `model`, `type`, `areaId`, `status`, `electricityConsumption`, `nominalPowerWatts`, `averageDailyUsageHours`, `maintenanceIntervalDays`, `imageUrl`) ; l’exemple est volontairement réduit.
+
+Le bloc `form.fields` expose aussi les champs de suivi en lecture seule lors de la consultation, comme `lastPowerOnAt`, `lastPowerOffAt`, `lastMaintenanceAt` et les timestamps spécifiques du type.
 
 ### Création
 
@@ -795,24 +837,32 @@ Champs communs :
   "areaId": 3,
   "type": "LIGHT",
   "status": "INACTIVE",
-  "electricityConsumption": 0
+  "electricityConsumption": 0,
+  "nominalPowerWatts": 18,
+  "averageDailyUsageHours": 6,
+  "maintenanceIntervalDays": 90,
+  "light.powerWatts": 18,
+  "light.colorTemperature": 4000
 }
 ```
 
 Champs spécifiques selon `type` :
 
-- `LIGHT` : `light.brightness`, `light.color`
-- `SENSOR` : `sensor.value`
-- `THERMOSTAT` : `thermostat.temperature`, `thermostat.targetTemp`
-- `CAMERA` : `camera.resolution`, `camera.frameRate`
-- `ACCESS_CONTROL` : `accessControl.status`
-- `WHITEBOARD` : `whiteboard.resolution`, `whiteboard.screenSize`
+- `LIGHT` : `light.brightness`, `light.color`, `light.powerWatts`, `light.colorTemperature`
+- `SENSOR` : `sensor.value`, `sensor.samplingIntervalSeconds`
+- `THERMOSTAT` : `thermostat.temperature`, `thermostat.targetTemp`, `thermostat.powerWatts`
+- `CAMERA` : `camera.resolution`, `camera.frameRate`, `camera.powerWatts`, `camera.streamingBitrateKbps`
+- `ACCESS_CONTROL` : `accessControl.status`, `accessControl.powerWatts`
+- `WHITEBOARD` : `whiteboard.resolution`, `whiteboard.screenSize`, `whiteboard.powerWatts`
 
 Champs optionnels :
 
 - `image` : fichier image
 - `status` : défaut `INACTIVE`
 - `electricityConsumption` : défaut `0`
+- `nominalPowerWatts` : puissance nominale du device en watts
+- `averageDailyUsageHours` : durée d’utilisation moyenne par jour
+- `maintenanceIntervalDays` : intervalle recommandé entre deux maintenances
 - `thermostat.mode` : défaut `OFF`
 - `numberOfParticipants` n’existe pas sur ce modèle
 
@@ -830,14 +880,18 @@ Body JSON :
   "model": "Lamp Y",
   "status": "ACTIVE",
   "light.brightness": 80,
-  "light.color": "white"
+  "light.color": "white",
+  "light.powerWatts": 18,
+  "light.colorTemperature": 4000
 }
 ```
 
 Champs modifiables :
 
 - `SUPER_USER` : `status`, `light.brightness`, `light.color`, `thermostat.targetTemp`, `thermostat.mode`
-- `ADMIN` : `name`, `description`, `brand`, `model`, `status` + droits du `SUPER_USER`
+- `ADMIN` : `name`, `description`, `brand`, `model`, `status`, `nominalPowerWatts`, `averageDailyUsageHours`, `maintenanceIntervalDays`, `light.powerWatts`, `light.colorTemperature`, `sensor.samplingIntervalSeconds`, `thermostat.powerWatts`, `camera.powerWatts`, `camera.streamingBitrateKbps`, `whiteboard.powerWatts`, `accessControl.powerWatts` + droits du `SUPER_USER`
+
+Le détail renvoyé par `GET /api/devices/:id` inclut désormais les 50 dernières entrées d’historique dans `history.entries` et un résumé calculé dans `statistics`, ce qui permet d’alimenter des rapports d’usage et de consommation côté front ou côté batch.
 
 ## Demandes de suppression
 

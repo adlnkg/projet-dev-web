@@ -83,6 +83,54 @@ const GENERAL_FIELD_DEFINITIONS = {
         step: 0.01,
         section: "general",
     },
+    nominalPowerWatts: {
+        key: "nominalPowerWatts",
+        label: "Puissance nominale (W)",
+        kind: "number",
+        min: 0,
+        max: 100000,
+        step: 0.1,
+        section: "general",
+    },
+    averageDailyUsageHours: {
+        key: "averageDailyUsageHours",
+        label: "Utilisation moyenne journaliere (h)",
+        kind: "number",
+        min: 0,
+        max: 24,
+        step: 0.1,
+        section: "general",
+    },
+    maintenanceIntervalDays: {
+        key: "maintenanceIntervalDays",
+        label: "Intervalle de maintenance (jours)",
+        kind: "number",
+        min: 0,
+        max: 3650,
+        step: 1,
+        section: "general",
+    },
+    lastPowerOnAt: {
+        key: "lastPowerOnAt",
+        label: "Derniere mise sous tension",
+        kind: "datetime",
+        readOnly: true,
+        section: "general",
+    },
+    lastPowerOffAt: {
+        key: "lastPowerOffAt",
+        label: "Derniere extinction",
+        kind: "datetime",
+        readOnly: true,
+        section: "general",
+    },
+    lastMaintenanceAt: {
+        key: "lastMaintenanceAt",
+        label: "Derniere maintenance",
+        kind: "datetime",
+        readOnly: true,
+        section: "general",
+    },
     status: {
         key: "status",
         label: "Statut",
@@ -118,6 +166,17 @@ const GENERAL_FIELD_DEFINITIONS = {
 const DEVICE_TYPE_FIELD_DEFINITIONS = {
     LIGHT: [
         {
+            key: "light.powerWatts",
+            label: "Puissance (W)",
+            kind: "number",
+            min: 0,
+            max: 1000,
+            step: 0.1,
+            section: "specific",
+            source: "light",
+            field: "powerWatts",
+        },
+        {
             key: "light.brightness",
             label: "Luminosite",
             kind: "number",
@@ -138,6 +197,35 @@ const DEVICE_TYPE_FIELD_DEFINITIONS = {
             source: "light",
             field: "color",
         },
+        {
+            key: "light.colorTemperature",
+            label: "Temperature de couleur (K)",
+            kind: "number",
+            min: 1000,
+            max: 20000,
+            step: 1,
+            section: "specific",
+            source: "light",
+            field: "colorTemperature",
+        },
+        {
+            key: "light.lastSwitchedOnAt",
+            label: "Dernier allumage",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "light",
+            field: "lastSwitchedOnAt",
+        },
+        {
+            key: "light.lastSwitchedOffAt",
+            label: "Dernier arret",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "light",
+            field: "lastSwitchedOffAt",
+        },
     ],
     SENSOR: [
         {
@@ -157,6 +245,35 @@ const DEVICE_TYPE_FIELD_DEFINITIONS = {
             section: "specific",
             source: "sensor",
             field: "timestamp",
+        },
+        {
+            key: "sensor.samplingIntervalSeconds",
+            label: "Intervalle d'echantillonnage (s)",
+            kind: "number",
+            min: 1,
+            max: 86400,
+            step: 1,
+            section: "specific",
+            source: "sensor",
+            field: "samplingIntervalSeconds",
+        },
+        {
+            key: "sensor.batteryLevel",
+            label: "Batterie (%)",
+            kind: "number",
+            readOnly: true,
+            section: "specific",
+            source: "sensor",
+            field: "batteryLevel",
+        },
+        {
+            key: "sensor.lastReadingAt",
+            label: "Derniere mesure",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "sensor",
+            field: "lastReadingAt",
         },
     ],
     THERMOSTAT: [
@@ -189,6 +306,35 @@ const DEVICE_TYPE_FIELD_DEFINITIONS = {
             source: "thermostat",
             field: "mode",
         },
+        {
+            key: "thermostat.powerWatts",
+            label: "Puissance (W)",
+            kind: "number",
+            min: 0,
+            max: 10000,
+            step: 0.1,
+            section: "specific",
+            source: "thermostat",
+            field: "powerWatts",
+        },
+        {
+            key: "thermostat.lastHeatingAt",
+            label: "Dernier chauffage",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "thermostat",
+            field: "lastHeatingAt",
+        },
+        {
+            key: "thermostat.lastCoolingAt",
+            label: "Dernier refroidissement",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "thermostat",
+            field: "lastCoolingAt",
+        },
     ],
     WHITEBOARD: [
         {
@@ -208,6 +354,35 @@ const DEVICE_TYPE_FIELD_DEFINITIONS = {
             section: "specific",
             source: "whiteboard",
             field: "screenSize",
+        },
+        {
+            key: "whiteboard.powerWatts",
+            label: "Puissance (W)",
+            kind: "number",
+            min: 0,
+            max: 10000,
+            step: 0.1,
+            section: "specific",
+            source: "whiteboard",
+            field: "powerWatts",
+        },
+        {
+            key: "whiteboard.lastSwitchedOnAt",
+            label: "Dernier allumage",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "whiteboard",
+            field: "lastSwitchedOnAt",
+        },
+        {
+            key: "whiteboard.lastSwitchedOffAt",
+            label: "Dernier arret",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "whiteboard",
+            field: "lastSwitchedOffAt",
         },
     ],
     CAMERA: [
@@ -229,6 +404,46 @@ const DEVICE_TYPE_FIELD_DEFINITIONS = {
             source: "camera",
             field: "frameRate",
         },
+        {
+            key: "camera.powerWatts",
+            label: "Puissance (W)",
+            kind: "number",
+            min: 0,
+            max: 10000,
+            step: 0.1,
+            section: "specific",
+            source: "camera",
+            field: "powerWatts",
+        },
+        {
+            key: "camera.streamingBitrateKbps",
+            label: "Debit de flux (kbps)",
+            kind: "number",
+            min: 0,
+            max: 100000,
+            step: 1,
+            section: "specific",
+            source: "camera",
+            field: "streamingBitrateKbps",
+        },
+        {
+            key: "camera.lastRecordingStartedAt",
+            label: "Debut du dernier enregistrement",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "camera",
+            field: "lastRecordingStartedAt",
+        },
+        {
+            key: "camera.lastRecordingStoppedAt",
+            label: "Fin du dernier enregistrement",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "camera",
+            field: "lastRecordingStoppedAt",
+        },
     ],
     ACCESS_CONTROL: [
         {
@@ -240,41 +455,145 @@ const DEVICE_TYPE_FIELD_DEFINITIONS = {
             source: "accessControl",
             field: "status",
         },
+        {
+            key: "accessControl.powerWatts",
+            label: "Puissance (W)",
+            kind: "number",
+            min: 0,
+            max: 10000,
+            step: 0.1,
+            section: "specific",
+            source: "accessControl",
+            field: "powerWatts",
+        },
+        {
+            key: "accessControl.lastOpenedAt",
+            label: "Derniere ouverture",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "accessControl",
+            field: "lastOpenedAt",
+        },
+        {
+            key: "accessControl.lastClosedAt",
+            label: "Derniere fermeture",
+            kind: "datetime",
+            readOnly: true,
+            section: "specific",
+            source: "accessControl",
+            field: "lastClosedAt",
+        },
     ],
 };
 
 const EDITABLE_FIELD_KEYS_BY_ROLE = {
     USER: [],
     SUPER_USER: ["status", "light.brightness", "light.color", "thermostat.targetTemp", "thermostat.mode"],
-    ADMIN: ["name", "description", "brand", "model", "status"],
+    ADMIN: [
+        "name",
+        "description",
+        "brand",
+        "model",
+        "status",
+        "nominalPowerWatts",
+        "averageDailyUsageHours",
+        "maintenanceIntervalDays",
+        "light.powerWatts",
+        "light.colorTemperature",
+        "sensor.samplingIntervalSeconds",
+        "thermostat.powerWatts",
+        "whiteboard.powerWatts",
+        "camera.powerWatts",
+        "camera.streamingBitrateKbps",
+        "accessControl.powerWatts",
+    ],
 };
 
 const DEVICE_TYPE_SUPPORT = {
     LIGHT: {
-        editableFieldKeys: ["status", "light.brightness", "light.color", "name", "description", "brand", "model"],
+        editableFieldKeys: [
+            "status",
+            "light.brightness",
+            "light.color",
+            "light.powerWatts",
+            "light.colorTemperature",
+            "name",
+            "description",
+            "brand",
+            "model",
+            "nominalPowerWatts",
+            "averageDailyUsageHours",
+            "maintenanceIntervalDays",
+        ],
     },
     SENSOR: {
-        editableFieldKeys: ["status", "name", "description", "brand", "model"],
+        editableFieldKeys: [
+            "status",
+            "sensor.samplingIntervalSeconds",
+            "name",
+            "description",
+            "brand",
+            "model",
+            "nominalPowerWatts",
+            "averageDailyUsageHours",
+            "maintenanceIntervalDays",
+        ],
     },
     THERMOSTAT: {
         editableFieldKeys: [
             "status",
             "thermostat.targetTemp",
             "thermostat.mode",
+            "thermostat.powerWatts",
             "name",
             "description",
             "brand",
             "model",
+            "nominalPowerWatts",
+            "averageDailyUsageHours",
+            "maintenanceIntervalDays",
         ],
     },
     CAMERA: {
-        editableFieldKeys: ["status", "name", "description", "brand", "model"],
+        editableFieldKeys: [
+            "status",
+            "camera.powerWatts",
+            "camera.streamingBitrateKbps",
+            "name",
+            "description",
+            "brand",
+            "model",
+            "nominalPowerWatts",
+            "averageDailyUsageHours",
+            "maintenanceIntervalDays",
+        ],
     },
     ACCESS_CONTROL: {
-        editableFieldKeys: ["status", "name", "description", "brand", "model"],
+        editableFieldKeys: [
+            "status",
+            "accessControl.powerWatts",
+            "name",
+            "description",
+            "brand",
+            "model",
+            "nominalPowerWatts",
+            "averageDailyUsageHours",
+            "maintenanceIntervalDays",
+        ],
     },
     WHITEBOARD: {
-        editableFieldKeys: ["status", "name", "description", "brand", "model"],
+        editableFieldKeys: [
+            "status",
+            "whiteboard.powerWatts",
+            "name",
+            "description",
+            "brand",
+            "model",
+            "nominalPowerWatts",
+            "averageDailyUsageHours",
+            "maintenanceIntervalDays",
+        ],
     },
 };
 
@@ -310,7 +629,32 @@ const DEVICE_FIELD_VALIDATORS = {
         step: definition.step,
         fieldName: definition.label,
     }),
+    nominalPowerWatts: (value, definition) => normalizeNumberValue(value, {
+        min: definition.min,
+        max: definition.max,
+        step: definition.step,
+        fieldName: definition.label,
+    }),
+    averageDailyUsageHours: (value, definition) => normalizeNumberValue(value, {
+        min: definition.min,
+        max: definition.max,
+        step: definition.step,
+        fieldName: definition.label,
+    }),
+    maintenanceIntervalDays: (value, definition) => normalizeNumberValue(value, {
+        min: definition.min,
+        max: definition.max,
+        step: definition.step,
+        integer: true,
+        fieldName: definition.label,
+    }),
     status: (value, definition) => normalizeEnumValue(value, DEVICE_STATUS_VALUES, definition.label),
+    "light.powerWatts": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 0,
+        max: definition.max ?? 1000,
+        step: definition.step ?? 0.1,
+        fieldName: definition.label,
+    }),
     "light.brightness": (value, definition) => normalizeNumberValue(value, {
         min: definition.min ?? 0,
         max: definition.max ?? 100,
@@ -323,6 +667,20 @@ const DEVICE_FIELD_VALIDATORS = {
         maxLength: definition.maxLength,
         fieldName: definition.label,
     }),
+    "light.colorTemperature": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 1000,
+        max: definition.max ?? 20000,
+        step: definition.step ?? 1,
+        integer: true,
+        fieldName: definition.label,
+    }),
+    "sensor.samplingIntervalSeconds": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 1,
+        max: definition.max ?? 86400,
+        step: definition.step ?? 1,
+        integer: true,
+        fieldName: definition.label,
+    }),
     "thermostat.targetTemp": (value, definition) => normalizeNumberValue(value, {
         min: definition.min ?? 5,
         max: definition.max ?? 35,
@@ -330,10 +688,35 @@ const DEVICE_FIELD_VALIDATORS = {
         fieldName: definition.label,
     }),
     "thermostat.mode": (value, definition) => normalizeEnumValue(value, THERMOSTAT_MODE_VALUES, definition.label),
+    "thermostat.powerWatts": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 0,
+        max: definition.max ?? 10000,
+        step: definition.step ?? 0.1,
+        fieldName: definition.label,
+    }),
     "sensor.value": (value, definition) => normalizeNumberValue(value, {
         fieldName: definition.label,
     }),
+    "camera.powerWatts": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 0,
+        max: definition.max ?? 10000,
+        step: definition.step ?? 0.1,
+        fieldName: definition.label,
+    }),
+    "camera.streamingBitrateKbps": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 0,
+        max: definition.max ?? 100000,
+        step: definition.step ?? 1,
+        integer: true,
+        fieldName: definition.label,
+    }),
     "thermostat.temperature": (value, definition) => normalizeNumberValue(value, {
+        fieldName: definition.label,
+    }),
+    "whiteboard.powerWatts": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 0,
+        max: definition.max ?? 10000,
+        step: definition.step ?? 0.1,
         fieldName: definition.label,
     }),
     "camera.resolution": (value, definition) => normalizeTextValue(value, {
@@ -363,6 +746,12 @@ const DEVICE_FIELD_VALIDATORS = {
         maxLength: 80,
         fieldName: definition.label,
     }),
+    "accessControl.powerWatts": (value, definition) => normalizeNumberValue(value, {
+        min: definition.min ?? 0,
+        max: definition.max ?? 10000,
+        step: definition.step ?? 0.1,
+        fieldName: definition.label,
+    }),
 };
 
 const REQUIRED_CREATE_FIELDS_BY_TYPE = {
@@ -388,6 +777,282 @@ const REQUIRED_CREATE_FIELDS_BY_TYPE = {
         "whiteboard.resolution",
         "whiteboard.screenSize",
     ],
+};
+
+const DEVICE_HISTORY_TRACKERS = {
+    electricityConsumption: {
+        kind: "MEASUREMENT",
+        unit: "kWh",
+        section: "general",
+    },
+    nominalPowerWatts: {
+        kind: "MEASUREMENT",
+        unit: "W",
+        section: "general",
+    },
+    averageDailyUsageHours: {
+        kind: "USAGE",
+        unit: "h/j",
+        section: "general",
+    },
+    maintenanceIntervalDays: {
+        kind: "MAINTENANCE",
+        unit: "jours",
+        section: "general",
+    },
+    status: {
+        kind: "STATE_CHANGE",
+        section: "general",
+    },
+    "light.brightness": {
+        kind: "MEASUREMENT",
+        unit: "%",
+        section: "specific",
+        source: "light",
+        field: "brightness",
+    },
+    "light.color": {
+        kind: "SNAPSHOT",
+        section: "specific",
+        source: "light",
+        field: "color",
+    },
+    "light.powerWatts": {
+        kind: "MEASUREMENT",
+        unit: "W",
+        section: "specific",
+        source: "light",
+        field: "powerWatts",
+    },
+    "light.colorTemperature": {
+        kind: "MEASUREMENT",
+        unit: "K",
+        section: "specific",
+        source: "light",
+        field: "colorTemperature",
+    },
+    "sensor.value": {
+        kind: "MEASUREMENT",
+        section: "specific",
+        source: "sensor",
+        field: "value",
+    },
+    "sensor.samplingIntervalSeconds": {
+        kind: "USAGE",
+        unit: "s",
+        section: "specific",
+        source: "sensor",
+        field: "samplingIntervalSeconds",
+    },
+    "sensor.batteryLevel": {
+        kind: "MEASUREMENT",
+        unit: "%",
+        section: "specific",
+        source: "sensor",
+        field: "batteryLevel",
+    },
+    "thermostat.temperature": {
+        kind: "MEASUREMENT",
+        unit: "C",
+        section: "specific",
+        source: "thermostat",
+        field: "temperature",
+    },
+    "thermostat.targetTemp": {
+        kind: "MEASUREMENT",
+        unit: "C",
+        section: "specific",
+        source: "thermostat",
+        field: "targetTemp",
+    },
+    "thermostat.mode": {
+        kind: "STATE_CHANGE",
+        section: "specific",
+        source: "thermostat",
+        field: "mode",
+    },
+    "thermostat.powerWatts": {
+        kind: "MEASUREMENT",
+        unit: "W",
+        section: "specific",
+        source: "thermostat",
+        field: "powerWatts",
+    },
+    "whiteboard.resolution": {
+        kind: "SNAPSHOT",
+        section: "specific",
+        source: "whiteboard",
+        field: "resolution",
+    },
+    "whiteboard.screenSize": {
+        kind: "SNAPSHOT",
+        unit: "in",
+        section: "specific",
+        source: "whiteboard",
+        field: "screenSize",
+    },
+    "whiteboard.powerWatts": {
+        kind: "MEASUREMENT",
+        unit: "W",
+        section: "specific",
+        source: "whiteboard",
+        field: "powerWatts",
+    },
+    "camera.resolution": {
+        kind: "SNAPSHOT",
+        section: "specific",
+        source: "camera",
+        field: "resolution",
+    },
+    "camera.frameRate": {
+        kind: "MEASUREMENT",
+        unit: "fps",
+        section: "specific",
+        source: "camera",
+        field: "frameRate",
+    },
+    "camera.powerWatts": {
+        kind: "MEASUREMENT",
+        unit: "W",
+        section: "specific",
+        source: "camera",
+        field: "powerWatts",
+    },
+    "camera.streamingBitrateKbps": {
+        kind: "MEASUREMENT",
+        unit: "kbps",
+        section: "specific",
+        source: "camera",
+        field: "streamingBitrateKbps",
+    },
+    "accessControl.status": {
+        kind: "STATE_CHANGE",
+        section: "specific",
+        source: "accessControl",
+        field: "status",
+    },
+    "accessControl.powerWatts": {
+        kind: "MEASUREMENT",
+        unit: "W",
+        section: "specific",
+        source: "accessControl",
+        field: "powerWatts",
+    },
+};
+
+const serializeHistoryValue = (value) => {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+
+    if (value === undefined) {
+        return null;
+    }
+
+    if (value === null) {
+        return null;
+    }
+
+    if (typeof value === "object") {
+        return JSON.stringify(value);
+    }
+
+    return String(value);
+};
+
+const getTrackedFieldValue = (entity, tracker, fieldKey) => {
+    if (tracker.section === "specific") {
+        return entity?.[tracker.source]?.[tracker.field] ?? null;
+    }
+
+    return entity?.[fieldKey] ?? null;
+};
+
+const buildHistoryEntry = ({ deviceId, fieldKey, tracker, previousValue, currentValue }) => {
+    const normalizedCurrentValue = serializeHistoryValue(currentValue);
+    return {
+        deviceId,
+        kind: tracker.kind,
+        fieldKey,
+        previousValue: serializeHistoryValue(previousValue),
+        currentValue: normalizedCurrentValue,
+        numericValue: typeof currentValue === "number" && Number.isFinite(currentValue) ? currentValue : null,
+        unit: tracker.unit ?? null,
+        note: tracker.note ?? null,
+    };
+};
+
+const buildDeviceHistoryEntries = ({ deviceId, currentState, generalValues = {}, specificValues = {} }) => {
+    const historyEntries = [];
+
+    for (const [fieldKey, tracker] of Object.entries(DEVICE_HISTORY_TRACKERS)) {
+        const hasIncomingValue = tracker.section === "specific"
+            ? Object.prototype.hasOwnProperty.call(specificValues[tracker.source] ?? {}, tracker.field)
+            : Object.prototype.hasOwnProperty.call(generalValues, fieldKey);
+
+        if (!hasIncomingValue) {
+            continue;
+        }
+
+        const currentValue = tracker.section === "specific"
+            ? specificValues[tracker.source]?.[tracker.field]
+            : generalValues[fieldKey];
+
+        const previousValue = currentState ? getTrackedFieldValue(currentState, tracker, fieldKey) : null;
+
+        if (currentState && previousValue === currentValue) {
+            continue;
+        }
+
+        historyEntries.push(buildHistoryEntry({
+            deviceId,
+            fieldKey,
+            tracker,
+            previousValue,
+            currentValue,
+        }));
+    }
+
+    return historyEntries;
+};
+
+const buildDeviceHistoryResponse = (historyEntries = []) => historyEntries.map((entry) => ({
+    id: entry.id,
+    kind: entry.kind,
+    fieldKey: entry.fieldKey,
+    previousValue: entry.previousValue,
+    currentValue: entry.currentValue,
+    numericValue: entry.numericValue,
+    unit: entry.unit,
+    note: entry.note,
+    recordedAt: entry.recordedAt,
+}));
+
+const buildDeviceStatistics = (device, historyEntries = []) => {
+    const estimatedDailyConsumptionKwh = (device.nominalPowerWatts * device.averageDailyUsageHours) / 1000;
+    const estimatedMonthlyConsumptionKwh = estimatedDailyConsumptionKwh * 30;
+
+    return {
+        consumption: {
+            electricityConsumptionKwh: device.electricityConsumption,
+            nominalPowerWatts: device.nominalPowerWatts,
+            averageDailyUsageHours: device.averageDailyUsageHours,
+            estimatedDailyConsumptionKwh,
+            estimatedMonthlyConsumptionKwh,
+        },
+        maintenance: {
+            maintenanceIntervalDays: device.maintenanceIntervalDays,
+            lastMaintenanceAt: device.lastMaintenanceAt,
+        },
+        lifecycle: {
+            lastPowerOnAt: device.lastPowerOnAt,
+            lastPowerOffAt: device.lastPowerOffAt,
+            lastActivityAt: historyEntries[0]?.recordedAt ?? device.lastUpdated,
+        },
+        history: {
+            entriesCount: historyEntries.length,
+        },
+    };
 };
 
 const getDeviceCreateForm = (role) => {
@@ -436,33 +1101,53 @@ const buildDeviceSpecificPayload = (device) => {
     switch (device.type) {
         case "LIGHT":
             return {
+                powerWatts: device.light?.powerWatts ?? null,
                 brightness: device.light?.brightness ?? null,
                 color: device.light?.color ?? null,
+                colorTemperature: device.light?.colorTemperature ?? null,
+                lastSwitchedOnAt: device.light?.lastSwitchedOnAt ?? null,
+                lastSwitchedOffAt: device.light?.lastSwitchedOffAt ?? null,
             };
         case "SENSOR":
             return {
                 value: device.sensor?.value ?? null,
                 timestamp: device.sensor?.timestamp ?? null,
+                samplingIntervalSeconds: device.sensor?.samplingIntervalSeconds ?? null,
+                batteryLevel: device.sensor?.batteryLevel ?? null,
+                lastReadingAt: device.sensor?.lastReadingAt ?? null,
             };
         case "THERMOSTAT":
             return {
                 temperature: device.thermostat?.temperature ?? null,
                 targetTemp: device.thermostat?.targetTemp ?? null,
                 mode: device.thermostat?.mode ?? null,
+                powerWatts: device.thermostat?.powerWatts ?? null,
+                lastHeatingAt: device.thermostat?.lastHeatingAt ?? null,
+                lastCoolingAt: device.thermostat?.lastCoolingAt ?? null,
             };
         case "WHITEBOARD":
             return {
                 resolution: device.whiteboard?.resolution ?? null,
                 screenSize: device.whiteboard?.screenSize ?? null,
+                powerWatts: device.whiteboard?.powerWatts ?? null,
+                lastSwitchedOnAt: device.whiteboard?.lastSwitchedOnAt ?? null,
+                lastSwitchedOffAt: device.whiteboard?.lastSwitchedOffAt ?? null,
             };
         case "CAMERA":
             return {
                 resolution: device.camera?.resolution ?? null,
                 frameRate: device.camera?.frameRate ?? null,
+                powerWatts: device.camera?.powerWatts ?? null,
+                streamingBitrateKbps: device.camera?.streamingBitrateKbps ?? null,
+                lastRecordingStartedAt: device.camera?.lastRecordingStartedAt ?? null,
+                lastRecordingStoppedAt: device.camera?.lastRecordingStoppedAt ?? null,
             };
         case "ACCESS_CONTROL":
             return {
                 status: device.accessControl?.status ?? null,
+                powerWatts: device.accessControl?.powerWatts ?? null,
+                lastOpenedAt: device.accessControl?.lastOpenedAt ?? null,
+                lastClosedAt: device.accessControl?.lastClosedAt ?? null,
             };
         default:
             return {};
@@ -484,6 +1169,12 @@ const getDeviceForUpdate = async (deviceId) => prisma.ioTDevice.findUnique({
         thermostat: true,
         camera: true,
         accessControl: true,
+        historyEntries: {
+            orderBy: {
+                recordedAt: "desc",
+            },
+            take: 50,
+        },
         owner: {
             select: {
                 id: true,
@@ -501,6 +1192,8 @@ const getDeviceForUpdate = async (deviceId) => prisma.ioTDevice.findUnique({
  * @returns {object} The response object containing device details and form configuration.
  */
 const buildDeviceResponse = (device, role) => {
+    const historyEntries = buildDeviceHistoryResponse(device.historyEntries ?? []);
+
     const editableFieldKeys = getEditableFieldKeys({
         role,
         entityType: device.type,
@@ -538,6 +1231,11 @@ const buildDeviceResponse = (device, role) => {
             }
             : null,
         specific: buildDeviceSpecificPayload(device),
+        statistics: buildDeviceStatistics(device, device.historyEntries ?? []),
+        history: {
+            count: historyEntries.length,
+            entries: historyEntries,
+        },
         form: {
             role,
             editableFieldKeys,
@@ -602,6 +1300,13 @@ const updateDevice = async (deviceId, role, payload) => {
         validatorsByField: DEVICE_FIELD_VALIDATORS,
     });
 
+    const historyEntries = buildDeviceHistoryEntries({
+        deviceId,
+        currentState: device,
+        generalValues: generalUpdates,
+        specificValues: specificUpdates,
+    });
+
     if (specificUpdates.light && !device.light) {
         const error = new Error("Les donnees specifiques LIGHT sont absentes pour cet appareil.");
         error.statusCode = 400;
@@ -633,6 +1338,12 @@ const updateDevice = async (deviceId, role, payload) => {
             await transaction.thermostat.update({
                 where: { deviceId },
                 data: specificUpdates.thermostat,
+            });
+        }
+
+        if (historyEntries.length > 0) {
+            await transaction.ioTDeviceHistory.createMany({
+                data: historyEntries,
             });
         }
     });
@@ -756,6 +1467,19 @@ const createDevice = async ({ role, ownerId, payload, imageUrl }) => {
                     deviceId: device.id,
                     ...specificCreateData.accessControl,
                 },
+            });
+        }
+
+        const historyEntries = buildDeviceHistoryEntries({
+            deviceId: device.id,
+            currentState: null,
+            generalValues: generalCreateData,
+            specificValues: specificCreateData,
+        });
+
+        if (historyEntries.length > 0) {
+            await transaction.ioTDeviceHistory.createMany({
+                data: historyEntries,
             });
         }
 

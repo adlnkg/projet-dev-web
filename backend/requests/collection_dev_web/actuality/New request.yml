@@ -1,0 +1,15 @@
+info:
+  name: New request
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

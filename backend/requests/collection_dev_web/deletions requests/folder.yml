@@ -1,0 +1,7 @@
+info:
+  name: deletions requests
+  type: folder
+  seq: 3
+
+request:
+  auth: inherit

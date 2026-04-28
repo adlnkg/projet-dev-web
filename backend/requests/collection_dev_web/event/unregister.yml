@@ -1,0 +1,25 @@
+info:
+  name: unregister
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:3000/api/events/:id/unregister
+  params:
+    - name: id
+      value: "1"
+      type: path
+  body:
+    type: form-urlencoded
+    data:
+      - name: register
+        value: ""
+        disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -35,24 +35,33 @@ export const login = async (req, res) => {
     }
 
     if (!user.isVerified) {
-      res.status(403).json({
-        error: "Compte non vérifié",
+      const otp = generateOTP();
+      const p1 = prisma.user.update({
+        where: { id: user.id },
+        data: {
+          otp,
+          otpExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 min
+        },
       });
+      const p2 = sendOTP(user.email, otp);
+      await Promise.all([p1, p2]);
     }
 
     // Ajouter les points de connexion quotidienne
-    try {
-      await addDailyLoginPoints(user.id);
-    } catch (pointsError) {
-      console.warn(
-        "Erreur lors de l'ajout des points de connexion :",
-        pointsError,
-      );
-      // Ne pas bloquer la connexion si l'ajout de points échoue
+    if (user.isVerified) {
+      try {
+        await addDailyLoginPoints(user.id);
+      } catch (pointsError) {
+        console.warn(
+          "Erreur lors de l'ajout des points de connexion :",
+          pointsError,
+        );
+        // Ne pas bloquer la connexion si l'ajout de points échoue
+      }
     }
 
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: user.id, role: user.role, isVerified: user.isVerified },
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",

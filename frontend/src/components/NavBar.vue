@@ -198,6 +198,8 @@ function fermerRecherche() {
         <span class="sep">|</span>
         <span @click="allerSection('evenements')">ÉVÉNEMENTS</span>
         <span class="sep">|</span>
+        <span @click="router.push('/users')">UTILISATEURS</span>
+        <span class="sep">|</span>
         <span @click="allerSection('contact')">CONTACT</span>
       </div>
       <div class="topbar-right">
@@ -367,6 +369,7 @@ function fermerRecherche() {
         <span @click="allerSection('objets')">OBJETS CONNECTÉS</span>
         <span @click="allerSection('actualites')">ACTUALITÉS</span>
         <span @click="allerSection('evenements')">ÉVÉNEMENTS</span>
+        <span @click="router.push('/users')">UTILISATEURS</span>
         <span @click="allerSection('contact')">CONTACT</span>
         <span v-if="showAdmin" @click="router.push('/admin')">ADMIN</span>
         <template v-if="!currentUser">

@@ -145,12 +145,9 @@ export const getMyPointsHistory = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    // Vérifier que l'utilisateur est ADMIN
-    if (req.user.role !== "ADMIN") {
-      return res.status(403).json({
-        error: "Accès refusé - ADMIN requis",
-      });
-    }
+    // Si l'utilisateur est connecté, vérifier qu'il est ADMIN pour les fonctionnalités avancées
+    // Sinon, permettre l'accès public (pour la recherche d'utilisateurs)
+    const isAdmin = req.user?.role === "ADMIN";
 
     const users = await prisma.user.findMany({
       select: {

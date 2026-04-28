@@ -1,0 +1,25 @@
+info:
+  name: register
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:3000/api/events/:id/register
+  params:
+    - name: id
+      value: "1"
+      type: path
+  body:
+    type: form-urlencoded
+    data:
+      - name: register
+        value: ""
+        disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

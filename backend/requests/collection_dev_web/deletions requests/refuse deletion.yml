@@ -1,0 +1,24 @@
+info:
+  name: refuse deletion
+  type: http
+  seq: 1
+
+http:
+  method: PATCH
+  url: http://localhost:3000/api/deletion-requests/:id
+  params:
+    - name: id
+      value: a55b88fe-e83f-4e87-9c51-bb59aec864c5
+      type: path
+  body:
+    type: form-urlencoded
+    data:
+      - name: decision
+        value: REJECT
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,64 @@
+info:
+  name: create user
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:3000/api/auth/register/
+  params:
+    - name: login
+      value: testUser
+      type: query
+      disabled: true
+    - name: password
+      value: "123"
+      type: query
+      disabled: true
+    - name: email
+      value: test@email.com
+      type: query
+      disabled: true
+    - name: lastName
+      value: MyLastName
+      type: query
+      disabled: true
+    - name: firstName
+      value: MyFirstName
+      type: query
+      disabled: true
+    - name: sex
+      value: M
+      type: query
+      disabled: true
+    - name: age
+      value: "24"
+      type: query
+      disabled: true
+    - name: memberType
+      value: STUDENT
+      type: query
+      disabled: true
+    - name: avatarUrl
+      value: "null"
+      type: query
+      disabled: true
+  body:
+    type: form-urlencoded
+    data:
+      - name: login
+        value: testLogin
+      - name: password
+        value: "123"
+      - name: email
+        value: test@user.com
+      - name: lastName
+        value: ""
+        disabled: true
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

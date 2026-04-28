@@ -1,0 +1,58 @@
+info:
+  name: log in
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/auth/login/
+  body:
+    type: form-urlencoded
+    data:
+      - name: login
+        value: testLogin
+      - name: password
+        value: "123"
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        // // const response = pm.response.json();
+
+        // // Check if the response contains an access_token  
+        // if (response.token) {
+        //     // Store the token in the environment variable  
+        // //     pm.environment.set("access_token", response.token);
+        //     console.log("Bearer token saved to environment variable!");
+
+        //     // Optional: Store expiry time (for auto-refresh later)  
+        //     const expiryTime = Date.now() + (response.expires_in * 1000); // Convert seconds to ms  
+        // //     pm.environment.set("token_expiry", expiryTime);
+        // } else {
+        //     console.error("Error: access_token not found in response!");
+        // }
+    - type: after-response
+      code: |-
+        const response = res.getBody();
+        console.log(response);
+        // Check if the response contains an access_token  
+        if (response.token) {
+            // Store the token in the environment variable  
+            bru.setEnvVar("access_token", response.token);
+            
+            console.log("Bearer token saved to environment variable!");
+
+            // Optional: Store expiry time (for auto-refresh later)  
+            const expiryTime = Date.now() + (response.expires_in * 1000); // Convert seconds to ms  
+            bru.setEnvVar("token_expiry", expiryTime);
+        } else {
+            console.error("Error: access_token not found in response!");
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

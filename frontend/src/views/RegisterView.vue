@@ -191,6 +191,7 @@ const handleRegister = async () => {
     }
 
     successMessage.value = 'Inscription réussie ! Vérifiez votre email pour confirmer votre compte.'
+    localStorage.setItem('pendingOtpEmail', formData.value.email)
     
     setTimeout(() => {
       router.push(`/verify-otp?email=${formData.value.email}`)

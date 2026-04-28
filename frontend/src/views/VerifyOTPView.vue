@@ -1,7 +1,7 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <h1>Vérifier votre compte</h1>
+      <h1>Vérification du compte</h1>
       <p class="subtitle">Un code de vérification a été envoyé à <strong>{{ userEmail }}</strong></p>
       
       <Alert 
@@ -21,11 +21,13 @@
       <form @submit.prevent="handleVerifyOTP" class="auth-form">
         <div class="form-group">
           <label for="otp">Code de vérification</label>
-          <InputText 
-            id="otp" 
-            v-model="formData.otp" 
-            placeholder="000000"
+          <InputText
+            id="otp"
+            :modelValue="formData.otp"
+            @update:modelValue="normalizeOtp"
+            inputmode="numeric"
             maxlength="6"
+            placeholder="000000"
             required
           />
           <small class="helper-text">Entrez le code à 6 chiffres</small>

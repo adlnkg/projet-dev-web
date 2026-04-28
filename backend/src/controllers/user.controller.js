@@ -31,16 +31,23 @@ export const getUser = async (req, res) => {
       return res.status(400).json({ error: "ID invalide" });
     }
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.findFirst({
       where: {
-        id: id,
+        OR: [{ id }, { login: id }],
       },
       select: {
         id: true,
         login: true,
+        firstName: true,
+        lastName: true,
+        email: true,
         age: true,
         sex: true,
         avatarUrl: true,
+        memberType: true,
+        role: true,
+        points: true,
+        createdAt: true,
       },
     });
 

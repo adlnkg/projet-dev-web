@@ -15,6 +15,10 @@ const rechercheLancee = ref(false)
 
 const types = ['CONFERENCE', 'WORKSHOP', 'SEMINAR', 'SPORT', 'OTHER']
 
+function allerAuDetail(id) {
+  router.push(`/evenements/${id}`)
+}
+
 async function lancerRecherche() {
   loading.value = true
   erreur.value = null
@@ -121,7 +125,7 @@ onMounted(() => {
         </div>
 
         <div class="resultats-liste" v-if="resultats.length > 0">
-          <div class="resultat-card" v-for="r in resultats" :key="r.id">
+          <div class="resultat-card" v-for="r in resultats" :key="r.id" @click="allerAuDetail(r.id)">
             <img
               :src="r.imageUrl ? `http://localhost:3000/${r.imageUrl}` : 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&q=80'"
               :alt="r.title"
@@ -241,6 +245,7 @@ onMounted(() => {
   background: white; border-radius: 14px; overflow: hidden;
   display: flex; border: 1px solid #e5e7eb;
   transition: box-shadow 0.2s, transform 0.15s;
+  cursor: pointer;
 }
 .resultat-card:hover {
   box-shadow: 0 4px 16px rgba(26,92,158,0.1);

@@ -39,4 +39,68 @@ export const searchActualities = async (req, res, next) => {
   }
 };
 
+export const searchEvents = async (req, res, next) => {
+  try {
+    const results = await searchService.searchEventsByFilters(req.eventSearchFilters);
+    //if connected, add points for the search
+    if (req.user) {
+      await addPoints(req.user.id, 1, "Recherche d'événements effectuée");
+    }
+    return res.status(200).json({
+      success: true,
+      count: results.length,
+      data: results,
+      pointGained: req.user ? 1 : 0,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const searchAreas = async (req, res, next) => {
+  try {
+    const results = await searchService.searchAreasByFilters(req.areaSearchFilters);
+    //if connected, add points for the search
+    if (req.user) {
+      await addPoints(req.user.id, 1, "Recherche de zones effectuée");
+    }
+    return res.status(200).json({
+      success: true,
+      count: results.length,
+      data: results,
+      pointGained: req.user ? 1 : 0,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const searchIoTDevices = async (req, res, next) => {
+  try {
+    const results = await searchService.searchIoTDevicesByFilters(req.iotDeviceSearchFilters);
+    //if connected, add points for the search
+    if (req.user) {
+      await addPoints(req.user.id, 1, "Recherche de périphériques IoT effectuée");
+    }
+    return res.status(200).json({
+      success: true,
+      count: results.length,
+      data: results,
+      pointGained: req.user ? 1 : 0,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getSearchFilters = async (req, res, next) => {
+  try {
+    const isAuthenticated = !!req.user;
+    const filtersInfo = searchService.getSearchFiltersInfo(isAuthenticated);
+    return res.status(200).json(filtersInfo);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default search;

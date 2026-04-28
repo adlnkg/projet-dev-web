@@ -1,6 +1,6 @@
 import Fuse from 'fuse.js';
 import prisma from "../config/db.js";
-
+import { EventType,DeviceType,DeviceStatus,ActualityType } from '@prisma/client';
 const AREA_HIERARCHY_DECAY = 0.875;
 
 
@@ -470,7 +470,6 @@ const searchActualities = async (filters) => {
 const search = async (filters) => {
     const { keywords, building: searchedBuilding, type } = filters;
 
-
     const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
     const validAreasIds = Array.from(validAreasHierarchy.keys());
 
@@ -481,15 +480,336 @@ const search = async (filters) => {
             return await searchAreas(keywords, validAreasIds, validAreasHierarchy);
         case "event":
             return await searchEvents(keywords, validAreasIds, validAreasHierarchy);
-        default:
-            const list = await Promise.all([
+        case "actuality":
+            return await searchActualities({ keywords, type: "ALL", createdFrom: null, createdTo: null });
+        case "all":
+            // Include all entity types including devices
+            const listAll = await Promise.all([
                 searchDevices(keywords, validAreasIds, validAreasHierarchy),
                 searchAreas(keywords, validAreasIds, validAreasHierarchy),
-                searchEvents(keywords, validAreasIds, validAreasHierarchy)
+                searchEvents(keywords, validAreasIds, validAreasHierarchy),
+                searchActualities({ keywords, type: "ALL", createdFrom: null, createdTo: null })
             ]);
-            return list.flat();
+            return listAll.flat();
+        case "all-unauthenticated":
+            // Exclude devices for unauthenticated users
+            const listUnauth = await Promise.all([
+                searchAreas(keywords, validAreasIds, validAreasHierarchy),
+                searchEvents(keywords, validAreasIds, validAreasHierarchy),
+                searchActualities({ keywords, type: "ALL", createdFrom: null, createdTo: null })
+            ]);
+            return listUnauth.flat();
+        default:
+            return [];
     }
 };
 
-export default { search, searchActualities, getBuildingList };
+
+/**
+ * Search for events with entity-specific filters (type, date range, price, remaining spots).
+ * @param {{ keywords: string, building: string, type: string, startMin?: Date, startMax?: Date, priceMin?: number, priceMax?: number, spotsMin?: number }} filters
+ * @returns {Promise<import('@prisma/client').Event[]>}
+ */
+const searchEventsByFilters = async (filters) => {
+    const {
+        keywords = "",
+        building: searchedBuilding = "",
+        type = "ALL",
+        startMin = null,
+        startMax = null,
+        priceMin = null,
+        priceMax = null,
+        spotsMin = null
+    } = filters;
+
+    const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
+    const validAreasIds = Array.from(validAreasHierarchy.keys());
+
+    const where = {
+        ...(validAreasIds.length > 0 ? { areaId: { in: validAreasIds } } : {}),
+        ...(type && type !== "ALL" ? { type } : {}),
+        ...(startMin || startMax
+            ? {
+                startTime: {
+                    ...(startMin ? { gte: startMin } : {}),
+                    ...(startMax ? { lte: startMax } : {}),
+                },
+            }
+            : {}),
+        ...(priceMin !== null || priceMax !== null
+            ? {
+                price: {
+                    ...(priceMin !== null ? { gte: priceMin } : {}),
+                    ...(priceMax !== null ? { lte: priceMax } : {}),
+                },
+            }
+            : {}),
+        ...(spotsMin !== null
+            ? {
+                maxParticipants: {
+                    gt: spotsMin,
+                },
+            }
+            : {}),
+    };
+
+    const events = await prisma.event.findMany({ where });
+
+    if (!keywords || !keywords.trim()) {
+        return events;
+    }
+
+    const prefix = "areaLevel";
+    const searchableEvents = buildAreaHierarchySearchPayload(
+        events,
+        validAreasHierarchy,
+        "areaId",
+        prefix
+    );
+
+    const maxDepth = getMaxHierarchyDepth(searchableEvents, prefix);
+    const areaHierarchyKeys = buildAreaHierarchyFuseKeys(maxDepth, prefix, { name: 0.2, type: 0.1, description: 0.05 });
+
+    const fuse = new Fuse(searchableEvents, {
+        threshold: 0.35,
+        ignoreLocation: true,
+        keys: [
+            { name: "title", weight: 0.5 },
+            { name: "description", weight: 0.15 },
+            { name: "organizer", weight: 0.3 },
+            { name: "maxParticipants", weight: 0.05 },
+            { name: "startTime", weight: 0.1, getFn: (event) => event.startTime?.toISOString?.() ?? "" },
+            { name: "endTime", weight: 0.1, getFn: (event) => event.endTime?.toISOString?.() ?? "" },
+            { name: "createdAt", weight: 0.05, getFn: (event) => event.createdAt?.toISOString?.() ?? "" },
+            ...areaHierarchyKeys
+        ]
+    });
+
+    return fuse.search(keywords).map((result) => result.item);
+};
+
+/**
+ * Search for areas with entity-specific filters (type only).
+ * @param {{ keywords: string, building: string, type: string }} filters
+ * @returns {Promise<import('@prisma/client').Area[]>}
+ */
+const searchAreasByFilters = async (filters) => {
+    const {
+        keywords = "",
+        building: searchedBuilding = "",
+        type = "ALL"
+    } = filters;
+
+    const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
+    const validAreasIds = Array.from(validAreasHierarchy.keys());
+
+    const where = {
+        ...(validAreasIds.length > 0 ? { id: { in: validAreasIds } } : {}),
+        ...(type && type !== "ALL" ? { type } : {}),
+    };
+
+    const areas = await prisma.area.findMany({
+        where,
+        select: {
+            id: true,
+            parentAreaId: true,
+            name: true,
+            description: true,
+            type: true,
+            imageUrl: true
+        }
+    });
+
+    if (!keywords || !keywords.trim()) {
+        return areas;
+    }
+
+    const prefix = "areaLevel";
+    const areasWithHierarchy = buildAreaHierarchySearchPayload(
+        areas,
+        validAreasHierarchy,
+        "id",
+        prefix
+    );
+
+    const maxDepth = getMaxHierarchyDepth(areasWithHierarchy, prefix);
+    const areaHierarchyFuseKeys = buildAreaHierarchyFuseKeys(maxDepth, prefix, { name: 0.5, type: 0.3, description: 0.2 });
+
+    const fuse = new Fuse(areasWithHierarchy, {
+        threshold: 0.35,
+        ignoreLocation: true,
+        keys: areaHierarchyFuseKeys
+    });
+
+    return fuse.search(keywords).map((result) => result.item);
+};
+
+/**
+ * Search for IoT devices with entity-specific filters (type, status, active, consumption, power on/off dates, maintenance dates).
+ * @param {{ keywords: string, building: string, type: string, status?: string, active?: boolean, consumptionMin?: number, consumptionMax?: number, lastPowerOnAfter?: Date, lastMaintenanceAfter?: Date }} filters
+ * @returns {Promise<(import('@prisma/client').IoTDevice & { sensor?: any, light?: any, thermostat?: any, whiteboard?: any })[]>}
+ */
+const searchIoTDevicesByFilters = async (filters) => {
+    const {
+        keywords = "",
+        building: searchedBuilding = "",
+        type = "ALL",
+        status = null,
+        active = null,
+        consumptionMin = null,
+        consumptionMax = null,
+        lastPowerOnAfter = null,
+        lastMaintenanceAfter = null
+    } = filters;
+
+    const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
+    const validAreasIds = Array.from(validAreasHierarchy.keys());
+
+    const where = {
+        ...(validAreasIds.length > 0 ? { areaId: { in: validAreasIds } } : {}),
+        ...(type && type !== "ALL" ? { type } : {}),
+        ...(status && status !== "ALL" ? { status } : {}),
+        ...(active !== null ? { active } : {}),
+        ...(consumptionMin !== null || consumptionMax !== null
+            ? {
+                electricityConsumption: {
+                    ...(consumptionMin !== null ? { gte: consumptionMin } : {}),
+                    ...(consumptionMax !== null ? { lte: consumptionMax } : {}),
+                },
+            }
+            : {}),
+        ...(lastPowerOnAfter
+            ? {
+                lastPowerOnAt: {
+                    gte: lastPowerOnAfter,
+                },
+            }
+            : {}),
+        ...(lastMaintenanceAfter
+            ? {
+                lastMaintenanceAt: {
+                    gte: lastMaintenanceAfter,
+                },
+            }
+            : {}),
+    };
+
+    const devices = await prisma.ioTDevice.findMany({
+        where,
+        include: {
+            sensor: true,
+            whiteboard: true,
+            light: true,
+            thermostat: true
+        }
+    });
+
+    if (!keywords || !keywords.trim()) {
+        return devices;
+    }
+
+    const prefix = "areaLevel";
+    const devicesWithAreaSearch = buildAreaHierarchySearchPayload(
+        devices,
+        validAreasHierarchy,
+        "areaId",
+        prefix
+    );
+
+    const maxDepth = getMaxHierarchyDepth(devicesWithAreaSearch, prefix);
+    const areaHierarchyKeys = buildAreaHierarchyFuseKeys(maxDepth, prefix, { name: 0.2, type: 0.07, description: 0.04 });
+
+    const fuse = new Fuse(devicesWithAreaSearch, {
+        threshold: 0.35,
+        ignoreLocation: true,
+        keys: [
+            { name: "name", weight: 0.35 },
+            { name: "type", weight: 0.25 },
+            { name: "description", weight: 0.08 },
+            { name: "brand", weight: 0.06 },
+            { name: "model", weight: 0.05 },
+            { name: "createdAt", weight: 0.01, getFn: (device) => device.createdAt?.toISOString?.() ?? "" },
+            ...areaHierarchyKeys,
+        ]
+    });
+
+    return fuse.search(keywords).map((result) => result.item);
+};
+
+/**
+ * Get metadata about available search filters for each entity type.
+ * @param {boolean} isAuthenticated - Whether the user is authenticated
+ * @returns {Object} An object containing filter information for each entity type
+ */
+const getSearchFiltersInfo = (isAuthenticated = false) => {
+    // Global search types depend on authentication
+    const globalSearchTypes = isAuthenticated 
+        ? ["ALL", "EVENT", "AREA", "ACTUALITY", "DEVICE"]
+        : ["ALL", "EVENT", "AREA", "ACTUALITY"];
+
+    return {
+        success: true,
+        globalSearch: {
+            description: "Recherche globale (IoTDevice nécessite une authentification)",
+            requiresAuth: false,
+            filters: [
+                { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
+                { name: "type", type: "enum", required: false, description: "Type d'entité", values: globalSearchTypes },
+            ]
+        },
+        entityTypes: {
+            event: {
+                description: "Recherche d'événements",
+                requiresAuth: false,
+                filters: [
+                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                    { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
+                    { name: "type", type: "enum", required: false, description: "Type d'événement", values: Object.values(EventType).concat(["ALL"]) },
+                    { name: "startMin", type: "date", required: false, description: "Date de début minimale" },
+                    { name: "startMax", type: "date", required: false, description: "Date de début maximale" },
+                    { name: "priceMin", type: "number", required: false, description: "Prix minimum", min: 0 },
+                    { name: "priceMax", type: "number", required: false, description: "Prix maximum", min: 0 },
+                    { name: "spotsMin", type: "integer", required: false, description: "Nombre minimum de places restantes", min: 0 },
+                ]
+            },
+            area: {
+                description: "Recherche de zones",
+                requiresAuth: false,
+                filters: [
+                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                    { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
+                    { name: "type", type: "enum", required: false, description: "Type de zone", values: ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM", "ALL"] },
+                ]
+            },
+            device: {
+                description: "Recherche de périphériques IoT",
+                requiresAuth: true,
+                filters: [
+                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                    { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
+                    { name: "type", type: "enum", required: false, description: "Type de périphérique", values: Object.values(DeviceType).concat(["ALL"]) },
+                    { name: "status", type: "enum", required: false, description: "Statut du périphérique", values: Object.values(DeviceStatus).concat(["ALL"]) },
+                    { name: "active", type: "boolean", required: false, description: "État actif du périphérique" },
+                    { name: "consumptionMin", type: "number", required: false, description: "Consommation électrique minimale", min: 0 },
+                    { name: "consumptionMax", type: "number", required: false, description: "Consommation électrique maximale", min: 0 },
+                    { name: "lastPowerOnAfter", type: "date", required: false, description: "Date de dernière mise sous tension (minimum)" },
+                    { name: "lastMaintenanceAfter", type: "date", required: false, description: "Date de dernière maintenance (minimum)" },
+                ]
+            },
+            actuality: {
+                description: "Recherche d'actualités",
+                requiresAuth: false,
+                filters: [
+                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                    { name: "type", type: "enum", required: false, description: "Type d'actualité", values: Object.values(ActualityType).concat(["ALL"]) },
+                    { name: "createdFrom", type: "date", required: false, description: "Date de création minimale" },
+                    { name: "createdTo", type: "date", required: false, description: "Date de création maximale" },
+                ]
+            },
+        }
+    };
+};
+
+export default { search, searchActualities, searchEventsByFilters, searchAreasByFilters, searchIoTDevicesByFilters, getSearchFiltersInfo, getBuildingList };
 

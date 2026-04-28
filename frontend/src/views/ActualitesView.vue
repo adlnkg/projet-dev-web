@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import NavBar from '../components/NavBar.vue'
 
 const router = useRouter()
+const route = useRoute()
 const recherche = ref('')
 const typeChoisi = ref('')
 const dateDebut = ref('')
@@ -50,6 +51,9 @@ function reinitialiser() {
 }
 
 onMounted(() => {
+  if (route.query.keywords) {
+    recherche.value = route.query.keywords
+  }
   lancerRecherche()
 })
 </script>
@@ -108,6 +112,7 @@ onMounted(() => {
     <!-- RÉSULTATS -->
     <div class="resultats-section">
       <div class="resultats-inner">
+
         <div v-if="loading" class="loading">
           <div class="spinner"></div>
           <p>Recherche en cours...</p>
@@ -145,6 +150,7 @@ onMounted(() => {
           <p>Aucune actualité trouvée.</p>
           <p class="vide-sub">Essayez avec d'autres mots-clés ou modifiez les filtres.</p>
         </div>
+
       </div>
     </div>
 

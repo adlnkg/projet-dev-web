@@ -173,7 +173,7 @@ onMounted(loadEvent)
         <div v-if="registeredUsers.length > 0" class="participants-grid">
           <article v-for="participant in registeredUsers" :key="participant.id" class="participant-card" @click="goToProfile(participant.login)">
             <img
-              :src="participant.avatarUrl || 'https://as2.ftcdn.net/jpg/02/44/42/79/1000_F_244427911_aoHHulebtYy4wLpncBBuWqCTNFKolcCB.jpg'"
+              :src="participant.avatarUrl || 'https://cdn-icons-png.flaticon.com/512/266/266033.png'"
               :alt="participant.login"
               class="participant-avatar"
             />

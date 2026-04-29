@@ -3,13 +3,11 @@
 Base URL locale : `http://localhost:3000/api`
 
 ## Règles générales
+    "description": "Recherche globale par mots clés",
 
-- Toutes les routes sont montées sous `/api` dans `src/app.js`.
-- L’authentification se fait via un header `Authorization: Bearer <token>`.
-- Le token JWT est renvoyé par la route de login.
-- Les réponses d’erreur suivent en général le format `{ error: "..." }` ou `{ success: false, message: "..." }`.
-
-## Auth
+Query params :
+ 
+`keywords` : texte à rechercher (optionnel)
 
 ### `POST /api/auth/register`
 
@@ -219,18 +217,46 @@ Réponse `200` (utilisateur non connecté) :
 {
   "success": true,
   "globalSearch": {
-    "description": "Recherche globale unifiée",
+    "description": "Recherche globale par mots clés",
     "requiresAuth": false,
     "filters": [
-      { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
-      { "name": "building", "type": "string", "required": false, "description": "Filtre par bâtiment" },
-      { "name": "type", "type": "enum", "required": false, "description": "Type d'entité", "values": ["ALL", "EVENT", "AREA", "ACTUALITY"] }
+      { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" }
     ]
   },
   "entityTypes": {
-    "event": { ... },
-    "area": { ... },
-    "actuality": { ... }
+    "event": {
+      "description": "Recherche d'événements",
+      "requiresAuth": false,
+      "filters": [
+        { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+        { "name": "building", "type": "enum", "required": false, "description": "Filtre par bâtiment", "values": ["valeurs renvoyées par getBuildingList()"] },
+        { "name": "type", "type": "enum", "required": false, "description": "Type d'événement", "values": ["WORKSHOP", "CONFERENCE", "MEETING", "COURSE", "ALL"] },
+        { "name": "startMin", "type": "date", "required": false, "description": "Date de début minimale" },
+        { "name": "startMax", "type": "date", "required": false, "description": "Date de début maximale" },
+        { "name": "priceMin", "type": "number", "required": false, "description": "Prix minimum", "min": 0 },
+        { "name": "priceMax", "type": "number", "required": false, "description": "Prix maximum", "min": 0 },
+        { "name": "spotsMin", "type": "integer", "required": false, "description": "Nombre minimum de places restantes", "min": 0 }
+      ]
+    },
+    "area": {
+      "description": "Recherche de zones",
+      "requiresAuth": false,
+      "filters": [
+        { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+        { "name": "building", "type": "enum", "required": false, "description": "Filtre par bâtiment", "values": ["valeurs renvoyées par getBuildingList()"] },
+        { "name": "type", "type": "enum", "required": false, "description": "Type de zone", "values": ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM", "ALL"] }
+      ]
+    },
+    "actuality": {
+      "description": "Recherche d'actualités",
+      "requiresAuth": false,
+      "filters": [
+        { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+        { "name": "type", "type": "enum", "required": false, "description": "Type d'actualité", "values": ["NEWS", "ANNOUNCEMENT", "UPDATE", "OTHER", "ALL"] },
+        { "name": "createdFrom", "type": "date", "required": false, "description": "Date de création minimale" },
+        { "name": "createdTo", "type": "date", "required": false, "description": "Date de création maximale" }
+      ]
+    }
   }
 }
 ```
@@ -241,26 +267,68 @@ Réponse `200` (utilisateur connecté) :
 {
   "success": true,
   "globalSearch": {
-    "description": "Recherche globale unifiée",
+    "description": "Recherche globale par mots clés",
     "requiresAuth": false,
     "filters": [
-      { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
-      { "name": "building", "type": "string", "required": false, "description": "Filtre par bâtiment" },
-      { "name": "type", "type": "enum", "required": false, "description": "Type d'entité", "values": ["ALL", "EVENT", "AREA", "ACTUALITY", "DEVICE"] }
+      { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" }
     ]
   },
   "entityTypes": {
-    "event": { ... },
-    "area": { ... },
-    "actuality": { ... },
-    "device": { ... }
+    "event": {
+      "description": "Recherche d'événements",
+      "requiresAuth": false,
+      "filters": [
+        { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+        { "name": "building", "type": "enum", "required": false, "description": "Filtre par bâtiment", "values": ["valeurs renvoyées par getBuildingList()"] },
+        { "name": "type", "type": "enum", "required": false, "description": "Type d'événement", "values": ["WORKSHOP", "CONFERENCE", "MEETING", "COURSE", "ALL"] },
+        { "name": "startMin", "type": "date", "required": false, "description": "Date de début minimale" },
+        { "name": "startMax", "type": "date", "required": false, "description": "Date de début maximale" },
+        { "name": "priceMin", "type": "number", "required": false, "description": "Prix minimum", "min": 0 },
+        { "name": "priceMax", "type": "number", "required": false, "description": "Prix maximum", "min": 0 },
+        { "name": "spotsMin", "type": "integer", "required": false, "description": "Nombre minimum de places restantes", "min": 0 }
+      ]
+    },
+    "area": {
+      "description": "Recherche de zones",
+      "requiresAuth": false,
+      "filters": [
+        { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+        { "name": "building", "type": "enum", "required": false, "description": "Filtre par bâtiment", "values": ["valeurs renvoyées par getBuildingList()"] },
+        { "name": "type", "type": "enum", "required": false, "description": "Type de zone", "values": ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM", "ALL"] }
+      ]
+    },
+    "actuality": {
+      "description": "Recherche d'actualités",
+      "requiresAuth": false,
+      "filters": [
+        { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+        { "name": "type", "type": "enum", "required": false, "description": "Type d'actualité", "values": ["NEWS", "ANNOUNCEMENT", "UPDATE", "OTHER", "ALL"] },
+        { "name": "createdFrom", "type": "date", "required": false, "description": "Date de création minimale" },
+        { "name": "createdTo", "type": "date", "required": false, "description": "Date de création maximale" }
+      ]
+    },
+    "device": {
+      "description": "Recherche de périphériques IoT",
+      "requiresAuth": true,
+      "filters": [
+        { "name": "keywords", "type": "string", "required": false, "description": "Mots clés de recherche" },
+        { "name": "building", "type": "enum", "required": false, "description": "Filtre par bâtiment", "values": ["valeurs renvoyées par getBuildingList()"] },
+        { "name": "type", "type": "enum", "required": false, "description": "Type de périphérique", "values": ["LIGHT", "SENSOR", "THERMOSTAT", "CAMERA", "ACCESS_CONTROL", "WHITEBOARD", "ALL"] },
+        { "name": "status", "type": "enum", "required": false, "description": "Statut du périphérique", "values": ["ACTIVE", "INACTIVE", "DISCONNECTED", "ERROR", "ALL"] },
+        { "name": "active", "type": "boolean", "required": false, "description": "État actif du périphérique" },
+        { "name": "consumptionMin", "type": "number", "required": false, "description": "Consommation électrique minimale", "min": 0 },
+        { "name": "consumptionMax", "type": "number", "required": false, "description": "Consommation électrique maximale", "min": 0 },
+        { "name": "lastPowerOnAfter", "type": "date", "required": false, "description": "Date de dernière mise sous tension (minimum)" },
+        { "name": "lastMaintenanceAfter", "type": "date", "required": false, "description": "Date de dernière maintenance (minimum)" }
+      ]
+    }
   }
 }
 ```
 
 ### `GET /api/search`
 
-Recherche globale unifiée sur toutes les entités (EVENT, AREA, ACTUALITY et optionnellement DEVICE).
+Recherche globale unifiée sur toutes les entités, limitée aux mots clés.
 
 Chaque objet de `data` inclut `entityType` afin d'identifier directement la famille de l'entité retournée (`ACTUALITY`, `EVENT`, `AREA`, `DEVICE`).
 
@@ -269,17 +337,12 @@ Route publique : pas de token requis.
 Query params :
 
 - `keywords` : texte à rechercher (optionnel)
-- `type` : type d'entité à rechercher
-  - **Non connecté** : `ALL`, `EVENT`, `AREA`, `ACTUALITY`
-  - **Connecté** : `ALL`, `EVENT`, `AREA`, `ACTUALITY`, `DEVICE`
-  - `ALL` : retourne tous types disponibles selon l'authentification (valeur par défaut)
 
 Exemples :
 
 ```http
-GET /api/search?keywords=formation&type=ALL
-GET /api/search?keywords=camera&type=device
-GET /api/search?type=event
+GET /api/search?keywords=formation
+GET /api/search?keywords=camera
 ```
 
 Réponse `200` (non connecté) :
@@ -293,7 +356,6 @@ Réponse `200` (non connecté) :
     { "id": 2, "name": "Salle 101", "entityType": "AREA", ... },
     { "id": 3, "title": "Actualité", "entityType": "ACTUALITY", ... }
   ],
-  "buildingList": ["Turing", "Church"],
   "pointGained": 0
 }
 ```
@@ -310,14 +372,9 @@ Réponse `200` (connecté, incluant devices) :
     { "id": 3, "title": "Actualité", "entityType": "ACTUALITY", ... },
     { "id": 4, "name": "Projecteur", "type": "CAMERA", "entityType": "DEVICE", ... }
   ],
-  "buildingList": ["Turing", "Church"],
   "pointGained": 1
 }
 ```
-
-Erreurs possibles :
-
-- `401` : Authentification requise si `type=device` et utilisateur non connecté
 
 ### `GET /api/events/search`
 
@@ -330,7 +387,7 @@ Les objets retournés dans `data` contiennent aussi `entityType` pour un routage
 Query params :
 
 - `keywords` : texte libre recherché avec Fuse.js sur `title`, `description`, `organizer`, dates et horaires
-- `building` : filtre par bâtiment, optionnel
+- `building` : filtre par bâtiment, valeur issue de `getBuildingList()`
 - `type` : type d'événement (`WORKSHOP`, `CONFERENCE`, `MEETING`, `COURSE`) ou `ALL`, optionnel
 - `startMin` : borne basse de date de début (ISO 8601), optionnel
 - `startMax` : borne haute de date de début (ISO 8601), optionnel
@@ -365,7 +422,7 @@ Route publique : pas de token requis.
 Query params :
 
 - `keywords` : texte libre recherché avec Fuse.js sur `name`, `description` et hiérarchie des zones (parents)
-- `building` : filtre par bâtiment, optionnel
+- `building` : filtre par bâtiment, valeur issue de `getBuildingList()`
 - `type` : type de zone (`BUILDING`, `FLOOR`, `CLASSROOM`, `TECHNICAL_ROOM`) ou `ALL`, optionnel
 
 Exemples :
@@ -395,7 +452,7 @@ Route protégée : token requis (`Authorization: Bearer <token>`).
 Query params :
 
 - `keywords` : texte libre recherché avec Fuse.js sur `name`, `brand`, `model`, `description` et hiérarchie des zones
-- `building` : filtre par bâtiment, optionnel
+- `building` : filtre par bâtiment, valeur issue de `getBuildingList()`
 - `type` : type de périphérique (`LIGHT`, `SENSOR`, `THERMOSTAT`, `CAMERA`, `ACCESS_CONTROL`, `WHITEBOARD`) ou `ALL`, optionnel
 - `status` : statut du périphérique (`ACTIVE`, `INACTIVE`, `DISCONNECTED`, `ERROR`), optionnel
 - `active` : état actif (`true` ou `false`), optionnel

@@ -1,6 +1,7 @@
-import { LIMITS, ALLOWED_SEARCH_TYPES } from "../utils/constants.js";
+import { LIMITS } from "../utils/constants.js";
 import { normalizeTextValue, normalizeNumberValue, normalizeEnumValue } from "../utils/normalize.js";
 import { ActualityType, EventType, DeviceType, DeviceStatus, AreaType } from "@prisma/client";
+import searchService from "../services/search.services.js";
 
 const normalizeEnumSearchValue = (value, allowedValues, fieldName) => {
   if (value === null || value === undefined || value === "") {
@@ -13,40 +14,28 @@ const normalizeEnumSearchValue = (value, allowedValues, fieldName) => {
 
 const validateAndNormalizeSearch = (req, res, next) => {
   const keywords = normalizeTextValue(req.query.keywords ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "keywords" });
-  const building = normalizeTextValue(req.query.building ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "building" });
-  if (!req.query.type) req.query.type = "all";
-  const typeRaw = normalizeTextValue(req.query.type ?? "all", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "type" });
-  const type = typeRaw.toLowerCase();
-  if (keywords.length > LIMITS.DEFAULT_STRING || building.length > LIMITS.DEFAULT_STRING) {
+  if (keywords.length > LIMITS.DEFAULT_STRING) {
     return res.status(400).json({
       success: false,
       message: "Paramètres trop longs (max " + LIMITS.DEFAULT_STRING + " caractères).",
     });
   }
 
-  if (!ALLOWED_SEARCH_TYPES.includes(type)) {
-    return res.status(400).json({
-      success: false,
-      message: "Paramètre type invalide : (valides : " + ALLOWED_SEARCH_TYPES.join(", ") + ", reçu : " + type + ")",
-    });
-  }
-
-  // Check if unauthorized user tries to search for devices
-  if (!req.user && type === "device") {
-    return res.status(401).json({
-      success: false,
-      message: "Authentification requise pour rechercher des périphériques IoT.",
-    });
-  }
-
-  // Normalize "all" type: exclude device if user not authenticated
-  let finalType = type;
-  if (type === "all" && !req.user) {
-    finalType = "all-unauthenticated"; // Special flag to indicate "all without device"
-  }
-
-  req.searchFilters = { keywords, building, type: finalType };
+  req.searchFilters = { keywords };
   next();
+};
+
+const validateBuildingEnumValue = async (building) => {
+  if (!building) {
+    return "";
+  }
+
+  const validBuildings = await searchService.getBuildingList();
+  if (!validBuildings.includes(building)) {
+    throw new Error("Paramètre building invalide : valeurs attendues parmi les bâtiments existants.");
+  }
+
+  return building;
 };
 
 const validateAndNormalizeActualitySearch = (req, res, next) => {
@@ -88,10 +77,10 @@ const validateAndNormalizeActualitySearch = (req, res, next) => {
   }
 };
 
-const validateAndNormalizeEventSearch = (req, res, next) => {
+const validateAndNormalizeEventSearch = async (req, res, next) => {
   try {
     const keywords = normalizeTextValue(req.query.keywords ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "keywords" });
-    const building = normalizeTextValue(req.query.building ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "building" });
+    const building = await validateBuildingEnumValue(normalizeTextValue(req.query.building ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "building" }));
     const type = normalizeEnumSearchValue(req.query.type, Object.values(EventType), "type");
 
     const startMinRaw = req.query.startMin;
@@ -146,10 +135,10 @@ const validateAndNormalizeEventSearch = (req, res, next) => {
   }
 };
 
-const validateAndNormalizeAreaSearch = (req, res, next) => {
+const validateAndNormalizeAreaSearch = async (req, res, next) => {
   try {
     const keywords = normalizeTextValue(req.query.keywords ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "keywords" });
-    const building = normalizeTextValue(req.query.building ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "building" });
+    const building = await validateBuildingEnumValue(normalizeTextValue(req.query.building ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "building" }));
     const type = normalizeEnumSearchValue(req.query.type, Object.values(AreaType), "type");
 
     req.areaSearchFilters = { keywords, building, type };
@@ -159,10 +148,10 @@ const validateAndNormalizeAreaSearch = (req, res, next) => {
   }
 };
 
-const validateAndNormalizeIoTDeviceSearch = (req, res, next) => {
+const validateAndNormalizeIoTDeviceSearch = async (req, res, next) => {
   try {
     const keywords = normalizeTextValue(req.query.keywords ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "keywords" });
-    const building = normalizeTextValue(req.query.building ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "building" });
+    const building = await validateBuildingEnumValue(normalizeTextValue(req.query.building ?? "", { minLength: 0, maxLength: LIMITS.DEFAULT_STRING, fieldName: "building" }));
     const type = normalizeEnumSearchValue(req.query.type, Object.values(DeviceType), "type");
 
     const status = normalizeEnumSearchValue(req.query.status, Object.values(DeviceStatus), "status");

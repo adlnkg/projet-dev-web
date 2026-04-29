@@ -3,8 +3,7 @@ import { addPoints} from "../services/points.services.js";
 
 export const search = async (req, res, next) => {
   try {
-    const results = await searchService.search(req.searchFilters);
-    const buildingList = await searchService.getBuildingList(req.searchFilters);
+    const results = await searchService.search(req.searchFilters, !!req.user);
     //if connected, add points for the search
     if (req.user) {
       await addPoints(req.user.id, 1, "Recherche effectuée");
@@ -13,7 +12,6 @@ export const search = async (req, res, next) => {
       success: true,
       count: results.length,
       data: results,
-      buildingList: buildingList,
       pointGained: req.user ? 1 : 0,
     });
   } catch (error) {
@@ -96,7 +94,7 @@ export const searchIoTDevices = async (req, res, next) => {
 export const getSearchFilters = async (req, res, next) => {
   try {
     const isAuthenticated = !!req.user;
-    const filtersInfo = searchService.getSearchFiltersInfo(isAuthenticated);
+    const filtersInfo = await searchService.getSearchFiltersInfo(isAuthenticated);
     return res.status(200).json(filtersInfo);
   } catch (error) {
     return next(error);

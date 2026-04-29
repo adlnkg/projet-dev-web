@@ -3,9 +3,10 @@ import prisma from "../config/db.js";
 import { EventType,DeviceType,DeviceStatus,ActualityType } from '@prisma/client';
 const AREA_HIERARCHY_DECAY = 0.875;
 
-const annotateSearchResults = (items, entityType) => items.map((item) => ({
-    ...item,
+const annotateSearchResults = (items, entityType, includeScore = false) => items.map((entry) => ({
+    ...(entry?.item ?? entry),
     entityType,
+    ...(includeScore && entry?.score !== undefined ? { searchScore: entry.score } : {}),
 }));
 
 
@@ -19,18 +20,20 @@ const getBuildingList = async () => {
                 equals: "BUILDING"
             }
         },
-        distinct: ["name"]
+        distinct: ["name"],
+        orderBy: {
+            name: "asc"
+        }
     });
     return buildings.map((building) => building.name);
 };
 
-/** 
- * Fetches the area hierarchy based on the searched building filter and returns a list of valid areas lineage.
- * If a specific building is searched, only areas that are within that building's hierarchy will be included.
- * Each area in the result includes its lineage of parent areas up to the root, allowing for enriched search capabilities based on area hierarchy.
- * @param {string} searchedBuilding - The building filter used to determine the relevant area hierarchy (can be empty, null, or "all" for no filtering).
- * @returns {Promise<Map<number, lineage: Array<import('@prisma/client').Area> }>>} A list of valid lineage of areas with their based on the searched building filter.
+/**
+ * Fetches the area hierarchy based on an optional building filter and returns the valid area lineages.
+ * If a specific building is searched, only areas that are within that building's hierarchy are included.
  * The lineage is ordered from child to parent, so the first element is the area itself.
+ * @param {string} searchedBuilding - The building filter used to determine the relevant area hierarchy (can be empty, null, or "all" for no filtering).
+ * @returns {Promise<Map<number, Array<import('@prisma/client').Area>>>} A map of area ids to their lineage.
  */
 const getAreaHierarchyInBuilding = async (searchedBuilding = "") => {
 
@@ -49,14 +52,13 @@ const getAreaHierarchyInBuilding = async (searchedBuilding = "") => {
                         }
                     }, {
                         name: {
-                            contains: searchedBuilding,
+                            equals: searchedBuilding,
                         }
                     }
                 ]
             }
         });
         validParentAreaIds = areas.map((area) => area.id);
-        console.log(validParentAreaIds);
     }
 
     const allAreas = await prisma.area.findMany({
@@ -197,7 +199,7 @@ const buildAreaHierarchyFuseKeys = (maxDepth, prefix, weights) => {
  * @param {Array<number>} validAreasIds 
  * @param {Map<number, Array<import('@prisma/client').Area>>} hierarchy 
  * @returns {Promise<import('@prisma/client').IoTDevice[]>} */
-const searchDevices = async (keywords, validAreasIds, hierarchy) => {
+const searchDevices = async (keywords, validAreasIds, hierarchy, includeScore = false) => {
     // fetch devices with basic filtering
     const devices = await prisma.ioTDevice.findMany({
         include: {
@@ -227,6 +229,7 @@ const searchDevices = async (keywords, validAreasIds, hierarchy) => {
     const areaHierarchyKeys = buildAreaHierarchyFuseKeys(maxDepth, prefix, { name: 0.2, type: 0.07, description: 0.04 });
 
     const fuse = new Fuse(devicesWithAreaSearch, {
+        includeScore: true,
         threshold: 0.35,
         ignoreLocation: true,
         keys: [
@@ -240,7 +243,7 @@ const searchDevices = async (keywords, validAreasIds, hierarchy) => {
         ]
     });
 
-    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "DEVICE");
+    return annotateSearchResults(fuse.search(keywords), "DEVICE", includeScore);
 };
 
 /**
@@ -250,7 +253,7 @@ const searchDevices = async (keywords, validAreasIds, hierarchy) => {
  * @param {Map<number, Array<import('@prisma/client').Area>>} hierarchy 
  * @returns {Promise<import('@prisma/client').Area[]>} 
  **/
-const searchAreas = async (keywords, validAreasIds, hierarchy) => {
+const searchAreas = async (keywords, validAreasIds, hierarchy, includeScore = false) => {
     // fetch areas with basic filtering
     const areas = await prisma.area.findMany({
         where: validAreasIds.length > 0 ? {
@@ -281,12 +284,13 @@ const searchAreas = async (keywords, validAreasIds, hierarchy) => {
     const areaHierarchyFuseKeys = buildAreaHierarchyFuseKeys(maxDepth, prefix, { name: 0.5, type: 0.3, description: 0.2 });
 
     const fuse = new Fuse(areasWithHierarchy, {
+        includeScore: true,
         threshold: 0.35,
         ignoreLocation: true,
         keys: areaHierarchyFuseKeys
     });
 
-    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "AREA");
+    return annotateSearchResults(fuse.search(keywords), "AREA", includeScore);
 };
 
 /**
@@ -296,7 +300,7 @@ const searchAreas = async (keywords, validAreasIds, hierarchy) => {
  * @param {Map<number, Array<import('@prisma/client').Area>>} hierarchy the hierarchy of areas for search.
  * @returns {Promise<import('@prisma/client').Event[]>} the list of events that match the search criteria, enriched with area hierarchy fields for improved search relevance.
  */
-const searchEvents = async (keywords, validAreasIds, hierarchy) => {
+const searchEvents = async (keywords, validAreasIds, hierarchy, includeScore = false) => {
     const events = await prisma.event.findMany({
         where: validAreasIds.length > 0 ? {
             areaId: { in: validAreasIds },
@@ -318,6 +322,7 @@ const searchEvents = async (keywords, validAreasIds, hierarchy) => {
     const areaHierarchyKeys = buildAreaHierarchyFuseKeys(maxDepth, prefix, { name: 0.2, type: 0.1, description: 0.05 });
 
     const fuse = new Fuse(searchableEvents, {
+        includeScore: true,
         threshold: 0.35,
         ignoreLocation: true,
         keys: [
@@ -332,7 +337,7 @@ const searchEvents = async (keywords, validAreasIds, hierarchy) => {
         ]
     });
 
-    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "EVENT");
+    return annotateSearchResults(fuse.search(keywords), "EVENT", includeScore);
 };
 
 /**
@@ -340,7 +345,7 @@ const searchEvents = async (keywords, validAreasIds, hierarchy) => {
  * @param {{ keywords: string, type: string, createdFrom: Date | null, createdTo: Date | null }} filters
  * @returns {Promise<import('@prisma/client').Actuality[]>}
  */
-const searchActualities = async (filters) => {
+const searchActualities = async (filters, includeScore = false) => {
     const {
         keywords = "",
         type = "ALL",
@@ -446,6 +451,7 @@ const searchActualities = async (filters) => {
     }));
 
     const fuse = new Fuse(searchableActualities, {
+        includeScore: true,
         threshold: 0.35,
         ignoreLocation: true,
         keys: [
@@ -461,52 +467,44 @@ const searchActualities = async (filters) => {
         ],
     });
 
-    return annotateSearchResults(fuse.search(keywords).map((result) => result.item), "ACTUALITY");
+    return annotateSearchResults(fuse.search(keywords), "ACTUALITY", includeScore);
 };
 
 
-/** * Main search function that routes to specific search functions based on filters.
- * @param {Object} filters - The search filters containing keywords, building, and type.
+/**
+ * Global search across devices, areas, events, and actualities based on keywords only.
+ * Device results are included only when the caller is authenticated.
+ * @param {Object} filters - The search filters.
  * @param {string} filters.keywords - The search keywords.
- * @param {string} filters.building - The building filter (can be empty, null, or "all" for no filtering).
- * @param {string} filters.type - The type of items to search for ("device", "area", "event", or "all").
- * @returns {Promise<Array>} The search results based on the provided filters.
+ * @param {boolean} isAuthenticated - Whether the caller is authenticated.
+ * @returns {Promise<Array<Object>>} The combined search results.
  */
-const search = async (filters) => {
-    const { keywords, building: searchedBuilding, type } = filters;
+const search = async (filters, isAuthenticated = false) => {
+    const { keywords } = filters;
+    const shouldSortByScore = Boolean(keywords?.trim());
 
-    const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
+    const validAreasHierarchy = await getAreaHierarchyInBuilding();
     const validAreasIds = Array.from(validAreasHierarchy.keys());
+    const searches = [
+        searchAreas(keywords, validAreasIds, validAreasHierarchy, true),
+        searchEvents(keywords, validAreasIds, validAreasHierarchy, true),
+        searchActualities({ keywords, type: "ALL", createdFrom: null, createdTo: null }, true),
+    ];
 
-    switch (type) {
-        case "device":
-            return await searchDevices(keywords, validAreasIds, validAreasHierarchy);
-        case "area":
-            return await searchAreas(keywords, validAreasIds, validAreasHierarchy);
-        case "event":
-            return await searchEvents(keywords, validAreasIds, validAreasHierarchy);
-        case "actuality":
-            return await searchActualities({ keywords, type: "ALL", createdFrom: null, createdTo: null });
-        case "all":
-            // Include all entity types including devices
-            const listAll = await Promise.all([
-                searchDevices(keywords, validAreasIds, validAreasHierarchy),
-                searchAreas(keywords, validAreasIds, validAreasHierarchy),
-                searchEvents(keywords, validAreasIds, validAreasHierarchy),
-                searchActualities({ keywords, type: "ALL", createdFrom: null, createdTo: null })
-            ]);
-            return listAll.flat();
-        case "all-unauthenticated":
-            // Exclude devices for unauthenticated users
-            const listUnauth = await Promise.all([
-                searchAreas(keywords, validAreasIds, validAreasHierarchy),
-                searchEvents(keywords, validAreasIds, validAreasHierarchy),
-                searchActualities({ keywords, type: "ALL", createdFrom: null, createdTo: null })
-            ]);
-            return listUnauth.flat();
-        default:
-            return [];
+    if (isAuthenticated) {
+        searches.unshift(searchDevices(keywords, validAreasIds, validAreasHierarchy, true));
     }
+
+    const results = (await Promise.all(searches)).flat();
+
+    if (!shouldSortByScore) {
+        return results;
+    }
+
+    return results
+        .slice()
+        .sort((firstResult, secondResult) => (firstResult.searchScore ?? Number.POSITIVE_INFINITY) - (secondResult.searchScore ?? Number.POSITIVE_INFINITY))
+        .map(({ searchScore, ...item }) => item);
 };
 
 
@@ -529,6 +527,10 @@ const searchEventsByFilters = async (filters) => {
 
     const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
     const validAreasIds = Array.from(validAreasHierarchy.keys());
+
+    if (searchedBuilding && searchedBuilding !== "all" && validAreasIds.length === 0) {
+        return [];
+    }
 
     const where = {
         ...(validAreasIds.length > 0 ? { areaId: { in: validAreasIds } } : {}),
@@ -608,6 +610,10 @@ const searchAreasByFilters = async (filters) => {
     const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
     const validAreasIds = Array.from(validAreasHierarchy.keys());
 
+    if (searchedBuilding && searchedBuilding !== "all" && validAreasIds.length === 0) {
+        return [];
+    }
+
     const where = {
         ...(validAreasIds.length > 0 ? { id: { in: validAreasIds } } : {}),
         ...(type && type !== "ALL" ? { type } : {}),
@@ -669,6 +675,10 @@ const searchIoTDevicesByFilters = async (filters) => {
 
     const validAreasHierarchy = await getAreaHierarchyInBuilding(searchedBuilding);
     const validAreasIds = Array.from(validAreasHierarchy.keys());
+
+    if (searchedBuilding && searchedBuilding !== "all" && validAreasIds.length === 0) {
+        return [];
+    }
 
     const where = {
         ...(validAreasIds.length > 0 ? { areaId: { in: validAreasIds } } : {}),
@@ -746,73 +756,73 @@ const searchIoTDevicesByFilters = async (filters) => {
  * @param {boolean} isAuthenticated - Whether the user is authenticated
  * @returns {Object} An object containing filter information for each entity type
  */
-const getSearchFiltersInfo = (isAuthenticated = false) => {
-    // Global search types depend on authentication
-    const globalSearchTypes = isAuthenticated 
-        ? ["ALL", "EVENT", "AREA", "ACTUALITY", "DEVICE"]
-        : ["ALL", "EVENT", "AREA", "ACTUALITY"];
+const getSearchFiltersInfo = async (isAuthenticated = false) => {
+    const buildingValues = await getBuildingList();
+
+    const entityTypes = {
+        event: {
+            description: "Recherche d'événements",
+            requiresAuth: false,
+            filters: [
+                { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                { name: "building", type: "enum", required: false, description: "Filtre par bâtiment", values: buildingValues },
+                { name: "type", type: "enum", required: false, description: "Type d'événement", values: Object.values(EventType).concat(["ALL"]) },
+                { name: "startMin", type: "date", required: false, description: "Date de début minimale" },
+                { name: "startMax", type: "date", required: false, description: "Date de début maximale" },
+                { name: "priceMin", type: "number", required: false, description: "Prix minimum", min: 0 },
+                { name: "priceMax", type: "number", required: false, description: "Prix maximum", min: 0 },
+                { name: "spotsMin", type: "integer", required: false, description: "Nombre minimum de places restantes", min: 0 },
+            ]
+        },
+        area: {
+            description: "Recherche de zones",
+            requiresAuth: false,
+            filters: [
+                { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                { name: "building", type: "enum", required: false, description: "Filtre par bâtiment", values: buildingValues },
+                { name: "type", type: "enum", required: false, description: "Type de zone", values: ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM", "ALL"] },
+            ]
+        },
+        actuality: {
+            description: "Recherche d'actualités",
+            requiresAuth: false,
+            filters: [
+                { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                { name: "type", type: "enum", required: false, description: "Type d'actualité", values: Object.values(ActualityType).concat(["ALL"]) },
+                { name: "createdFrom", type: "date", required: false, description: "Date de création minimale" },
+                { name: "createdTo", type: "date", required: false, description: "Date de création maximale" },
+            ]
+        },
+    };
+
+    if (isAuthenticated) {
+        entityTypes.device = {
+            description: "Recherche de périphériques IoT",
+            requiresAuth: true,
+            filters: [
+                { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
+                { name: "building", type: "enum", required: false, description: "Filtre par bâtiment", values: buildingValues },
+                { name: "type", type: "enum", required: false, description: "Type de périphérique", values: Object.values(DeviceType).concat(["ALL"]) },
+                { name: "status", type: "enum", required: false, description: "Statut du périphérique", values: Object.values(DeviceStatus).concat(["ALL"]) },
+                { name: "active", type: "boolean", required: false, description: "État actif du périphérique" },
+                { name: "consumptionMin", type: "number", required: false, description: "Consommation électrique minimale", min: 0 },
+                { name: "consumptionMax", type: "number", required: false, description: "Consommation électrique maximale", min: 0 },
+                { name: "lastPowerOnAfter", type: "date", required: false, description: "Date de dernière mise sous tension (minimum)" },
+                { name: "lastMaintenanceAfter", type: "date", required: false, description: "Date de dernière maintenance (minimum)" },
+            ]
+        };
+    }
 
     return {
         success: true,
         globalSearch: {
-            description: "Recherche globale (IoTDevice nécessite une authentification)",
+            description: "Recherche globale par mots clés (IoTDevice nécessite une authentification)",
             requiresAuth: false,
             filters: [
                 { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
-                { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
-                { name: "type", type: "enum", required: false, description: "Type d'entité", values: globalSearchTypes },
             ]
         },
-        entityTypes: {
-            event: {
-                description: "Recherche d'événements",
-                requiresAuth: false,
-                filters: [
-                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
-                    { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
-                    { name: "type", type: "enum", required: false, description: "Type d'événement", values: Object.values(EventType).concat(["ALL"]) },
-                    { name: "startMin", type: "date", required: false, description: "Date de début minimale" },
-                    { name: "startMax", type: "date", required: false, description: "Date de début maximale" },
-                    { name: "priceMin", type: "number", required: false, description: "Prix minimum", min: 0 },
-                    { name: "priceMax", type: "number", required: false, description: "Prix maximum", min: 0 },
-                    { name: "spotsMin", type: "integer", required: false, description: "Nombre minimum de places restantes", min: 0 },
-                ]
-            },
-            area: {
-                description: "Recherche de zones",
-                requiresAuth: false,
-                filters: [
-                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
-                    { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
-                    { name: "type", type: "enum", required: false, description: "Type de zone", values: ["BUILDING", "FLOOR", "CLASSROOM", "TECHNICAL_ROOM", "ALL"] },
-                ]
-            },
-            device: {
-                description: "Recherche de périphériques IoT",
-                requiresAuth: true,
-                filters: [
-                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
-                    { name: "building", type: "string", required: false, description: "Filtre par bâtiment" },
-                    { name: "type", type: "enum", required: false, description: "Type de périphérique", values: Object.values(DeviceType).concat(["ALL"]) },
-                    { name: "status", type: "enum", required: false, description: "Statut du périphérique", values: Object.values(DeviceStatus).concat(["ALL"]) },
-                    { name: "active", type: "boolean", required: false, description: "État actif du périphérique" },
-                    { name: "consumptionMin", type: "number", required: false, description: "Consommation électrique minimale", min: 0 },
-                    { name: "consumptionMax", type: "number", required: false, description: "Consommation électrique maximale", min: 0 },
-                    { name: "lastPowerOnAfter", type: "date", required: false, description: "Date de dernière mise sous tension (minimum)" },
-                    { name: "lastMaintenanceAfter", type: "date", required: false, description: "Date de dernière maintenance (minimum)" },
-                ]
-            },
-            actuality: {
-                description: "Recherche d'actualités",
-                requiresAuth: false,
-                filters: [
-                    { name: "keywords", type: "string", required: false, description: "Mots clés de recherche" },
-                    { name: "type", type: "enum", required: false, description: "Type d'actualité", values: Object.values(ActualityType).concat(["ALL"]) },
-                    { name: "createdFrom", type: "date", required: false, description: "Date de création minimale" },
-                    { name: "createdTo", type: "date", required: false, description: "Date de création maximale" },
-                ]
-            },
-        }
+        entityTypes,
     };
 };
 

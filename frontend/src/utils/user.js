@@ -7,7 +7,7 @@ function wait(ms) {
 }
 
 export const DEFAULT_AVATAR =
-  "https://as2.ftcdn.net/jpg/02/44/42/79/1000_F_244427911_aoHHulebtYy4wLpncBBuWqCTNFKolcCB.jpg";
+  "https://cdn-icons-png.flaticon.com/512/266/266033.png";
 
 export async function fetchDefaultAvatar() {
   const response = await fetch(DEFAULT_AVATAR);

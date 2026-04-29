@@ -97,8 +97,8 @@ export const register = async (req, res) => {
       sex,
       birthDate,
       memberType,
-      avatarUrl,
     } = req.body;
+    const avatarUrl = req.uploadedImageUrl;
 
     let parsedBirthDate;
     try {

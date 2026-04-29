@@ -10,6 +10,7 @@ import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import optionalAuthMiddleware from "../middlewares/optionalAuth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
+import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
 
 const router = new express.Router();
 
@@ -20,7 +21,12 @@ router.get("/id/:id", optionalAuthMiddleware, getUser);
 // Routes protégées (requièrent une connexion)
 router.get("/me", authMiddleware, getMe);
 router.get("/me/points/history", authMiddleware, getMyPointsHistory);
-router.put("/id/:id", authMiddleware, updateUser);
+router.put(
+  "/id/:id",
+  authMiddleware,
+	...createImageUploadMiddleware("users"),
+  updateUser
+);
 router.patch("/id/:id/admin", authMiddleware, authorizeMiddleware(["ADMIN"]), adminUpdateUser);
 
 export default router;

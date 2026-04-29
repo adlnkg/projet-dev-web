@@ -1,12 +1,13 @@
 <script setup>
-import { Button, InputText, Select, Skeleton } from "primevue";
+import { Button, InputText, Message, Select, Skeleton } from "primevue";
 import { Form } from "@primevue/forms";
 import FieldDate from "@/components/FieldDate.vue";
 import { editUser, getMe, SELECT_GENDER, DEFAULT_AVATAR } from "@/utils/user";
 import { useData, useMutation } from "@/utils/useData";
 import { useRouter } from "vue-router";
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import Card from "@/components/Card.vue";
+import AvatarChooser from "@/components/AvatarChooser.vue";
 
 const router = useRouter();
 
@@ -32,11 +33,13 @@ watch(error, (e) => console.log("Error", e));
 watch(loading, (e) => console.log("Loading", e));
 watch(user, (e) => console.log("User", e));
 
+const avatar = ref(null);
+
 async function onSubmit(e) {
   if (e.values.birthdate !== null) {
     e.values.birthdate = new Date(e.values.birthdate);
   }
-  const ok = await editUserFn(user.value.id, e.values);
+  const ok = await editUserFn(user.value.id, e.values, avatar.value);
   if (!ok) return;
   router.push({ name: "profile" });
 }
@@ -50,12 +53,7 @@ async function onSubmit(e) {
     <Form v-slot="form" :initialValues="user" :resolver @submit="onSubmit">
       <main>
         <Skeleton v-if="initLoading" width="100%" height="100%" id="avatar" />
-        <img
-          v-else
-          :src="user.avatarURL || DEFAULT_AVATAR"
-          alt="avatar"
-          id="avatar"
-        />
+        <AvatarChooser v-else v-model="avatar" :defaultAvatar="user.avatarUrl" />
         <Message v-if="submitError !== null" severity="error" closable>
           {{ submitError.toString() }}
         </Message>

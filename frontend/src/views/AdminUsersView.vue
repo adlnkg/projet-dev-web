@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { DEFAULT_AVATAR } from '../utils/user'
+import { fixUser } from '../utils/user'
 
 const router = useRouter()
 const users = ref([])
@@ -19,7 +19,7 @@ async function fetchUsers() {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || 'Erreur lors du chargement')
-    users.value = data.data || []
+    users.value = data.data?.map(fixUser) || []
   } catch (e) {
     error.value = e.message || 'Erreur lors du chargement des utilisateurs'
   } finally {
@@ -110,7 +110,7 @@ function getMemberTypeLabel(type) {
           <tbody>
             <tr v-for="user in filteredUsers" :key="user.id" class="user-row">
               <td class="avatar-cell">
-                <img :src="user.avatarUrl || DEFAULT_AVATAR" :alt="user.login" class="user-avatar" />
+                <img :src="user.avatarUrl" :alt="user.login" class="user-avatar" />
               </td>
               <td class="login-cell">{{ user.login }}</td>
               <td class="name-cell">

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { DEFAULT_AVATAR } from '../utils/user'
+import { DEFAULT_AVATAR, fixUser } from '../utils/user'
 import { useMutation } from '../utils/useData'
 
 const router = useRouter()
@@ -36,7 +36,7 @@ async function fetchUser() {
     })
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || 'Utilisateur introuvable')
-    user.value = data
+    user.value = fixUser(data)
     formData.value = {
       firstName: data.firstName || '',
       lastName: data.lastName || '',

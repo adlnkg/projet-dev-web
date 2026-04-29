@@ -84,9 +84,9 @@ export const updateUser = async (req, res) => {
       birthDate,
       sex,
       memberType,
-      avatarUrl,
     } =
       req.body;
+    const avatarUrl = req.uploadedImageUrl;
 
     let parsedBirthDate;
     try {

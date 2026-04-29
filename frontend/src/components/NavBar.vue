@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { getMe, DEFAULT_AVATAR } from '../utils/user'
 
 const router = useRouter()
+const route = useRoute()
 const recherche = ref('')
 const langue = ref('FR')
 const menuLangueVisible = ref(false)
@@ -13,12 +14,23 @@ const currentUser = ref(null)
 const showAdmin = computed(() => currentUser.value && (currentUser.value.role === 'ADMIN' || currentUser.value.role === 'SUPER_USER'))
 
 onMounted(async () => {
+   await refreshCurrentUser()
+})
+
+async function refreshCurrentUser() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    currentUser.value = null
+    return
+  }
   try {
     currentUser.value = await getMe()
   } catch (e) {
-    // silent
+    currentUser.value = null
   }
-})
+}
+
+watch(() => route.fullPath, refreshCurrentUser)
 
 function goToProfile() {
   router.push('/profile')

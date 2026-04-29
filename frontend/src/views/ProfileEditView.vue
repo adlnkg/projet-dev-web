@@ -2,15 +2,24 @@
 import { Button, InputText, Select, Skeleton } from "primevue";
 import { Form } from "@primevue/forms";
 import FieldDate from "@/components/FieldDate.vue";
-import { editUser, getMe, SELECT_GENDER } from "@/utils/user";
+import { editUser, getMe, SELECT_GENDER, DEFAULT_AVATAR } from "@/utils/user";
 import { useData, useMutation } from "@/utils/useData";
 import { useRouter } from "vue-router";
 import { computed, watch } from "vue";
+import Card from "@/components/Card.vue";
 
 const router = useRouter();
 
-const { fn: editUserFn, loading: submitLoading, error: submitError } = useMutation(editUser);
-const { data: user, loading: initLoading, error: initError } = useData(async () => {
+const {
+  fn: editUserFn,
+  loading: submitLoading,
+  error: submitError,
+} = useMutation(editUser);
+const {
+  data: user,
+  loading: initLoading,
+  error: initError,
+} = useData(async () => {
   const user = await getMe();
   user.birthdate = user.birthdate.toLocaleDateString("fr-FR");
   return user;
@@ -37,49 +46,80 @@ async function onSubmit(e) {
   <main v-if="error.value !== null">
     Il y a une erreur lors de la récupération des données
   </main>
-  <Form v-else v-slot="form" :initialValues="user" :resolver @submit="onSubmit">
-    <main>
-      <Skeleton v-if="initLoading" width="100%" height="100%" id="avatar" />
-      <img v-else :src="user.avatarURL" alt="avatar" id="avatar" />
-      <Message v-if="submitError !== null" severity="error" closable>
-        {{ submitError.toString() }}
-      </Message>
-      <div>
-        <label for="firstName">Prénom</label>
-        <InputText name="firstName" id="firstName" :disabled="initLoading" />
-
-        <label for="lastName">Nom de famille</label>
-        <InputText name="lastName" id="lastName" :disabled="initLoading" />
-
-        <label for="login">Identifiant</label>
-        <InputText name="login" id="login" :disabled="initLoading" />
-
-        <label for="email">Email</label>
-        <InputText name="email" id="email" type="email" :disabled="initLoading" />
-
-        <label for="sex">Genre</label>
-        <Select
-          name="sex"
-          id="sex"
-          :options="SELECT_GENDER"
-          optionValue="value"
-          optionLabel="label"
-          :disabled="initLoading"
+  <Card v-else>
+    <Form v-slot="form" :initialValues="user" :resolver @submit="onSubmit">
+      <main>
+        <Skeleton v-if="initLoading" width="100%" height="100%" id="avatar" />
+        <img
+          v-else
+          :src="user.avatarURL || DEFAULT_AVATAR"
+          alt="avatar"
+          id="avatar"
         />
+        <Message v-if="submitError !== null" severity="error" closable>
+          {{ submitError.toString() }}
+        </Message>
+        <div>
+          <label for="firstName">Prénom</label>
+          <InputText name="firstName" id="firstName" :disabled="initLoading" />
 
-        <label for="birthdate">
-          Né{{ form.gender?.value === "female" ? "e" : "" }} le
-        </label>
+          <label for="lastName">Nom de famille</label>
+          <InputText name="lastName" id="lastName" :disabled="initLoading" />
 
-        <FieldDate name="birthdate" id="birthdate" :disabled="loading.value" />
-      </div>
+          <label for="login">Identifiant</label>
+          <InputText name="login" id="login" :disabled="initLoading" />
 
-      <Button type="submit" :disabled="loading.value">Enregistrer</Button>
-    </main>
-  </Form>
+          <label for="email">Email</label>
+          <InputText
+            name="email"
+            id="email"
+            type="email"
+            :disabled="initLoading"
+          />
+
+          <label for="sex">Genre</label>
+          <Select
+            name="sex"
+            id="sex"
+            :options="SELECT_GENDER"
+            optionValue="value"
+            optionLabel="label"
+            :disabled="initLoading"
+          />
+
+          <label for="birthdate">
+            Né{{ form.gender?.value === "female" ? "e" : "" }} le
+          </label>
+
+          <FieldDate
+            name="birthdate"
+            id="birthdate"
+            :disabled="loading.value"
+          />
+        </div>
+
+        <Button type="submit" :disabled="loading.value">Enregistrer</Button>
+      </main>
+    </Form>
+  </Card>
 </template>
 
 <style scoped>
+:global(body) {
+  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
+}
+:global(#content) {
+  display: grid;
+  place-items: center;
+}
+:global(.card) {
+  max-width: 75%;
+  display: flex;
+  gap: 1em;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 25vw;
+}
 main {
   display: flex;
   gap: 1em;

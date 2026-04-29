@@ -7,14 +7,20 @@ import { RouterView } from "vue-router";
 <template>
   <div id="page">
     <NavBar />
-    <RouterView />
+    <div id="content">
+      <RouterView />
+    </div>
   </div>
   <SectionFooter />
 </template>
 
 <style scoped>
 #page {
-  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
   min-height: 100dvh;
+}
+#content {
+  position: relative;
 }
 </style>

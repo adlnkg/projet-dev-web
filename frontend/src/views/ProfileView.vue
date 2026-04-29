@@ -9,7 +9,7 @@ import { RouterLink } from "vue-router";
 const MILLIS_IN_YEAR = 31536000000;
 
 const UI_GENDERS = {
-  H: "Homme",
+  M: "Homme",
   F: "Femme",
   O: "Autre",
 };
@@ -45,7 +45,7 @@ const age = computed(() => user === null ? null :
 
       <span>Genre</span>
       <Skeleton v-if="loading" width="200px" height="1em" />
-      <span v-else>{{ UI_GENDERS[user.gender] ?? "Autre" }}</span>
+      <span v-else>{{ UI_GENDERS[user.sex] ?? "Autre" }}</span>
 
       <span>Né{{ user?.gender == "male" ? "" : "e" }} le</span>
       <Skeleton v-if="loading" width="200px" height="1em" />
@@ -68,8 +68,15 @@ const age = computed(() => user === null ? null :
 </template>
 
 <style scoped>
+:global(body) {
+  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
+}
+:global(#content) {
+  display: grid;
+  place-items: center;
+}
 :global(.card) {
-  max-width: 75% !important;
+  max-width: 75%;
   display: flex;
   gap: 1em;
   flex-direction: column;

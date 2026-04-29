@@ -79,6 +79,7 @@ export async function signin(user) {
       new Error(data.error ?? "Erreur lors de la connexion"),
     );
   }
+  localStorage.setItem("email", user.email);
 }
 
 export async function checkOTP(email, otp) {
@@ -100,7 +101,9 @@ export async function checkOTP(email, otp) {
 }
 
 export async function editUser(id, user) {
-  user = Object.fromEntries(Object.entries(user).filter(([_, v]) => v !== null));
+  user = Object.fromEntries(
+    Object.entries(user).filter(([_, v]) => v !== null),
+  );
   const token = localStorage.getItem("token");
   const response = await fetch(`http://localhost:3000/api/user/${id}`, {
     method: "PUT",

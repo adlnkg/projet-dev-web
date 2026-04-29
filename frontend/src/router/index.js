@@ -31,13 +31,18 @@ const router = createRouter({
     },
     {
       path: "/login",
+      name: "auth-login",
+      component: () => import("../views/AuthLoginView.vue"),
+    },
+    {
+      path: "/login-old",
       name: "login",
       component: () => import("../views/LoginStyledView.vue"),
     },
     {
       path: "/register",
-      name: "register",
-      component: () => import("../views/RegisterView.vue"),
+      name: "auth-signin",
+      component: () => import("../views/AuthSigninView.vue"),
     },
     {
       path: "/register-old",

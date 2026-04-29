@@ -1,15 +1,15 @@
 <script setup>
-import Card from '@/components/Card.vue';
-import { useMutation } from '@/utils/useData';
-import { checkOTP } from '@/utils/user';
-import { Form } from '@primevue/forms';
-import { Button, InputOtp, Message } from 'primevue';
-import { watch } from 'vue';
-import { useRouter } from 'vue-router';
+import Card from "@/components/Card.vue";
+import { useMutation } from "@/utils/useData";
+import { checkOTP } from "@/utils/user";
+import { Form } from "@primevue/forms";
+import { Button, InputOtp, Message } from "primevue";
+import { watch } from "vue";
+import { useRouter } from "vue-router";
 const { fn: checkOTPFn, loading, error } = useMutation(checkOTP);
 
 watch(error, (e) => {
-  console.log(e)
+  console.log(e);
 });
 
 const router = useRouter();
@@ -18,7 +18,7 @@ async function onSubmit(e) {
   const email = localStorage.getItem("email");
   const ok = await checkOTPFn(email, e.values.otp);
   if (!ok) return;
-  router.push({ name: "profile" });
+  router.push({ name: "auth-login" });
 }
 </script>
 

@@ -30,14 +30,16 @@ function onSubmit(e) {
     return;
   }
   signinFn(e.values).then(() => {
-    router.push({ name: "veryfy-otp" });
+    router.push({ name: "verify-otp" });
   });
 }
 </script>
 
 <template>
-  <Card>
+  <Card floating>
     <Form :resolver @submit="onSubmit">
+      <h1>Créer un compte</h1>
+      <h2>Créez votre compte pour accéder à votre espace personnel</h2>
       <Message v-if="error !== null" severity="error" closable>
         {{ error.toString() }}
       </Message>
@@ -82,11 +84,17 @@ function onSubmit(e) {
       />
 
       <Button type="submit" :disabled="loading">Créer un compte</Button>
+      <p id="already-member">
+        Déjà inscrit ? <RouterLink to="/login">Se connecter</RouterLink>
+      </p>
     </Form>
   </Card>
 </template>
 
 <style>
+body {
+  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
+}
 label[for="avatar"] {
   display: flex;
   justify-content: center;
@@ -100,12 +108,13 @@ label[for="avatar"] {
   border-radius: 50%;
   width: 75% !important;
 }
+#content {
+  display: grid;
+  place-items: center;
+}
 .card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 300px;
+  max-width: 75%;
+  margin-block: 4rem;
 }
 form {
   display: flex;
@@ -117,5 +126,28 @@ p-password {
 }
 input[type="file"] {
   display: none;
+}
+h1 {
+  text-align: center;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+h2 {
+  text-align: center;
+  font-size: 16px;
+  color: #6b7280;
+  font-weight: normal;
+}
+#already-member {
+  font-size: 14px;
+  color: #6b7280;
+  text-align: center;
+}
+#already-member a {
+  color: #1a5c9e;
+  text-decoration: none;
+  font-weight: 700;
 }
 </style>

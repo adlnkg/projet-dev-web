@@ -4,15 +4,21 @@ import { useMutation } from "@/utils/useData";
 import { login } from "@/utils/user";
 import { Form } from "@primevue/forms";
 import { Button, InputText, Message, Password } from "primevue";
-import { RouterLink, useRouter } from "vue-router";
+import { RouterLink, useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
+const route = useRoute();
 const { fn: loginFn, loading, error } = useMutation(login);
 
 function onSubmit(e) {
   loginFn(e.values.pseudo, e.values.password).then((user) => {
     if (user === undefined) return;
-    router.push({ name: "profile" });
+    const redirect = route.query.redirect;
+    if (redirect) {
+      router.push(redirect);
+    } else {
+      router.push({ name: "profile" });
+    }
   });
 }
 </script>

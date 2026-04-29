@@ -696,6 +696,12 @@ const unregisterFromEvent = async (eventId, userId) => {
   });
 };
 
+export const deleteEvent = async (eventId) => {
+  await prisma.event.delete({
+    where: { id: eventId },
+  });
+};
+
 export default {
   getEventCreateForm,
   getEventDetails,
@@ -703,4 +709,5 @@ export default {
   createEvent,
   registerToEvent,
   unregisterFromEvent,
+  deleteEvent,
 };

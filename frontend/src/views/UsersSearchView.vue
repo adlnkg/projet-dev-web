@@ -174,49 +174,6 @@ onMounted(() => {
 })
 </script>
 
-// Naviguer vers le profil public
-function goToProfile(userId) {
-  router.push(`/profile/${userId}`)
-}
-
-// Formater la date
-function formatDate(dateString) {
-  if (!dateString) return '—'
-  return new Date(dateString).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  })
-}
-
-// Obtenir l'avatar ou l'initiale
-function getAvatar(user) {
-  if (user.avatarUrl) return user.avatarUrl
-  const initial = (user.firstName?.[0] || user.login?.[0] || 'U').toUpperCase()
-  return null
-}
-
-function getInitials(user) {
-  return (user.firstName?.[0] || user.login?.[0] || 'U').toUpperCase()
-}
-
-// Libellé du type de membre
-function memberTypeLabel(value) {
-  const labels = {
-    STUDENT: 'Étudiant',
-    STAFF: 'Personnel',
-    VISITOR: 'Visiteur',
-    ADMIN: 'Administrateur'
-  }
-  return labels[value] || value || '—'
-}
-
-onMounted(() => {
-  loadAllUsers()
-  searchPerformed.value = true
-})
-</script>
-
 <template>
   <div class="page">
     <!-- HEADER -->

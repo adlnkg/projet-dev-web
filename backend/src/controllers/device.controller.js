@@ -101,9 +101,33 @@ export const createDevice = async (req, res, next) => {
   }
 };
 
+export const deleteDevice = async (req, res, next) => {
+  try {
+    const role = getUserRole(req);
+    if (role !== "ADMIN") {
+      return res.status(403).json({ error: "Seuls les administrateurs peuvent supprimer des appareils." });
+    }
+
+    const deviceId = Number(req.params.id);
+    if (!Number.isInteger(deviceId)) {
+      return res.status(400).json({ error: "Identifiant d'appareil invalide." });
+    }
+
+    await deviceService.deleteDevice(deviceId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Appareil supprimé avec succès.",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default {
   getDeviceCreateForm,
   getDevice,
   postDevice,
   createDevice,
+  deleteDevice,
 };

@@ -45,6 +45,11 @@ function goToProfile() {
   router.push('/profile')
 }
 
+function logOut() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('email')
+}
+
 const avatarUrl = computed(() => {
   if (!currentUser.value) return DEFAULT_AVATAR
   return currentUser.value.avatarUrl || currentUser.value.avatar || DEFAULT_AVATAR
@@ -243,6 +248,7 @@ function fermerRecherche() {
           <button class="avatar-btn" @click="goToProfile" :title="currentUser.firstName || currentUser.login">
             <img :src="avatarUrl" alt="avatar" class="avatar-img" />
           </button>
+          <button class="nav-cta" @click="logOut">SE DÉCONNECTER</button>
         </template>
       </div>
 
@@ -385,6 +391,7 @@ function fermerRecherche() {
             <img :src="avatarUrl" alt="avatar" class="avatar-img mobile-avatar" />
             <span style="font-weight:700;color:#0d2d5e">{{ currentUser.firstName || currentUser.login }}</span>
           </div>
+          <button class="mobile-inscrire" @click="logOut">SE DÉCONNECTER</button>
         </template>
       </div>
     </div>

@@ -2,4 +2,6 @@ node_modules
 # Keep environment variables out of version control
 .env
 
+# ignore images uploaded by users
+public/images
 dev.db

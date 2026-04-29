@@ -25,7 +25,7 @@ Body JSON :
   "lastName": "Doe",
   "firstName": "John",
   "sex": "M",
-  "age": 24,
+  "birthDate": "2002-06-15",
   "memberType": "STUDENT",
   "avatarUrl": "https://..."
 }
@@ -62,6 +62,8 @@ Réponse `200` :
   "user": {
     "login": "jdoe",
     "email": "jdoe@example.com",
+    "birthDate": "2002-06-15T00:00:00.000Z",
+    "age": 24,
     "role": "USER"
   }
 }
@@ -159,7 +161,7 @@ Body JSON (exemple) :
   "password": "nouveaumdp",
   "firstName": "NouveauPrénom",
   "lastName": "NouveauNom",
-  "age": 25,
+  "birthDate": "2001-09-21",
   "sex": "F",
   "memberType": "STAFF",
   "avatarUrl": "https://..."

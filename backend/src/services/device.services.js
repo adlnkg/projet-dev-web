@@ -1489,9 +1489,16 @@ const createDevice = async ({ role, ownerId, payload, imageUrl }) => {
     return getDeviceDetails(createdDevice.id, role);
 };
 
+export const deleteDevice = async (deviceId) => {
+    await prisma.device.delete({
+        where: { id: deviceId },
+    });
+};
+
 export default {
     getDeviceCreateForm,
     getDeviceDetails,
     updateDevice,
     createDevice,
+    deleteDevice,
 };

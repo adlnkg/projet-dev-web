@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { getMe } from '../utils/user'
 
 const router = useRouter()
 const recherche = ref('')
@@ -11,8 +12,11 @@ const resultats = ref([])
 const loading = ref(false)
 const erreur = ref(null)
 const rechercheLancee = ref(false)
+const currentUser = ref(null)
 
 const types = ['CONFERENCE', 'WORKSHOP', 'SEMINAR', 'SPORT', 'OTHER']
+
+const isAdmin = computed(() => currentUser.value && (currentUser.value.role === 'ADMIN' || currentUser.value.role === 'SUPER_USER'))
 
 function allerAuDetail(id) {
   router.push(`/evenements/${id}`)
@@ -43,6 +47,32 @@ async function lancerRecherche() {
   }
 }
 
+async function supprimerEvenement(id, event) {
+  event.stopPropagation()
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
+    return
+  }
+  
+  try {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`http://localhost:3000/api/events/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    const data = await response.json()
+    if (data.success) {
+      resultats.value = resultats.value.filter(r => r.id !== id)
+    } else {
+      alert(data.error || 'Erreur lors de la suppression')
+    }
+  } catch (e) {
+    alert('Erreur lors de la suppression')
+  }
+}
+
 function reinitialiser() {
   recherche.value = ''
   typeChoisi.value = ''
@@ -52,7 +82,12 @@ function reinitialiser() {
   rechercheLancee.value = false
 }
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    currentUser.value = await getMe()
+  } catch (e) {
+    // User not connected, that's fine
+  }
   lancerRecherche()
 })
 </script>
@@ -123,6 +158,7 @@ onMounted(() => {
 
         <div class="resultats-liste" v-if="resultats.length > 0">
           <div class="resultat-card" v-for="r in resultats" :key="r.id" @click="allerAuDetail(r.id)">
+            <button v-if="isAdmin" class="btn-supprimer" @click="supprimerEvenement(r.id, $event)" title="Supprimer l'événement">✕</button>
             <img
               :src="r.imageUrl ? `http://localhost:3000/${r.imageUrl}` : 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&q=80'"
               :alt="r.title"

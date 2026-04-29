@@ -162,6 +162,29 @@ export const unregisterFromEvent = async (req, res, next) => {
   }
 };
 
+export const deleteEvent = async (req, res, next) => {
+  try {
+    const role = getUserRole(req);
+    if (role !== "ADMIN") {
+      return res.status(403).json({ error: "Seuls les administrateurs peuvent supprimer des événements." });
+    }
+
+    const eventId = Number(req.params.id);
+    if (!Number.isInteger(eventId)) {
+      return res.status(400).json({ error: "Identifiant d'événement invalide." });
+    }
+
+    await eventService.deleteEvent(eventId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Événement supprimé avec succès.",
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default {
   getEventCreateForm,
   getEvent,
@@ -169,4 +192,5 @@ export default {
   createEvent,
   registerToEvent,
   unregisterFromEvent,
+  deleteEvent,
 };

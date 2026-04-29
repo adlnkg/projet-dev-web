@@ -2,7 +2,7 @@ import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
-import { getDeviceCreateForm, getDevice, postDevice, createDevice } from "../controllers/device.controller.js";
+import { getDeviceCreateForm, getDevice, postDevice, createDevice, deleteDevice } from "../controllers/device.controller.js";
 import { requestDeletionForEntity } from "../controllers/deletion-request.controller.js";
 import { searchIoTDevices } from "../controllers/search.controller.js";
 import { validateAndNormalizeIoTDeviceSearch } from "../middlewares/search.middleware.js";
@@ -20,6 +20,13 @@ router.post(
 );
 
 router.get("/create-form", authMiddleware, authorizeMiddleware("ADMIN"), getDeviceCreateForm);
+
+router.delete(
+	"/:id",
+	authMiddleware,
+	authorizeMiddleware("ADMIN"),
+	deleteDevice,
+);
 
 router.post(
 	"/:id/deletion-request",

@@ -2,7 +2,7 @@ import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
-import { getEventCreateForm, getEvent, postEvent, createEvent, registerToEvent, unregisterFromEvent } from "../controllers/event.controller.js";
+import { getEventCreateForm, getEvent, postEvent, createEvent, registerToEvent, unregisterFromEvent, deleteEvent } from "../controllers/event.controller.js";
 import optionalAuthMiddleware from "../middlewares/optionalAuth.middleware.js";
 import { requestDeletionForEntity } from "../controllers/deletion-request.controller.js";
 import { searchEvents } from "../controllers/search.controller.js";
@@ -21,6 +21,13 @@ router.post(
 );
 
 router.get("/create-form", authMiddleware, authorizeMiddleware("ADMIN"), getEventCreateForm);
+
+router.delete(
+	"/:id",
+	authMiddleware,
+	authorizeMiddleware("ADMIN"),
+	deleteEvent,
+);
 
 router.post(
 	"/:id/deletion-request",

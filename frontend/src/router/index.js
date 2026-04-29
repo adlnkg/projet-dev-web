@@ -85,7 +85,6 @@ const router = createRouter({
       path: "/users",
       name: "users-search",
       component: () => import("../views/UsersSearchView.vue"),
-      meta: { requiresAuth: true },
     },
     {
       path: "/login",
@@ -149,7 +148,7 @@ router.beforeEach((to) => {
   const token = localStorage.getItem("token");
   if (to.meta.requiresAuth && !token) {
     return {
-      name: "auth-required",
+      name: "auth-login",
       query: { redirect: to.fullPath },
     };
   }

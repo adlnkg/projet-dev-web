@@ -1,5 +1,4 @@
 <script setup>
-import NavBar from '../components/NavBar.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { DEFAULT_AVATAR } from '../utils/user'
@@ -62,8 +61,6 @@ onMounted(loadPublicProfile)
 </script>
 
 <template>
-  <NavBar />
-
   <main class="page-container">
     <button class="back-btn" @click="router.back()">← Retour</button>
 

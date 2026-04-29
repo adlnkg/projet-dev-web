@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import NavBar from '../components/NavBar.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -64,8 +63,6 @@ onMounted(() => {
 
 <template>
   <div class="page">
-
-    <NavBar />
 
     <!-- HEADER -->
     <div class="page-header">

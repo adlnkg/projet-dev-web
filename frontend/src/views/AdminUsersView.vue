@@ -1,5 +1,4 @@
 <script setup>
-import NavBar from '../components/NavBar.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { DEFAULT_AVATAR } from '../utils/user'
@@ -70,7 +69,6 @@ function getMemberTypeLabel(type) {
 </script>
 
 <template>
-  <NavBar />
   <div class="page-container">
     <header class="page-header">
       <h1>Gestion des utilisateurs</h1>

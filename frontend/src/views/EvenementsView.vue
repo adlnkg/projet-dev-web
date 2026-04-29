@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import NavBar from '../components/NavBar.vue'
 
 const router = useRouter()
 const recherche = ref('')
@@ -60,8 +59,6 @@ onMounted(() => {
 
 <template>
   <div class="page">
-
-    <NavBar />
 
     <!-- HEADER -->
     <div class="page-header">

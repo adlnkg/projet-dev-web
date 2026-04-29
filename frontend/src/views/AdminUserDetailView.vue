@@ -1,5 +1,4 @@
 <script setup>
-import NavBar from '../components/NavBar.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { DEFAULT_AVATAR } from '../utils/user'
@@ -126,7 +125,6 @@ function resetForm() {
 </script>
 
 <template>
-  <NavBar />
   <div class="page-container">
     <header class="page-header">
       <button class="btn-back" @click="router.push('/admin/users')">← Retour</button>

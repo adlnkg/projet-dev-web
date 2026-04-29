@@ -1,5 +1,4 @@
 <script setup>
-import NavBar from '../components/NavBar.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -91,8 +90,6 @@ onMounted(loadEvent)
 </script>
 
 <template>
-  <NavBar />
-
   <main class="page-container">
     <button class="back-btn" @click="router.push('/evenements')">← Retour aux événements</button>
 

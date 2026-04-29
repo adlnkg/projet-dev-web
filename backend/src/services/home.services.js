@@ -20,6 +20,7 @@ const getHomepageFeed = async (actualityLimit = DEFAULT_LIMIT, eventLimit = DEFA
             },
         },
     });
+    const actuCount = actualities.length;
     const now = new Date();
 
     const events = await prisma.event.findMany({
@@ -51,6 +52,9 @@ const getHomepageFeed = async (actualityLimit = DEFAULT_LIMIT, eventLimit = DEFA
             },
         },
     });
+    const eventCount = events.length;
+    const deviceCount = await prisma.ioTDevice.count();
+    const userCount = await prisma.user.count();
 
     return {
         actualities: actualities.map((actuality) => ({
@@ -71,6 +75,10 @@ const getHomepageFeed = async (actualityLimit = DEFAULT_LIMIT, eventLimit = DEFA
                 lastName: event.owner.lastName,
             } : null,
         })),
+        actuCount,
+        eventCount,
+        deviceCount,
+        userCount,
     };
 };
 

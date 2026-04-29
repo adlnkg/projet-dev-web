@@ -16,7 +16,7 @@ onMounted(async () => {
     const response = await fetch('http://localhost:3000/api/home')
     const data = await response.json()
     if (data.success) {
-      evenements.value = data.data.events
+      evenements.value = data.data.events 
     }
   } catch (e) {
     erreur.value = 'Impossible de charger les événements.'
@@ -60,7 +60,9 @@ onMounted(async () => {
             <p class="evenement-desc">{{ e.description }}</p>
             <div class="evenement-infos">
               <span v-if="e.organizer">👤 {{ e.organizer }}</span>
-              <span v-if="e.maxParticipants">👥 {{ e.maxParticipants }} places</span>
+              
+              <span v-if="e.numberOfParticipants">👥 {{ e.numberOfParticipants }} /</span>
+              <span v-if="e.maxParticipants"> {{ e.maxParticipants }} places</span>
             </div>
             <button class="btn-inscrire">Je m'inscris</button>
           </div>

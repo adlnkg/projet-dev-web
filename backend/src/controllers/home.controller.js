@@ -9,6 +9,10 @@ export const getHomeFeed = async (req, res, next) => {
       data: {
         actualities: feed.actualities,
         events: feed.events,
+        actuCount: feed.actuCount,
+        eventCount: feed.eventCount,
+        deviceCount: feed.deviceCount,
+        userCount: feed.userCount,
       },
     });
   } catch (error) {

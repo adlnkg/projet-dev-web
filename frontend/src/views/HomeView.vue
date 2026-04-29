@@ -8,12 +8,17 @@ const loading = ref(true)
 const error = ref(null)
 const actualites = ref([])
 const evenements = ref([])
+const actuCount = ref(0)
+const eventCount = ref(0)
+const deviceCount = ref(0)
+const userCount = ref(0)
 
 const quickStats = computed(() => [
-  { label: 'Actualités', value: actualites.value.length },
-  { label: 'Événements à venir', value: evenements.value.length },
+  { label: 'Actualités', value: actuCount.value },
+  { label: 'Événements à venir', value: eventCount.value },
   { label: 'Parcours ingénieur', value: 6 },
-  { label: 'Objets connectés', value: 120 },
+  { label: 'Objets connectés', value: deviceCount.value },
+  // { label: 'Utilisateurs', value: userCount.value },
 ])
 
 function getImageUrl(path, fallback) {
@@ -43,6 +48,10 @@ async function loadHomeData() {
 
     actualites.value = data?.data?.actualities || []
     evenements.value = data?.data?.events || []
+    actuCount.value = data?.data?.actuCount || 0
+    eventCount.value = data?.data?.eventCount || 0
+    deviceCount.value = data?.data?.deviceCount || 0
+    userCount.value = data?.data?.userCount || 0
   } catch (e) {
     error.value = e.message || 'Erreur lors du chargement.'
   } finally {
@@ -133,7 +142,7 @@ onMounted(loadHomeData)
           Capteurs, caméras, contrôles d’accès et tableaux intelligents enrichissent l’expérience
           pédagogique et la gestion des espaces.
         </p>
-        <button class="btn-primary" @click="router.push('/login')">Accéder aux objets</button>
+        <button class="btn-primary" @click="router.push('/login')">Accéder aux objets <i>(connection requise)</i></button>
       </div>
     </section>
 
@@ -202,7 +211,7 @@ onMounted(loadHomeData)
             <p>{{ event.description }}</p>
             <div class="meta-line">
               <span v-if="event.organizer">👤 {{ event.organizer }}</span>
-              <span v-if="event.maxParticipants">👥 {{ event.maxParticipants }}</span>
+              <span v-if="event.maxParticipants && event.numberOfParticipants">👥 {{ event.maxParticipants - event.numberOfParticipants }} / {{ event.maxParticipants }} </span>
             </div>
           </div>
         </article>

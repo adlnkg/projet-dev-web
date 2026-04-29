@@ -212,17 +212,17 @@ function fermerRecherche() {
         <span class="sep">|</span>
         <span @click="allerSection('contact')">CONTACT</span>
       </div>
-      <div class="topbar-right">
-        <div class="langue-menu">
-          <span class="langue-btn" @click="menuLangueVisible = !menuLangueVisible">
-            {{ langue }} ▾
-          </span>
-          <div class="langue-dropdown" v-if="menuLangueVisible">
-            <span v-if="langue === 'FR'" @click="changerLangue('EN')">🇬🇧 EN</span>
-            <span v-if="langue === 'EN'" @click="changerLangue('FR')">🇫🇷 FR</span>
-          </div>
-        </div>
-      </div>
+      <!-- <div class="topbar-right"> -->
+        <!-- <div class="langue-menu"> -->
+          <!-- <span class="langue-btn" @click="menuLangueVisible = !menuLangueVisible"> -->
+            <!-- {{ langue }} ▾ -->
+          <!-- </span> -->
+          <!-- <div class="langue-dropdown" v-if="menuLangueVisible"> -->
+            <!-- <span v-if="langue === 'FR'" @click="changerLangue('EN')">🇬🇧 EN</span> -->
+            <!-- <span v-if="langue === 'EN'" @click="changerLangue('FR')">🇫🇷 FR</span> -->
+          <!-- </div> -->
+        <!-- </div> -->
+      <!-- </div> -->
     </div>
 
     <!-- NAVBAR PRINCIPALE -->

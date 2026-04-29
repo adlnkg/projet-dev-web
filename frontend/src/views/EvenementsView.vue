@@ -139,7 +139,7 @@ onMounted(() => {
               <p class="resultat-content">{{ r.description }}</p>
               <div class="resultat-infos">
                 <span v-if="r.organizer">👤 {{ r.organizer }}</span>
-                <span v-if="r.maxParticipants">👥 {{ r.maxParticipants }} places</span>
+                <span v-if="r.numberOfParticipants && r.maxParticipants">👥 {{ r.maxParticipants - r.numberOfParticipants }} / {{ r.maxParticipants }} places restantes</span>
                 <span v-if="r.price !== undefined">💰 {{ r.price === 0 ? 'Gratuit' : r.price + '€' }}</span>
               </div>
               <button class="btn-inscrire">Je m'inscris</button>

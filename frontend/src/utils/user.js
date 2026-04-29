@@ -9,6 +9,24 @@ function wait(ms) {
 export const DEFAULT_AVATAR =
   "https://as2.ftcdn.net/jpg/02/44/42/79/1000_F_244427911_aoHHulebtYy4wLpncBBuWqCTNFKolcCB.jpg";
 
+export async function fetchDefaultAvatar() {
+  const response = await fetch(DEFAULT_AVATAR);
+  const data = await response.blob();
+  return new File([data], "avatar.jpg", { type: "image/jpeg" });
+}
+
+export function fixUser(user) {
+  user.avatarUrl ||= DEFAULT_AVATAR;
+  if (!user.avatarUrl.startsWith('http')) {
+    user.avatarUrl = `http://localhost:3000/${user.avatarUrl}`;
+  }
+  console.log(user.avatarUrl);
+
+  // TODO: remove
+  user.birthdate = new Date();
+  return user;
+}
+
 export const SELECT_GENDER = [
   { label: "Homme", value: "M" },
   { label: "Femme", value: "F" },
@@ -32,8 +50,7 @@ export async function getMe() {
       ),
     );
   }
-  // TODO: remove
-  data.birthdate = new Date();
+  fixUser(data);
   console.log(data);
   return data;
 }
@@ -65,13 +82,15 @@ export async function login(pseudo, password) {
   return data.user;
 }
 
-export async function signin(user) {
+export async function signin(user, avatar) {
+  const formData = new FormData();
+  for (const key in user) {
+    formData.append(key, user[key]);
+  }
+  formData.append("image", avatar);
   const response = await fetch("http://localhost:3000/api/auth/register", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(user),
+    body: formData,
   });
   if (!response.ok) {
     const data = await response.json();
@@ -100,18 +119,20 @@ export async function checkOTP(email, otp) {
   return true;
 }
 
-export async function editUser(id, user) {
-  user = Object.fromEntries(
-    Object.entries(user).filter(([_, v]) => v !== null),
-  );
+export async function editUser(id, user, avatar) {
+  const formData = new FormData();
+  for (const key in user) {
+    if (user[key] === null) continue;
+    formData.append(key, user[key]);
+  }
+  formData.append("image", avatar);
   const token = localStorage.getItem("token");
   const response = await fetch(`http://localhost:3000/api/user/id/${id}`, {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json",
       authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(user),
+    body: formData,
   });
   if (!response.ok) {
     const data = await response.json();

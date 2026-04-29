@@ -28,6 +28,7 @@ const buildStorage = (folderName) => multer.diskStorage({
     const extension = path.extname(file.originalname || "").toLowerCase();
     const safeExtension = extension || ".png";
     const uniqueName = `${Date.now()}-${crypto.randomUUID()}${safeExtension}`;
+    console.log("uniqueName:", uniqueName);
     callback(null, uniqueName);
   },
 });
@@ -37,9 +38,11 @@ const createImageUploadMiddleware = (folderName) => {
     storage: buildStorage(folderName),
     limits: {
       fileSize: 5 * 1024 * 1024,
+      fieldSize: 5 * 1024 * 1024,
       files: 1,
     },
     fileFilter: (req, file, callback) => {
+      console.log("fileFilter - file:", file);
       if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
         const error = new Error("Format d'image non supporte.");
         error.statusCode = 400;

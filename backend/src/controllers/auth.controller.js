@@ -97,8 +97,21 @@ export const register = async (req, res) => {
       sex,
       birthDate,
       memberType,
-      avatarUrl,
     } = req.body;
+    const avatarUrl = req.uploadedImageUrl;
+
+    let parsedBirthDate;
+    try {
+      parsedBirthDate = parseBirthDateInput(birthDate);
+    } catch (birthDateError) {
+      if (birthDateError.message === "INVALID_BIRTH_DATE") {
+        return res.status(400).json({
+          error: "Date de naissance invalide",
+        });
+      }
+
+      throw birthDateError;
+    }
 
     let parsedBirthDate;
     try {

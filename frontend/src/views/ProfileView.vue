@@ -1,7 +1,7 @@
 <script setup>
 import Card from "@/components/Card.vue";
 import { useData } from "@/utils/useData";
-import { getMe, DEFAULT_AVATAR } from "@/utils/user";
+import { getMe } from "@/utils/user";
 import { Button, Skeleton } from "primevue";
 import { computed } from "vue";
 import { RouterLink } from "vue-router";
@@ -26,7 +26,7 @@ const age = computed(() => user === null ? null :
   </main>
   <Card floating v-else>
     <Skeleton v-if="loading" width="100%" height="100%" id="avatar" />
-    <img v-else :src="user.avatarURL || DEFAULT_AVATAR" alt="avatar" id="avatar" />
+    <img v-else :src="user.avatarUrl" alt="avatar" id="avatar" />
 
     <Skeleton v-if="loading" width="100%"  height="2em" />
     <h1 v-else>

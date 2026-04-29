@@ -15,12 +15,12 @@ const router = new express.Router();
 
 // Routes publiques (accessible sans connexion)
 router.get("/", optionalAuthMiddleware, getAllUsers);
-router.get("/:id", optionalAuthMiddleware, getUser);
+router.get("/id/:id", optionalAuthMiddleware, getUser);
 
 // Routes protégées (requièrent une connexion)
 router.get("/me", authMiddleware, getMe);
 router.get("/me/points/history", authMiddleware, getMyPointsHistory);
-router.put("/:id", authMiddleware, updateUser);
-router.patch("/:id/admin", authMiddleware, authorizeMiddleware(["ADMIN"]), adminUpdateUser);
+router.put("/id/:id", authMiddleware, updateUser);
+router.patch("/id/:id/admin", authMiddleware, authorizeMiddleware(["ADMIN"]), adminUpdateUser);
 
 export default router;

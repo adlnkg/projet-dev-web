@@ -30,7 +30,7 @@ async function fetchUser() {
   try {
     const token = localStorage.getItem('token')
     const userId = route.params.id
-    const res = await fetch(`http://localhost:3000/api/user/${userId}`, {
+    const res = await fetch(`http://localhost:3000/api/user/id/${userId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -58,7 +58,7 @@ async function fetchUser() {
 async function updateUserAdmin(payload) {
   const token = localStorage.getItem('token')
   const userId = route.params.id
-  const res = await fetch(`http://localhost:3000/api/user/${userId}/admin`, {
+  const res = await fetch(`http://localhost:3000/api/user/id/${userId}/admin`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

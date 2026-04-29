@@ -45,7 +45,7 @@ async function loadPublicProfile() {
   try {
     const token = localStorage.getItem('token')
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
-    const res = await fetch(`http://localhost:3000/api/user/${route.params.pseudo}`, { headers })
+    const res = await fetch(`http://localhost:3000/api/user/id/${route.params.pseudo}`, { headers })
     const data = await res.json()
     if (!res.ok) {
       throw new Error(data.error || 'Profil introuvable')

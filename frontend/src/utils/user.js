@@ -105,7 +105,7 @@ export async function editUser(id, user) {
     Object.entries(user).filter(([_, v]) => v !== null),
   );
   const token = localStorage.getItem("token");
-  const response = await fetch(`http://localhost:3000/api/user/${id}`, {
+  const response = await fetch(`http://localhost:3000/api/user/id/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

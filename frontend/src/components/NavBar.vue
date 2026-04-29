@@ -27,6 +27,8 @@ function goToProfile() {
 function logOut() {
   localStorage.removeItem('token')
   localStorage.removeItem('email')
+  currentUser.value = null
+  router.push('/')
 }
 
 const avatarUrl = computed(() => {

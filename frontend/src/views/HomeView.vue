@@ -12,6 +12,7 @@ const actuCount = ref(0)
 const eventCount = ref(0)
 const deviceCount = ref(0)
 const userCount = ref(0)
+const isLoggedIn = computed(() => Boolean(localStorage.getItem('token')))
 
 const quickStats = computed(() => [
   { label: 'Actualités', value: actuCount.value },
@@ -60,6 +61,13 @@ async function loadHomeData() {
 }
 
 onMounted(loadHomeData)
+function ouvrirObjetsConnectes() {
+  if (isLoggedIn.value) {
+    router.push({ path: '/recherche', query: { category: 'device' } })
+    return
+  }
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -142,7 +150,10 @@ onMounted(loadHomeData)
           Capteurs, caméras, contrôles d’accès et tableaux intelligents enrichissent l’expérience
           pédagogique et la gestion des espaces.
         </p>
-        <button class="btn-primary" @click="router.push('/login')">Accéder aux objets <i>(connection requise)</i></button>
+        <button class="btn-primary" @click="ouvrirObjetsConnectes">
+          {{ isLoggedIn ? 'Accéder aux objets connectés' : 'Accéder aux objets' }}
+          <i v-if="!isLoggedIn">(connection requise)</i>
+        </button>
       </div>
     </section>
 

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getMe } from '../utils/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -14,6 +15,7 @@ const searchError = ref(null)
 const results = ref([])
 const hasSearched = ref(false)
 const filterValues = ref({})
+const currentUser = ref(null)
 
 const categoryLabels = {
   all: 'Tous',
@@ -33,6 +35,7 @@ const typeConfig = {
 const categoryOrder = ['all', 'event', 'actuality', 'area', 'device']
 
 const getToken = () => localStorage.getItem('token')
+const isSuperUserOrAdmin = computed(() => currentUser.value && ['SUPER_USER', 'ADMIN'].includes(currentUser.value.role))
 
 const categories = computed(() => {
   if (!filtersInfo.value) return []
@@ -141,6 +144,35 @@ const getItemRoute = (itemType, itemId) => {
   if (itemType === 'event') return `/evenements/${itemId}`
   if (itemType === 'actuality') return `/actualites/${itemId}`
   return null
+}
+
+const canRequestDeletion = (itemType) => isSuperUserOrAdmin.value && (itemType === 'event' || itemType === 'device')
+
+const requestDeletion = async (item, event) => {
+  event.stopPropagation()
+  const token = getToken()
+  if (!token) {
+    searchError.value = 'Connexion requise.'
+    return
+  }
+
+  const entityLabel = item._type === 'event' ? 'cet événement' : 'cet objet connecté'
+  if (!confirm(`Envoyer une demande de suppression pour ${entityLabel} ?`)) return
+
+  try {
+    const endpoint = item._type === 'event' ? '/api/events' : '/api/devices'
+    const response = await fetch(`http://localhost:3000${endpoint}/${item.id}/deletion-request`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const data = await response.json()
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Demande impossible')
+    }
+    alert('Demande de suppression envoyée à un admin.')
+  } catch (error) {
+    alert(error.message || 'Erreur lors de la demande de suppression')
+  }
 }
 
 const getFilterLabel = (filter) => filter.description || filter.name
@@ -284,6 +316,11 @@ watch(
 )
 
 onMounted(async () => {
+  try {
+    currentUser.value = await getMe()
+  } catch (error) {
+    currentUser.value = null
+  }
   await fetchFiltersInfo()
   syncQueryToState()
   if (hasCriteria.value) {
@@ -444,6 +481,11 @@ onMounted(async () => {
               <p class="resultat-content" v-if="getItemDescription(item, item._type)">
                 {{ getItemDescription(item, item._type) }}
               </p>
+              <div class="resultat-actions" v-if="canRequestDeletion(item._type)">
+                <button class="btn-secondary" @click="requestDeletion(item, $event)">
+                  Demander suppression
+                </button>
+              </div>
             </div>
           </div>
         </div>

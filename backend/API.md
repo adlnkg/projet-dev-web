@@ -825,7 +825,36 @@ Erreurs possibles :
 
 `GET /api/areas/:id`
 
-Réponse `200` : structure identique au contrat commun, avec `parentArea`, `owner`, `specific`, `form`.
+Connection optionnelle : les utilisateurs non connectés peuvent consulter les détails d’une zone, mais sans les informations sensibles ni la liste des appareils IoT.
+Réponse `200` : structure identique au contrat commun, avec `parentArea`, `owner`, `specific`, `form`, et `iotDevices` pour les utilisateurs connectés.
+
+Le champ `iotDevices` contient la liste des appareils rattachés à l’area via `areaId`, avec un résumé de consommation et un indicateur de maintenance :
+
+```json
+{
+  "iotDevices": [
+    {
+      "id": 42,
+      "uniqueName": "light-room-101",
+      "name": "Lumière salle 101",
+      "description": "Éclairage principal",
+      "brand": "Philips",
+      "consumption": {
+        "electricityConsumptionKwh": 12.4,
+        "nominalPowerWatts": 18,
+        "averageDailyUsageHours": 6,
+        "estimatedDailyConsumptionKwh": 0.108,
+        "estimatedMonthlyConsumptionKwh": 3.24
+      },
+      "maintenance": {
+        "maintenanceIntervalDays": 180,
+        "lastMaintenanceAt": "2026-02-01T10:00:00.000Z",
+        "maintenanceRequired": false
+      }
+    }
+  ]
+}
+```
 
 ### Formulaire de création
 

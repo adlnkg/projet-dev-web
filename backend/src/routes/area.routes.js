@@ -1,5 +1,6 @@
 import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
+import optionalAuthMiddleware from "../middlewares/optionalAuth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
 import { getAreaCreateForm, getArea, postArea, createArea } from "../controllers/area.controller.js";
@@ -29,7 +30,7 @@ router.post(
 	requestDeletionForEntity("AREA", "Zone"),
 );
 
-router.get("/:id", authMiddleware, getArea);
+router.get("/:id", optionalAuthMiddleware, getArea);
 router.post("/:id", authMiddleware, postArea);
 
 export default router;

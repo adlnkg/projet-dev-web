@@ -15,6 +15,46 @@ import {
   assertAdminCreator,
 } from "./entity-edit-resource-common.services.js";
 
+const buildAreaIoTDeviceSummary = (device) => {
+  const estimatedDailyConsumptionKwh = (device.nominalPowerWatts * device.averageDailyUsageHours) / 1000;
+  const estimatedMonthlyConsumptionKwh = estimatedDailyConsumptionKwh * 30;
+
+  let maintenanceRequired = false;
+
+  if (device.maintenanceIntervalDays > 0) {
+    if (!device.lastMaintenanceAt) {
+      maintenanceRequired = true;
+    } else {
+      const nextMaintenanceAt = new Date(
+        device.lastMaintenanceAt.getTime() + (device.maintenanceIntervalDays * 24 * 60 * 60 * 1000),
+      );
+      maintenanceRequired = nextMaintenanceAt <= new Date();
+    }
+  }
+
+  return {
+    id: device.id,
+    uniqueName: device.uniqueName,
+    name: device.name,
+    description: device.description,
+    brand: device.brand,
+    consumption: {
+      electricityConsumptionKwh: device.electricityConsumption,
+      nominalPowerWatts: device.nominalPowerWatts,
+      averageDailyUsageHours: device.averageDailyUsageHours,
+      estimatedDailyConsumptionKwh,
+      estimatedMonthlyConsumptionKwh,
+    },
+    maintenance: {
+      maintenanceIntervalDays: device.maintenanceIntervalDays,
+      lastMaintenanceAt: device.lastMaintenanceAt,
+      maintenanceRequired,
+    },
+  };
+};
+
+const buildAreaIoTDevicesPayload = (devices = []) => devices.map(buildAreaIoTDeviceSummary);
+
 const GENERAL_FIELD_DEFINITIONS = {
   id: {
     key: "id",
@@ -272,7 +312,7 @@ const buildAreaSpecificPayload = (area) => {
  * @param {number} areaId - The ID of the area to retrieve.
  * @returns {object|null} The area object with related data, or null if not found.
  */
-const getAreaForUpdate = async (areaId) => prisma.area.findUnique({
+const getAreaForUpdate = async (areaId, { includeIoTDevices = false } = {}) => prisma.area.findUnique({
   where: { id: areaId },
   include: {
     parentArea: true,
@@ -288,6 +328,25 @@ const getAreaForUpdate = async (areaId) => prisma.area.findUnique({
         lastName: true,
       },
     },
+    ...(includeIoTDevices ? {
+      iotDevices: {
+        select: {
+          id: true,
+          uniqueName: true,
+          name: true,
+          description: true,
+          brand: true,
+          electricityConsumption: true,
+          nominalPowerWatts: true,
+          averageDailyUsageHours: true,
+          maintenanceIntervalDays: true,
+          lastMaintenanceAt: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      },
+    } : {}),
   },
 });
 
@@ -297,7 +356,7 @@ const getAreaForUpdate = async (areaId) => prisma.area.findUnique({
  * @param {string} role - The role of the user requesting the area details (e.g., "USER", "SUPER_USER", "ADMIN").
  * @returns {object} The response object containing area details and form configuration.
  */
-const buildAreaResponse = (area, role) => {
+const buildAreaResponse = (area, role, { includeIoTDevices = false } = {}) => {
   const editableFieldKeys = getEditableFieldKeys({
     role,
     entityType: area.type,
@@ -328,6 +387,7 @@ const buildAreaResponse = (area, role) => {
         type: area.parentArea.type,
       }
       : null,
+    ...(includeIoTDevices ? { iotDevices: buildAreaIoTDevicesPayload(area.iotDevices ?? []) } : {}),
     specific: buildAreaSpecificPayload(area),
     form: {
       role,
@@ -353,8 +413,8 @@ const buildAreaResponse = (area, role) => {
  * @param {string} role - The role of the user requesting the area details.
  * @returns {object} The response object containing area details and form configuration.
  */
-const getAreaDetails = async (areaId, role) => {
-  const area = await getAreaForUpdate(areaId);
+const getAreaDetails = async (areaId, role, options = {}) => {
+  const area = await getAreaForUpdate(areaId, options);
 
   if (!area) {
     const error = new Error("Zone introuvable.");
@@ -362,7 +422,7 @@ const getAreaDetails = async (areaId, role) => {
     throw error;
   }
 
-  return buildAreaResponse(area, role);
+  return buildAreaResponse(area, role, options);
 };
 
 /**

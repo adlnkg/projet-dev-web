@@ -29,7 +29,7 @@ export const getArea = async (req, res, next) => {
     }
 
     const role = getUserRole(req);
-    const area = await areaService.getAreaDetails(areaId, role);
+    const area = await areaService.getAreaDetails(areaId, role, { includeIoTDevices: Boolean(req.user) });
 
     //if connected, add points for accessing the area details
     if (req.user) {

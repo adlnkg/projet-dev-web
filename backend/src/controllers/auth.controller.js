@@ -113,19 +113,6 @@ export const register = async (req, res) => {
       throw birthDateError;
     }
 
-    let parsedBirthDate;
-    try {
-      parsedBirthDate = parseBirthDateInput(birthDate);
-    } catch (birthDateError) {
-      if (birthDateError.message === "INVALID_BIRTH_DATE") {
-        return res.status(400).json({
-          error: "Date de naissance invalide",
-        });
-      }
-
-      throw birthDateError;
-    }
-
     if (!login || !password || !email) {
       return res.status(400).json({
         error: "Login, email et mot de passe requis",

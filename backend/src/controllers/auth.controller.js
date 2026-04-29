@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { generateOTP } from "../utils/otp.js";
 import { sendOTP } from "../services/mailer.services.js";
 import { addDailyLoginPoints } from "../services/points.services.js";
+import { parseBirthDateInput, toUserResponse } from "../utils/user-profile.utils.js";
 
 export const login = async (req, res) => {
   try {
@@ -72,7 +73,7 @@ export const login = async (req, res) => {
 
     res.json({
       token,
-      user: userPublicData,
+      user: toUserResponse(userPublicData),
     });
   } catch (error) {
     console.error(error);
@@ -94,10 +95,23 @@ export const register = async (req, res) => {
       lastName,
       firstName,
       sex,
-      age,
+      birthDate,
       memberType,
       avatarUrl,
     } = req.body;
+
+    let parsedBirthDate;
+    try {
+      parsedBirthDate = parseBirthDateInput(birthDate);
+    } catch (birthDateError) {
+      if (birthDateError.message === "INVALID_BIRTH_DATE") {
+        return res.status(400).json({
+          error: "Date de naissance invalide",
+        });
+      }
+
+      throw birthDateError;
+    }
 
     if (!login || !password || !email) {
       return res.status(400).json({
@@ -129,7 +143,7 @@ export const register = async (req, res) => {
         lastName,
         firstName,
         sex: sex ?? null,
-        age: age ?? null,
+        birthDate: parsedBirthDate ?? null,
         memberType: memberType ?? null,
         avatarUrl: avatarUrl ?? null,
         role: "USER",

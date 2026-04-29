@@ -9,7 +9,7 @@ model User {
   lastName     String?
   firstName    String?
   sex          Sex?
-  age          Int?
+  birthDate    DateTime?
   role         Role
   memberType   MemberType?
   avatarUrl    String?
@@ -48,4 +48,7 @@ enum Role {
 
 enum MemberType {
   STUDENT
+  TEACHER
+  STAFF
+  OTHER
 }

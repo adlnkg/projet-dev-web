@@ -1,6 +1,7 @@
 import prisma from "../config/db.js";
 import bcrypt from "bcrypt";
 import { getPointsHistory } from "../services/points.services.js";
+import { parseBirthDateInput, toUserResponse } from "../utils/user-profile.utils.js";
 
 export const getMe = async (req, res) => {
   try {
@@ -17,7 +18,7 @@ export const getMe = async (req, res) => {
     const { password, ...safeUserData } = user;
 
     // 3. Réponse avec les infos du profil (public + privé + id)
-    res.json(safeUserData);
+    res.json(toUserResponse(safeUserData));
   } catch (error) {
     res.status(500).json({ error: "Erreur lors de la récupération du profil" });
   }
@@ -41,7 +42,7 @@ export const getUser = async (req, res) => {
         firstName: true,
         lastName: true,
         email: true,
-        age: true,
+        birthDate: true,
         sex: true,
         avatarUrl: true,
         memberType: true,
@@ -55,7 +56,7 @@ export const getUser = async (req, res) => {
       return res.status(404).json({ error: "Utilisateur introuvable." });
     }
 
-    res.status(200).json(user);
+    res.status(200).json(toUserResponse(user));
   } catch (error) {
     res.status(500).json({ error: "Erreur serveur." });
   }
@@ -76,8 +77,29 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    const { password, firstName, lastName, age, sex, memberType, avatarUrl } =
+    const {
+      password,
+      firstName,
+      lastName,
+      birthDate,
+      sex,
+      memberType,
+      avatarUrl,
+    } =
       req.body;
+
+    let parsedBirthDate;
+    try {
+      parsedBirthDate = parseBirthDateInput(birthDate);
+    } catch (birthDateError) {
+      if (birthDateError.message === "INVALID_BIRTH_DATE") {
+        return res.status(400).json({
+          error: "Date de naissance invalide",
+        });
+      }
+
+      throw birthDateError;
+    }
 
     let hashedPassword;
 
@@ -91,7 +113,7 @@ export const updateUser = async (req, res) => {
         ...(password && { password: hashedPassword }),
         ...(firstName !== undefined && { firstName }),
         ...(lastName !== undefined && { lastName }),
-        ...(age !== undefined && { age }),
+        ...(birthDate !== undefined && { birthDate: parsedBirthDate }),
         ...(sex !== undefined && { sex }),
         ...(memberType !== undefined && { memberType }),
         ...(avatarUrl !== undefined && { avatarUrl }),
@@ -101,7 +123,7 @@ export const updateUser = async (req, res) => {
         login: true,
         firstName: true,
         lastName: true,
-        age: true,
+        birthDate: true,
         sex: true,
         memberType: true,
         avatarUrl: true,
@@ -109,7 +131,7 @@ export const updateUser = async (req, res) => {
       },
     });
 
-    res.status(200).json(updatedUser);
+    res.status(200).json(toUserResponse(updatedUser));
   } catch (error) {
     console.error("updateUser error:", error);
 
@@ -147,8 +169,6 @@ export const getAllUsers = async (req, res) => {
   try {
     // Si l'utilisateur est connecté, vérifier qu'il est ADMIN pour les fonctionnalités avancées
     // Sinon, permettre l'accès public (pour la recherche d'utilisateurs)
-    const isAdmin = req.user?.role === "ADMIN";
-
     const users = await prisma.user.findMany({
       select: {
         id: true,
@@ -156,7 +176,7 @@ export const getAllUsers = async (req, res) => {
         firstName: true,
         lastName: true,
         email: true,
-        age: true,
+        birthDate: true,
         sex: true,
         memberType: true,
         role: true,
@@ -172,7 +192,7 @@ export const getAllUsers = async (req, res) => {
     res.status(200).json({
       success: true,
       count: users.length,
-      data: users,
+      data: users.map(toUserResponse),
     });
   } catch (error) {
     console.error("getAllUsers error:", error);
@@ -193,8 +213,29 @@ export const adminUpdateUser = async (req, res) => {
       });
     }
 
-    const { role, memberType, firstName, lastName, age, sex, avatarUrl } =
+    const {
+      role,
+      memberType,
+      firstName,
+      lastName,
+      birthDate,
+      sex,
+      avatarUrl,
+    } =
       req.body;
+
+    let parsedBirthDate;
+    try {
+      parsedBirthDate = parseBirthDateInput(birthDate);
+    } catch (birthDateError) {
+      if (birthDateError.message === "INVALID_BIRTH_DATE") {
+        return res.status(400).json({
+          error: "Date de naissance invalide",
+        });
+      }
+
+      throw birthDateError;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -203,7 +244,7 @@ export const adminUpdateUser = async (req, res) => {
         ...(memberType !== undefined && { memberType }),
         ...(firstName !== undefined && { firstName }),
         ...(lastName !== undefined && { lastName }),
-        ...(age !== undefined && { age }),
+        ...(birthDate !== undefined && { birthDate: parsedBirthDate }),
         ...(sex !== undefined && { sex }),
         ...(avatarUrl !== undefined && { avatarUrl }),
       },
@@ -212,7 +253,7 @@ export const adminUpdateUser = async (req, res) => {
         login: true,
         firstName: true,
         lastName: true,
-        age: true,
+        birthDate: true,
         sex: true,
         memberType: true,
         avatarUrl: true,
@@ -224,7 +265,7 @@ export const adminUpdateUser = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: updatedUser,
+      data: toUserResponse(updatedUser),
     });
   } catch (error) {
     console.error("adminUpdateUser error:", error);

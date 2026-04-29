@@ -309,7 +309,7 @@ async function main() {
       role: "USER",
       memberType: "STUDENT",
       sex: "M",
-      age: 20,
+      birthDate: new Date("2006-01-15T00:00:00.000Z"),
     },
     {
       id: "550e8400-e29b-41d4-a716-446655440002",
@@ -322,7 +322,7 @@ async function main() {
       role: "ADMIN",
       memberType: "STUDENT",
       sex: "F",
-      age: 35,
+      birthDate: new Date("1991-02-20T00:00:00.000Z"),
     },
     {
       id: "550e8400-e29b-41d4-a716-446655440003",
@@ -335,7 +335,7 @@ async function main() {
       role: "SUPER_USER",
       memberType: "STUDENT",
       sex: "M",
-      age: 45,
+      birthDate: new Date("1981-03-10T00:00:00.000Z"),
     },
     {
       id: "550e8400-e29b-41d4-a716-446655440004",
@@ -348,7 +348,7 @@ async function main() {
       role: "USER",
       memberType: "STUDENT",
       sex: "F",
-      age: 21,
+      birthDate: new Date("2005-04-18T00:00:00.000Z"),
     },
     {
       id: "550e8400-e29b-41d4-a716-446655440005",
@@ -361,7 +361,7 @@ async function main() {
       role: "USER",
       memberType: "STUDENT",
       sex: "M",
-      age: 22,
+      birthDate: new Date("2004-05-12T00:00:00.000Z"),
     },
   ];
 

@@ -2,7 +2,7 @@ import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import authorizeMiddleware from "../middlewares/authorize.middleware.js";
 import createImageUploadMiddleware from "../middlewares/upload.middleware.js";
-import { getDeviceCreateForm, getDevice, postDevice, createDevice, deleteDevice } from "../controllers/device.controller.js";
+import { getDeviceCreateForm, getDevice, postDevice, createDevice, deleteDevice, getDeviceReport } from "../controllers/device.controller.js";
 import { requestDeletionForEntity } from "../controllers/deletion-request.controller.js";
 import { searchIoTDevices } from "../controllers/search.controller.js";
 import { validateAndNormalizeIoTDeviceSearch } from "../middlewares/search.middleware.js";
@@ -36,6 +36,7 @@ router.post(
 );
 
 router.get("/:id", authMiddleware, getDevice);
+router.get("/:id/report", authMiddleware, getDeviceReport);
 router.post("/:id", authMiddleware, postDevice);
 
 export default router;

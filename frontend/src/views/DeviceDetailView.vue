@@ -16,6 +16,7 @@ const editLoading = ref(false)
 const editError = ref('')
 const editSuccess = ref('')
 const formValues = ref({})
+const reportLoading = ref(false)
 
 const canEdit = computed(() => Boolean(device.value?.form?.editableFieldKeys?.length))
 const userRole = computed(() => device.value?.form?.role || '')
@@ -192,6 +193,36 @@ async function requestDeletion() {
   }
 }
 
+async function downloadReport() {
+  reportLoading.value = true
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Connexion requise.')
+
+    const res = await fetch(`http://localhost:3000/api/devices/${route.params.id}/report`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || 'Impossible de générer le rapport')
+    }
+
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `rapport-appareil-${route.params.id}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    deletionMessage.value = e.message || 'Erreur lors de la génération du rapport.'
+  } finally {
+    reportLoading.value = false
+  }
+}
+
 onMounted(loadDevice)
 </script>
 
@@ -209,6 +240,9 @@ onMounted(loadDevice)
           <div class="hero-actions">
             <button v-if="canEdit && !isEditing" class="ghost-btn" @click="startEditing">Modifier</button>
             <button v-else-if="canEdit && isEditing" class="ghost-btn" @click="cancelEditing">Voir</button>
+             <button class="ghost-btn" :disabled="reportLoading" @click="downloadReport">
+              {{ reportLoading ? 'Génération…' : 'Générer rapport' }}
+            </button>
             <button
               v-if="canRequestDeletion"
               class="delete-request-btn"

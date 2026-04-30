@@ -1495,10 +1495,85 @@ export const deleteDevice = async (deviceId) => {
     });
 };
 
+const formatReportDate = (value) => {
+    if (!value) return "Non renseigne";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Non renseigne";
+    return date.toLocaleString("fr-FR");
+};
+
+const escapePdfText = (value) => String(value ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)");
+
+const buildPdfBuffer = (lines) => {
+    const contentLines = ["BT", "/F1 11 Tf", "50 780 Td", "14 TL"];
+    lines.forEach((line, index) => {
+        if (index > 0) {
+            contentLines.push("T*");
+        }
+        contentLines.push(`(${escapePdfText(line)}) Tj`);
+    });
+    contentLines.push("ET");
+    const stream = contentLines.join("\n");
+
+    const objects = [
+        "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
+        "2 0 obj << /Type /Pages /Count 1 /Kids [3 0 R] >> endobj",
+        "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
+        "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
+        `5 0 obj << /Length ${Buffer.byteLength(stream, "utf8")} >> stream\n${stream}\nendstream endobj`,
+    ];
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((obj) => {
+        offsets.push(Buffer.byteLength(pdf, "utf8"));
+        pdf += `${obj}\n`;
+    });
+    const xrefOffset = Buffer.byteLength(pdf, "utf8");
+    pdf += `xref\n0 ${objects.length + 1}\n`;
+    pdf += "0000000000 65535 f \n";
+    for (let i = 1; i <= objects.length; i += 1) {
+        pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+    }
+    pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+    return Buffer.from(pdf, "utf8");
+};
+
+export const generateDeviceReportPdf = async (deviceId, role) => {
+    const device = await getDeviceDetails(deviceId, role);
+
+    const lines = [
+        "Rapport d'etat d'un objet connecte",
+        `Genere le : ${new Date().toLocaleString("fr-FR")}`,
+        "",
+        `Nom : ${device.name ?? "Non renseigne"}`,
+        `Identifiant : ${device.id}`,
+        `Nom unique : ${device.uniqueName ?? "Non renseigne"}`,
+        `Type : ${device.type ?? "Non renseigne"}`,
+        `Statut : ${device.status ?? "Non renseigne"}`,
+        `Marque : ${device.brand ?? "Non renseigne"}`,
+        `Modele : ${device.model ?? "Non renseigne"}`,
+        `Description : ${device.description ?? "Non renseignee"}`,
+        `Consommation electrique (kWh) : ${device.electricityConsumption ?? "Non renseignee"}`,
+        `Zone : ${device.area?.name ?? "Non renseignee"}`,
+        `Cree le : ${formatReportDate(device.createdAt)}`,
+        `Derniere maintenance : ${formatReportDate(device.lastMaintenanceAt)}`,
+        `Historique (nombre d'entrees) : ${device.history?.count ?? 0}`,
+        "",
+        `Conso estimee / jour (kWh) : ${device.statistics?.consumption?.estimatedDailyConsumptionKwh ?? "Non renseignee"}`,
+        `Maintenance requise : ${device.statistics?.maintenance?.maintenanceRequired ? "Oui" : "Non"}`,
+    ];
+    return buildPdfBuffer(lines);
+};
+
 export default {
     getDeviceCreateForm,
     getDeviceDetails,
     updateDevice,
     createDevice,
     deleteDevice,
+    generateDeviceReportPdf,
 };

@@ -33,21 +33,33 @@ function onAvatarChange(e) {
       accept="image/*"
       @change="onAvatarChange"
     />
-    <img :src="avatarUrl" alt="Avatar" />
+    <img class="avatar-image" :src="avatarUrl" alt="Avatar" />
   </label>
 </template>
 
 <style>
-label[for="avatar"] {
+label[for="avatar"], label[for="avatarUrl"], label {
   display: flex;
   justify-content: center;
+  align-items: center;
 }
-#avatar + img {
-  aspect-ratio: 1;
+
+label > img.avatar-image {
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  width: 75% !important;
+  object-fit: cover;
+  display: block;
 }
+
 input[type="file"] {
   /* display: none; */
+}
+
+@media (max-width: 768px) {
+  label > img.avatar-image {
+    width: 90px;
+    height: 90px;
+  }
 }
 </style>

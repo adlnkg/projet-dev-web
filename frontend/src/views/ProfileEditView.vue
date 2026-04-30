@@ -53,48 +53,64 @@ async function onSubmit(e) {
     <Card v-else>
       <Form v-slot="form" :initialValues="user" :resolver @submit="onSubmit">
         <main>
-          <Skeleton v-if="initLoading" width="100%" height="100%" id="avatar" />
-          <AvatarChooser v-else v-model="avatar" :defaultAvatar="user.avatarUrl" />
+          <div class="avatar-container">
+            <Skeleton v-if="initLoading" width="120" height="120" />
+            <AvatarChooser v-else v-model="avatar" :defaultAvatar="user.avatarUrl" />
+          </div>
+
           <Message v-if="submitError !== null" severity="error" closable>
             {{ submitError.toString() }}
           </Message>
-          <div>
-            <label for="firstName">Prénom</label>
-            <InputText name="firstName" id="firstName" :disabled="initLoading" />
 
-            <label for="lastName">Nom de famille</label>
-            <InputText name="lastName" id="lastName" :disabled="initLoading" />
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="firstName">Prénom</label>
+              <InputText name="firstName" id="firstName" :disabled="initLoading" />
+            </div>
 
-            <label for="login">Identifiant</label>
-            <InputText name="login" id="login" :disabled="initLoading" />
+            <div class="form-field">
+              <label for="lastName">Nom de famille</label>
+              <InputText name="lastName" id="lastName" :disabled="initLoading" />
+            </div>
 
-            <label for="email">Email</label>
-            <InputText
-              name="email"
-              id="email"
-              type="email"
-              :disabled="initLoading"
-            />
+            <div class="form-field">
+              <label for="login">Identifiant</label>
+              <InputText name="login" id="login" :disabled="initLoading" />
+            </div>
 
-            <label for="sex">Genre</label>
-            <Select
-              name="sex"
-              id="sex"
-              :options="SELECT_GENDER"
-              optionValue="value"
-              optionLabel="label"
-              :disabled="initLoading"
-            />
+            <div class="form-field">
+              <label for="email">Email</label>
+              <InputText
+                name="email"
+                id="email"
+                type="email"
+                :disabled="initLoading"
+              />
+            </div>
 
-            <label for="birthdate">
-              Né{{ form.gender?.value === "female" ? "e" : "" }} le
-            </label>
+            <div class="form-field">
+              <label for="sex">Genre</label>
+              <Select
+                name="sex"
+                id="sex"
+                :options="SELECT_GENDER"
+                optionValue="value"
+                optionLabel="label"
+                :disabled="initLoading"
+              />
+            </div>
 
-            <FieldDate
-              name="birthdate"
-              id="birthdate"
-              :disabled="loading.value"
-            />
+            <div class="form-field">
+              <label for="birthdate">
+                Né{{ form.gender?.value === "female" ? "e" : "" }} le
+              </label>
+
+              <FieldDate
+                name="birthdate"
+                id="birthdate"
+                :disabled="loading.value"
+              />
+            </div>
           </div>
 
           <Button type="submit" :disabled="loading.value">Enregistrer</Button>
@@ -125,14 +141,33 @@ main {
   flex-direction: column;
   align-items: center;
 }
-main > div {
+.form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
 }
-#avatar {
-  aspect-ratio: 1;
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.avatar-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0 0 0;
+}
+
+.avatar-container img {
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  width: 25% !important;
+  object-fit: cover;
+  display: block;
 }
 h1 {
   margin-block: 0;
@@ -142,5 +177,15 @@ h1 span {
 }
 :global(a.p-button) {
   text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .avatar-container img {
+    width: 90px;
+    height: 90px;
+  }
 }
 </style>

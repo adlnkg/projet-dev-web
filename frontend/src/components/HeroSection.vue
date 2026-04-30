@@ -1,4 +1,9 @@
 <script setup>
+const props = defineProps({
+  actuCount: { type: Number, default: 0 },
+  eventCount: { type: Number, default: 0 },
+  deviceCount: { type: Number, default: 0 },
+})
 </script>
 
 <template>
@@ -7,15 +12,15 @@
       <h1 class="hero-title">BIENVENUE SUR LE PORTAIL<br>DU CAMPUS DE CERGY</h1>
       <div class="hero-stats">
         <div class="hero-stat">
-          <div class="hero-stat-val">3 300</div>
-          <div class="hero-stat-label">Étudiants</div>
+          <div class="hero-stat-val">{{ props.actuCount }}</div>
+          <div class="hero-stat-label">Actualités</div>
         </div>
         <div class="hero-stat">
-          <div class="hero-stat-val">80</div>
-          <div class="hero-stat-label">Enseignants</div>
+          <div class="hero-stat-val">{{ props.eventCount }}</div>
+          <div class="hero-stat-label">Événements</div>
         </div>
         <div class="hero-stat">
-          <div class="hero-stat-val">100+</div>
+          <div class="hero-stat-val">{{ props.deviceCount }}</div>
           <div class="hero-stat-label">Objets connectés</div>
         </div>
       </div>

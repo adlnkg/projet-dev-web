@@ -1,5 +1,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function ouvrirObjets() {
+  router.push({ path: '/login', query: { redirect: '/recherche?category=device' } })
+}
 
 const images = [
   'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1400&q=80',
@@ -50,6 +57,9 @@ onUnmounted(() => {
             <div class="stat-label">Types de capteurs</div>
           </div>
         </div>
+        <button class="btn-objets" @click="ouvrirObjets">
+          Accéder aux objets connectés
+        </button>
       </div>
     </div>
     <div class="indicators">
@@ -93,6 +103,15 @@ onUnmounted(() => {
 .stat-item { background: rgba(255,255,255,0.1); border-radius: 14px; padding: 1.2rem 1.5rem; border-left: 4px solid #1a5c9e; }
 .stat-val { color: white; font-size: 2rem; font-weight: 800; }
 .stat-label { color: #a8cbf0; font-size: 13px; margin-top: 4px; }
+.btn-objets {
+  margin-top: 2rem;
+  padding: 12px 28px;
+  background: #1a5c9e; color: white;
+  border: none; border-radius: 8px;
+  cursor: pointer; font-size: 15px; font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-objets:hover { background: #0d2d5e; }
 .indicators { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; gap: 8px; }
 .indicator { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; transition: background 0.3s; }
 .indicator.active { background: white; }

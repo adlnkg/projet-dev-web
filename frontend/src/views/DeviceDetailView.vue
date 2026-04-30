@@ -77,24 +77,26 @@ onMounted(async () => {
       <div class="hero">
         <img :src="imageUrl" :alt="device.name" class="hero-img" />
         <div class="hero-overlay">
-          <button
-            v-if="currentUserRole === 'SUPER_USER' || currentUserRole === 'ADMIN'"
-            class="delete-request-btn"
-            :disabled="deletionLoading"
-            @click="requestDeletion"
-            title="Demander la suppression"
-          >
-            ✕
-          </button>
           <h1>{{ device.name }}</h1>
           <p v-if="device.type" class="subtitle">Type : {{ device.type }}</p>
-          <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
         </div>
       </div>
 
       <section class="content-panel">
         <h2>Description</h2>
         <p>{{ device.description || 'Aucune description disponible.' }}</p>
+      </section>
+
+      <section
+        v-if="currentUserRole === 'SUPER_USER' || currentUserRole === 'ADMIN'"
+        class="deletion-request-panel"
+      >
+        <h3>Demande de suppression</h3>
+        <p>Cette action envoie une demande de suppression aux administrateurs.</p>
+        <button class="deletion-request-action" :disabled="deletionLoading" @click="requestDeletion">
+          {{ deletionLoading ? 'Envoi...' : 'Demander la suppression' }}
+        </button>
+        <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
       </section>
     </article>
   </main>
@@ -112,6 +114,10 @@ onMounted(async () => {
 .hero-overlay h1 { margin: 0; }
 .subtitle { margin-top: .5rem; color: #d6e8f7; }
 .content-panel { padding: 1.5rem; }
-.delete-request-btn { position: absolute; right: 1rem; top: 1rem; width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(220,38,38,.8); color: white; cursor: pointer; font-size: 1.2rem; font-weight: 800; }
-.action-message { margin-top: .75rem; }
+.deletion-request-panel { margin: 1.5rem; margin-top: 0; border: 1px solid #fca5a5; background: #fef2f2; border-radius: 12px; padding: 1rem; color: #991b1b; }
+.deletion-request-panel h3 { margin: 0 0 .5rem; }
+.deletion-request-panel p { margin: 0; }
+.deletion-request-action { margin-top: .75rem; border: none; border-radius: 8px; background: #dc2626; color: white; padding: .65rem 1rem; font-weight: 700; cursor: pointer; }
+.deletion-request-action:disabled { opacity: .6; cursor: not-allowed; }
+.action-message { margin-top: .75rem; font-weight: 600; }
 </style>

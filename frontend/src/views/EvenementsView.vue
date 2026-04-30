@@ -47,29 +47,28 @@ async function lancerRecherche() {
   }
 }
 
-async function supprimerEvenement(id, event) {
+async function demanderSuppressionEvenement(id, event) {
   event.stopPropagation()
-  if (!confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
+  if (!confirm('Envoyer une demande de suppression de cet événement à un administrateur ?')) {
     return
   }
   
   try {
     const token = localStorage.getItem('token')
-    const response = await fetch(`http://localhost:3000/api/events/${id}`, {
-      method: 'DELETE',
+    const response = await fetch(`http://localhost:3000/api/events/${id}/deletion-request`, {
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       }
     })
     const data = await response.json()
     if (data.success) {
-      resultats.value = resultats.value.filter(r => r.id !== id)
+      alert('Demande de suppression envoyée à un admin.')
     } else {
-      alert(data.error || 'Erreur lors de la suppression')
+      alert(data.error || data.message || 'Erreur lors de la demande de suppression')
     }
   } catch (e) {
-    alert('Erreur lors de la suppression')
+    alert('Erreur lors de la demande de suppression')
   }
 }
 
@@ -158,7 +157,6 @@ onMounted(async () => {
 
         <div class="resultats-liste" v-if="resultats.length > 0">
           <div class="resultat-card" v-for="r in resultats" :key="r.id" @click="allerAuDetail(r.id)">
-            <button v-if="isAdmin" class="btn-supprimer" @click="supprimerEvenement(r.id, $event)" title="Supprimer l'événement">✕</button>
             <img
               :src="r.imageUrl ? `http://localhost:3000/${r.imageUrl}` : 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&q=80'"
               :alt="r.title"
@@ -173,6 +171,11 @@ onMounted(async () => {
               </div>
               <h3 class="resultat-titre">{{ r.title }}</h3>
               <p class="resultat-content">{{ r.description }}</p>
+              <div class="resultat-actions" v-if="isAdmin">
+                <button class="btn-demande-suppression" @click="demanderSuppressionEvenement(r.id, $event)">
+                  Demander suppression
+                </button>
+              </div>
               <div class="resultat-infos">
                 <span v-if="r.organizer">👤 {{ r.organizer }}</span>
                 <span v-if="r.numberOfParticipants && r.maxParticipants">👥 {{ r.maxParticipants - r.numberOfParticipants }} / {{ r.maxParticipants }} places restantes</span>
@@ -298,6 +301,17 @@ onMounted(async () => {
 .resultat-date { font-size: 12px; color: #999; }
 .resultat-titre { font-size: 18px; font-weight: 700; color: #0d2d5e; }
 .resultat-content { font-size: 14px; color: #666; line-height: 1.6; flex: 1; }
+.resultat-actions { margin-top: 4px; }
+.btn-demande-suppression {
+  padding: 8px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #666;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
 .resultat-infos {
   display: flex; gap: 16px;
   font-size: 12px; color: #999; flex-wrap: wrap;

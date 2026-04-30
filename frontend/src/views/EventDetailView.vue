@@ -139,19 +139,9 @@ onMounted(async () => {
             <span v-if="event.type" class="pill">{{ event.type }}</span>
             <span class="date">{{ formatDateTime(event.startTime) }}</span>
             <span v-if="event.userIsRegistered" class="pill registered">Déjà inscrit</span>
-          </div>
-          <button
-            v-if="currentUserRole === 'SUPER_USER' || currentUserRole === 'ADMIN'"
-            class="delete-request-btn"
-            :disabled="deletionLoading"
-            @click="requestDeletion"
-            title="Demander la suppression"
-          >
-            ✕
-          </button>
+          </div>         
           <h1>{{ event.title }}</h1>
           <p v-if="event.organizer" class="author">Organisé par {{ event.organizer }}</p>
-          <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
         </div>
       </div>
 
@@ -208,6 +198,17 @@ onMounted(async () => {
           </div>
         </aside>
       </div>
+      <section
+        v-if="currentUserRole === 'SUPER_USER' || currentUserRole === 'ADMIN'"
+        class="deletion-request-panel"
+      >
+        <h3>Demande de suppression</h3>
+        <p>Cette action envoie une demande de suppression aux administrateurs.</p>
+        <button class="deletion-request-action" :disabled="deletionLoading" @click="requestDeletion">
+          {{ deletionLoading ? 'Envoi...' : 'Demander la suppression' }}
+        </button>
+        <p v-if="deletionMessage" class="action-message danger">{{ deletionMessage }}</p>
+      </section>
 
       <section class="participants-section">
         <div class="participants-header">
@@ -325,19 +326,29 @@ onMounted(async () => {
   font-size: 13px;
 }
 
-.delete-request-btn {
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  background: rgba(220, 38, 38, 0.8);
+.deletion-request-panel {
+  margin: 0 1.5rem 1.5rem;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.deletion-request-action {
+  margin-top: .75rem;
+  border: none;
+  border-radius: 8px;
+  background: #dc2626;
   color: white;
+  padding: .65rem 1rem;
+  font-weight: 700;
   cursor: pointer;
-  font-size: 1.2rem;
-  font-weight: 800;
+  }
+
+.deletion-request-action:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }
 
 .hero-overlay h1 {
@@ -494,6 +505,10 @@ onMounted(async () => {
   margin-top: 0.75rem;
   font-size: 13px;
   color: #0d2d5e;
+}
+
+.action-message.danger {
+  color: #991b1b;
 }
 
 .info-item {

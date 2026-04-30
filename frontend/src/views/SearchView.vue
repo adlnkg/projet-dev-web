@@ -324,7 +324,10 @@ onMounted(async () => {
   }
   await fetchFiltersInfo()
   syncQueryToState()
-  if (hasCriteria.value) {
+  const queryCategory = typeof route.query.category === 'string' ? route.query.category : ''
+  const shouldAutoSearchDevices = queryCategory === 'device' && selectedCategory.value === 'device'
+
+  if (hasCriteria.value || shouldAutoSearchDevices) {
     await lancerRecherche()
   }
 })

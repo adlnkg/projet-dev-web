@@ -5,6 +5,12 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 function ouvrirObjets() {
+  const token = localStorage.getItem('token')
+
+  if (token) {
+    router.push({ path: '/recherche', query: { category: 'device' } })
+    return
+  }
   router.push({ path: '/login', query: { redirect: '/recherche?category=device' } })
 }
 

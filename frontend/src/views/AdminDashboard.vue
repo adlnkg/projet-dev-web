@@ -25,6 +25,11 @@ const router = useRouter()
         <h3>Gestion des utilisateurs</h3>
         <p>Voir, modifier et gérer les rôles des utilisateurs.</p>
       </div>
+      
+      <div class="card" @click="router.push('/admin/deletion-requests')" style="cursor:pointer;">
+        <h3>Demandes de suppression</h3>
+        <p>Valider ou refuser les suppressions d'événements et objets connectés.</p>
+      </div>
     </div>
   </div>
 </template>

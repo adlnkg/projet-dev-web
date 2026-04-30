@@ -1,9 +1,10 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { getMe, DEFAULT_AVATAR } from '../utils/user'
 
 const router = useRouter()
+const route = useRoute()
 const recherche = ref('')
 const langue = ref('FR')
 const menuLangueVisible = ref(false)
@@ -13,12 +14,23 @@ const currentUser = ref(null)
 const showAdmin = computed(() => currentUser.value && (currentUser.value.role === 'ADMIN' || currentUser.value.role === 'SUPER_USER'))
 
 onMounted(async () => {
+   await refreshCurrentUser()
+})
+
+async function refreshCurrentUser() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    currentUser.value = null
+    return
+  }
   try {
     currentUser.value = await getMe()
   } catch (e) {
-    // silent
+    currentUser.value = null
   }
-})
+}
+
+watch(() => route.fullPath, refreshCurrentUser)
 
 function goToProfile() {
   router.push('/profile')
@@ -55,6 +67,22 @@ function allerSection(id) {
   })
 }
 
+function topbarNavigate(id) {
+  // map some topbar ids to search categories
+  if (id === 'actualites') {
+    router.push({ path: '/recherche', query: { category: 'actuality' } })
+    menuMobileVisible.value = false
+    return
+  }
+  if (id === 'evenements') {
+    router.push({ path: '/recherche', query: { category: 'event' } })
+    menuMobileVisible.value = false
+    return
+  }
+  // fallback to original behavior (scroll or navigate to home)
+  allerSection(id)
+}
+
 function changerLangue(l) {
   langue.value = l
   menuLangueVisible.value = false
@@ -77,9 +105,9 @@ function effacerRecherche() {
     <!-- BARRE SUPÉRIEURE -->
     <div class="topbar">
       <div class="topbar-links">
-        <span @click="allerSection('actualites')">ACTUALITÉS</span>
+        <span @click="topbarNavigate('actualites')">ACTUALITÉS</span>
         <span class="sep">|</span>
-        <span @click="allerSection('evenements')">ÉVÉNEMENTS</span>
+        <span @click="topbarNavigate('evenements')">ÉVÉNEMENTS</span>
         <span class="sep">|</span>
         <span @click="router.push('/users')">UTILISATEURS</span>
         <span class="sep">|</span>
@@ -162,8 +190,8 @@ function effacerRecherche() {
         <span @click="allerSection('quisommesnous')">QUI SOMMES NOUS</span>
         <span @click="allerSection('formations')">NOS FORMATIONS</span>
         <span @click="allerSection('objets')">OBJETS CONNECTÉS</span>
-        <span @click="allerSection('actualites')">ACTUALITÉS</span>
-        <span @click="allerSection('evenements')">ÉVÉNEMENTS</span>
+          <span @click="topbarNavigate('actualites')">ACTUALITÉS</span>
+          <span @click="topbarNavigate('evenements')">ÉVÉNEMENTS</span>
         <span @click="router.push('/users')">UTILISATEURS</span>
         <span @click="allerSection('contact')">CONTACT</span>
         <span v-if="showAdmin" @click="router.push('/admin')">ADMIN</span>

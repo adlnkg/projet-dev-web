@@ -10,19 +10,9 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: "/actualites",
-      name: "actualites",
-      component: () => import("../views/ActualitesView.vue"),
-    },
-    {
       path: "/actualites/:id",
       name: "actuality-detail",
       component: () => import("../views/ActualityDetailView.vue"),
-    },
-    {
-      path: "/evenements",
-      name: "evenements",
-      component: () => import("../views/EvenementsView.vue"),
     },
     {
       path: "/recherche",
@@ -33,6 +23,15 @@ const router = createRouter({
       path: "/evenements/:id",
       name: "event-detail",
       component: () => import("../views/EventDetailView.vue"),
+    },
+    {
+      path: "/zones/:id",
+      name: "area-detail",
+      component: () => import("../views/AreaDetailView.vue"),
+    },
+    {
+      path: "/areas/:id",
+      redirect: (to) => ({ name: "area-detail", params: { id: to.params.id } }),
     },
     {
       path: "/objets/:id",

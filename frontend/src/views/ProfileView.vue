@@ -21,67 +21,68 @@ const age = computed(() => user === null ? null :
 </script>
 
 <template>
-  <main v-if="error !== null">
-    Il y a une erreur lors de la récupération des données
-  </main>
-  <Card floating v-else>
-    <Skeleton v-if="loading" width="100%" height="100%" id="avatar" />
-    <img v-else :src="user.avatarUrl" alt="avatar" id="avatar" />
+  <div class="profile-page">
+    <main v-if="error !== null">
+      Il y a une erreur lors de la récupération des données
+    </main>
+    <Card floating v-else>
+      <Skeleton v-if="loading" width="100%" height="100%" id="avatar" />
+      <img v-else :src="user.avatarUrl" alt="avatar" id="avatar" />
 
-    <Skeleton v-if="loading" width="100%"  height="2em" />
-    <h1 v-else>
-      {{ user.firstName }} {{ user.lastName }}
-      <span>@{{ user.login }}</span>
-    </h1>
+      <Skeleton v-if="loading" width="100%"  height="2em" />
+      <h1 v-else>
+        {{ user.firstName }} {{ user.lastName }}
+        <span>@{{ user.login }}</span>
+      </h1>
 
-    <div id="infos">
-      <span>Email</span>
-      <Skeleton v-if="loading" width="200px" height="1em" />
-      <a v-else :href="`mailto:${user.email}`">{{ user.email }}</a>
+      <div id="infos">
+        <span>Email</span>
+        <Skeleton v-if="loading" width="200px" height="1em" />
+        <a v-else :href="`mailto:${user.email}`">{{ user.email }}</a>
 
-      <span>Age</span>
-      <Skeleton v-if="loading" width="200px" height="1em" />
-      <span v-else>{{ age }} an{{ age > 1 ? "s" : "" }}</span>
+        <span>Age</span>
+        <Skeleton v-if="loading" width="200px" height="1em" />
+        <span v-else>{{ age }} an{{ age > 1 ? "s" : "" }}</span>
 
-      <span>Genre</span>
-      <Skeleton v-if="loading" width="200px" height="1em" />
-      <span v-else>{{ UI_GENDERS[user.sex] ?? "Autre" }}</span>
+        <span>Genre</span>
+        <Skeleton v-if="loading" width="200px" height="1em" />
+        <span v-else>{{ UI_GENDERS[user.sex] ?? "Autre" }}</span>
 
-      <span>Né{{ user?.gender == "male" ? "" : "e" }} le</span>
-      <Skeleton v-if="loading" width="200px" height="1em" />
-      <span v-else>
-        {{
-          user.birthdate.toLocaleDateString("fr-FR", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })
-        }}
-      </span>
-    </div>
-    <Button asChild v-slot="slotProps">
-      <RouterLink :to="{ name: 'edit-profile' }" :class="slotProps.class">
-        Modifier le profil
-      </RouterLink>
-    </Button>
-  </Card>
+        <span>Né{{ user?.gender == "male" ? "" : "e" }} le</span>
+        <Skeleton v-if="loading" width="200px" height="1em" />
+        <span v-else>
+          {{
+            user.birthdate.toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })
+          }}
+        </span>
+      </div>
+      <Button asChild v-slot="slotProps">
+        <RouterLink :to="{ name: 'edit-profile' }" :class="slotProps.class">
+          Modifier le profil
+        </RouterLink>
+      </Button>
+    </Card>
+  </div>
 </template>
 
 <style scoped>
-:global(body) {
-  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
-}
-:global(#content) {
+.profile-page {
+  min-height: 100%;
   display: grid;
   place-items: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
 }
-:global(.card) {
-  max-width: 75%;
+.card {
+  width: min(100%, 960px);
   display: flex;
   gap: 1em;
   flex-direction: column;
   align-items: center;
-  padding-top: 25vw;
 }
 #infos {
   display: grid;

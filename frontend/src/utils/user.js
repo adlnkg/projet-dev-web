@@ -38,9 +38,9 @@ export async function getMe() {
   const response = await fetch("http://localhost:3000/api/user/me", {
     method: "GET",
     headers: {
-      "Content-Type": "application/json",
-      authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
+    credentials: 'include',
   });
   const data = await response.json();
   if (!response.ok) {
@@ -130,8 +130,9 @@ export async function editUser(id, user, avatar) {
   const response = await fetch(`http://localhost:3000/api/user/id/${id}`, {
     method: "PUT",
     headers: {
-      authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
+    credentials: 'include',
     body: formData,
   });
   if (!response.ok) {

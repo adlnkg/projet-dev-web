@@ -1,0 +1,116 @@
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Turing",
+    "description": "Bâtiment Turing du site du parc",
+    "type": "BUILDING",
+    "imageUrl": "images/areas/default-area.svg",
+    "owner": null,
+    "ownerName": null,
+    "parentArea": null,
+    "iotDevices": [],
+    "specific": {
+      "address": "123 Rue de Turing, Cergy-Pontoise 95000"
+    },
+    "form": {
+      "role": "ADMIN",
+      "editableFieldKeys": [
+        "building.address",
+        "name",
+        "description",
+        "imageUrl"
+      ],
+      "fields": [
+        {
+          "key": "id",
+          "label": "Identifiant",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": 1,
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "Nom",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 120,
+          "section": "general",
+          "value": "Turing",
+          "editable": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "kind": "textarea",
+          "minLength": 1,
+          "maxLength": 500,
+          "section": "general",
+          "value": "Bâtiment Turing du site du parc",
+          "editable": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "kind": "select",
+          "options": [
+            "BUILDING",
+            "FLOOR",
+            "CLASSROOM",
+            "TECHNICAL_ROOM"
+          ],
+          "readOnly": true,
+          "section": "general",
+          "value": "BUILDING",
+          "editable": false
+        },
+        {
+          "key": "imageUrl",
+          "label": "Image",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 255,
+          "section": "general",
+          "value": "images/areas/default-area.svg",
+          "editable": true
+        },
+        {
+          "key": "parentAreaId",
+          "label": "Zone parente",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        },
+        {
+          "key": "ownerName",
+          "label": "Createur",
+          "kind": "text",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        },
+        {
+          "key": "building.address",
+          "label": "Adresse",
+          "kind": "text",
+          "minLength": 3,
+          "maxLength": 200,
+          "section": "specific",
+          "source": "building",
+          "field": "address",
+          "value": "123 Rue de Turing, Cergy-Pontoise 95000",
+          "editable": true
+        }
+      ],
+      "supportedSpecificFields": [
+        "building.address"
+      ]
+    }
+  },
+  "pointGained": 1
+}

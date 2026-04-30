@@ -1,0 +1,18 @@
+info:
+  name: get actuality by id
+  type: http
+  seq: 5
+
+http:
+  method: get
+  url: http://localhost:3000/api/actualities/:id
+  params:
+    - name: id
+      value: "1"
+      type: path
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

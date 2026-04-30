@@ -1,0 +1,325 @@
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "uniqueName": "temp-sensor-101",
+    "name": "Capteur température Salle 101",
+    "description": "Capteur de température",
+    "createdAt": "2026-04-24T16:53:24.848Z",
+    "brand": "Generic",
+    "model": "TempSensor 1.0",
+    "electricityConsumption": 0,
+    "status": "ACTIVE",
+    "type": "SENSOR",
+    "areaId": 3,
+    "owner": null,
+    "ownerName": null,
+    "area": {
+      "id": 3,
+      "name": "Salle 101",
+      "description": "Salle de classe 101 du bâtiment Turing",
+      "type": "CLASSROOM"
+    },
+    "specific": {
+      "value": 22.5,
+      "timestamp": "2026-04-29T23:03:18.313Z",
+      "samplingIntervalSeconds": 60,
+      "batteryLevel": 95,
+      "lastReadingAt": null
+    },
+    "statistics": {
+      "consumption": {
+        "electricityConsumptionKwh": 0,
+        "nominalPowerWatts": 0,
+        "averageDailyUsageHours": 0,
+        "estimatedDailyConsumptionKwh": 0,
+        "estimatedMonthlyConsumptionKwh": 0
+      },
+      "maintenance": {
+        "maintenanceIntervalDays": 0,
+        "lastMaintenanceAt": null
+      },
+      "lifecycle": {
+        "lastPowerOnAt": null,
+        "lastPowerOffAt": null,
+        "lastActivityAt": "2026-04-30T01:00:54.840Z"
+      },
+      "history": {
+        "entriesCount": 0
+      }
+    },
+    "history": {
+      "count": 0,
+      "entries": []
+    },
+    "form": {
+      "role": "ADMIN",
+      "editableFieldKeys": [
+        "status",
+        "name",
+        "description",
+        "brand",
+        "model",
+        "nominalPowerWatts",
+        "averageDailyUsageHours",
+        "maintenanceIntervalDays",
+        "sensor.samplingIntervalSeconds"
+      ],
+      "fields": [
+        {
+          "key": "id",
+          "label": "Identifiant",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": 1,
+          "editable": false
+        },
+        {
+          "key": "uniqueName",
+          "label": "Nom unique",
+          "kind": "text",
+          "minLength": 3,
+          "maxLength": 120,
+          "section": "general",
+          "value": "temp-sensor-101",
+          "editable": false
+        },
+        {
+          "key": "name",
+          "label": "Nom",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 120,
+          "section": "general",
+          "value": "Capteur température Salle 101",
+          "editable": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "kind": "textarea",
+          "minLength": 1,
+          "maxLength": 500,
+          "section": "general",
+          "value": "Capteur de température",
+          "editable": true
+        },
+        {
+          "key": "createdAt",
+          "label": "Cree le",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "general",
+          "value": "2026-04-24T16:53:24.848Z",
+          "editable": false
+        },
+        {
+          "key": "brand",
+          "label": "Marque",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 80,
+          "section": "general",
+          "value": "Generic",
+          "editable": true
+        },
+        {
+          "key": "model",
+          "label": "Modele",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 80,
+          "section": "general",
+          "value": "TempSensor 1.0",
+          "editable": true
+        },
+        {
+          "key": "electricityConsumption",
+          "label": "Consommation electrique",
+          "kind": "number",
+          "min": 0,
+          "max": 100000,
+          "step": 0.01,
+          "section": "general",
+          "value": 0,
+          "editable": false
+        },
+        {
+          "key": "nominalPowerWatts",
+          "label": "Puissance nominale (W)",
+          "kind": "number",
+          "min": 0,
+          "max": 100000,
+          "step": 0.1,
+          "section": "general",
+          "value": 0,
+          "editable": true
+        },
+        {
+          "key": "averageDailyUsageHours",
+          "label": "Utilisation moyenne journaliere (h)",
+          "kind": "number",
+          "min": 0,
+          "max": 24,
+          "step": 0.1,
+          "section": "general",
+          "value": 0,
+          "editable": true
+        },
+        {
+          "key": "maintenanceIntervalDays",
+          "label": "Intervalle de maintenance (jours)",
+          "kind": "number",
+          "min": 0,
+          "max": 3650,
+          "step": 1,
+          "section": "general",
+          "value": 0,
+          "editable": true
+        },
+        {
+          "key": "lastPowerOnAt",
+          "label": "Derniere mise sous tension",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        },
+        {
+          "key": "lastPowerOffAt",
+          "label": "Derniere extinction",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        },
+        {
+          "key": "lastMaintenanceAt",
+          "label": "Derniere maintenance",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        },
+        {
+          "key": "status",
+          "label": "Statut",
+          "kind": "select",
+          "options": [
+            "ACTIVE",
+            "INACTIVE",
+            "DISCONNECTED",
+            "ERROR"
+          ],
+          "section": "general",
+          "value": "ACTIVE",
+          "editable": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "kind": "select",
+          "options": [
+            "LIGHT",
+            "SENSOR",
+            "THERMOSTAT",
+            "CAMERA",
+            "ACCESS_CONTROL",
+            "WHITEBOARD"
+          ],
+          "readOnly": true,
+          "section": "general",
+          "value": "SENSOR",
+          "editable": false
+        },
+        {
+          "key": "areaId",
+          "label": "Zone",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": 3,
+          "editable": false
+        },
+        {
+          "key": "ownerName",
+          "label": "Createur",
+          "kind": "text",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        },
+        {
+          "key": "sensor.value",
+          "label": "Valeur",
+          "kind": "number",
+          "readOnly": true,
+          "section": "specific",
+          "source": "sensor",
+          "field": "value",
+          "value": 22.5,
+          "editable": false
+        },
+        {
+          "key": "sensor.timestamp",
+          "label": "Horodatage",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "specific",
+          "source": "sensor",
+          "field": "timestamp",
+          "value": "2026-04-29T23:03:18.313Z",
+          "editable": false
+        },
+        {
+          "key": "sensor.samplingIntervalSeconds",
+          "label": "Intervalle d'echantillonnage (s)",
+          "kind": "number",
+          "min": 1,
+          "max": 86400,
+          "step": 1,
+          "section": "specific",
+          "source": "sensor",
+          "field": "samplingIntervalSeconds",
+          "value": 60,
+          "editable": true
+        },
+        {
+          "key": "sensor.batteryLevel",
+          "label": "Batterie (%)",
+          "kind": "number",
+          "readOnly": true,
+          "section": "specific",
+          "source": "sensor",
+          "field": "batteryLevel",
+          "value": 95,
+          "editable": false
+        },
+        {
+          "key": "sensor.lastReadingAt",
+          "label": "Derniere mesure",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "specific",
+          "source": "sensor",
+          "field": "lastReadingAt",
+          "value": null,
+          "editable": false
+        }
+      ],
+      "supportedSpecificFields": [
+        "sensor.value",
+        "sensor.timestamp",
+        "sensor.samplingIntervalSeconds",
+        "sensor.batteryLevel",
+        "sensor.lastReadingAt"
+      ]
+    }
+  },
+  "pointGained": 1
+}

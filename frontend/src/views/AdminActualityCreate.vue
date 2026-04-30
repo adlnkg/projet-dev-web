@@ -32,7 +32,7 @@ async function onSubmit(e) {
   const res = await submit(fd)
   if (res) {
     message.value = 'Actualité créée.'
-    setTimeout(() => router.push('/actualites'), 800)
+    setTimeout(() => router.push({ path: '/recherche', query: { category: 'actuality' } }), 800)
   }
 }
 

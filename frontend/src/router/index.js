@@ -35,6 +35,12 @@ const router = createRouter({
       component: () => import("../views/EventDetailView.vue"),
     },
     {
+      path: "/objets/:id",
+      name: "device-detail",
+      component: () => import("../views/DeviceDetailView.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/login",
       name: "auth-login",
       component: () => import("../views/AuthLoginView.vue"),
@@ -125,6 +131,12 @@ const router = createRouter({
       path: "/admin/users/:id",
       name: "admin-user-detail",
       component: () => import("../views/AdminUserDetailView.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/admin/deletion-requests",
+      name: "admin-deletion-requests",
+      component: () => import("../views/AdminDeletionRequestsView.vue"),
       meta: { requiresAuth: true },
     },
     {

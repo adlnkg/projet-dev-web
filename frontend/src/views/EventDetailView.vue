@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getMe } from '../utils/user'
 
 const route = useRoute()
 const router = useRouter()
@@ -9,6 +10,10 @@ const loading = ref(true)
 const error = ref(null)
 const actionLoading = ref(false)
 const actionMessage = ref('')
+const deletionLoading = ref(false)
+const deletionMessage = ref('')
+const currentUserRole = ref('')
+
 
 const registeredUsers = computed(() => event.value?.registrations?.map((registration) => registration.user).filter(Boolean) ?? [])
 
@@ -86,7 +91,37 @@ async function toggleRegistration() {
   }
 }
 
+async function requestDeletion() {
+  if (!event.value) return
+  deletionLoading.value = true
+  deletionMessage.value = ''
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Connexion requise.')
+    if (!confirm('Envoyer une demande de suppression de cet événement à un administrateur ?')) return
+
+    const res = await fetch(`http://localhost:3000/api/events/${route.params.id}/deletion-request`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const data = await res.json()
+    if (!res.ok || !data.success) throw new Error(data.error || data.message || 'Demande impossible')
+    deletionMessage.value = 'Demande envoyée aux administrateurs.'
+  } catch (e) {
+    deletionMessage.value = e.message || 'Erreur lors de la demande.'
+  } finally {
+    deletionLoading.value = false
+  }
+}
+
+
 onMounted(loadEvent)
+onMounted(async () => {
+  try {
+    const me = await getMe()
+    currentUserRole.value = me.role || ''
+  } catch (_) {}
+})
 </script>
 
 <template>
@@ -105,8 +140,18 @@ onMounted(loadEvent)
             <span class="date">{{ formatDateTime(event.startTime) }}</span>
             <span v-if="event.userIsRegistered" class="pill registered">Déjà inscrit</span>
           </div>
+          <button
+            v-if="currentUserRole === 'SUPER_USER' || currentUserRole === 'ADMIN'"
+            class="delete-request-btn"
+            :disabled="deletionLoading"
+            @click="requestDeletion"
+            title="Demander la suppression"
+          >
+            ✕
+          </button>
           <h1>{{ event.title }}</h1>
           <p v-if="event.organizer" class="author">Organisé par {{ event.organizer }}</p>
+          <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
         </div>
       </div>
 
@@ -278,6 +323,21 @@ onMounted(loadEvent)
 .author {
   color: #d6e8f7;
   font-size: 13px;
+}
+
+.delete-request-btn {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(220, 38, 38, 0.8);
+  color: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 800;
 }
 
 .hero-overlay h1 {

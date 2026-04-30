@@ -11,10 +11,11 @@ const loading = ref(true)
 const error = ref('')
 const deletionLoading = ref(false)
 const deletionMessage = ref('')
-const currentUserRole = ref('')
-const adminForm = ref({ name: '', description: '', status: 'ACTIVE', areaId: '' })
-const adminMessage = ref('')
-const adminSaving = ref(false)
+const isEditing = ref(false)
+const editLoading = ref(false)
+const editError = ref('')
+const editSuccess = ref('')
+const formValues = ref({})
 
 const canEdit = computed(() => Boolean(device.value?.form?.editableFieldKeys?.length))
 const canRequestDeletion = computed(() => ['SUPER_USER', 'ADMIN'].includes(device.value?.form?.role || ''))
@@ -108,12 +109,7 @@ async function loadDevice() {
     const data = await res.json()
     if (!res.ok || !data.success) throw new Error(data.error || 'Objet introuvable')
     device.value = data.data
-    adminForm.value = {
-      name: data.data.name ?? '',
-      description: data.data.description ?? '',
-      status: data.data.status ?? 'ACTIVE',
-      areaId: data.data.areaId ?? '',
-    }
+    syncFormState(data.data)
   } catch (e) {
     error.value = e.message || 'Impossible de charger cet objet connecté.'
   } finally {
@@ -121,30 +117,39 @@ async function loadDevice() {
   }
 }
 
-async function saveAdminEdits() {
-  adminMessage.value = ''
-  adminSaving.value = true
+async function saveDevice() {
+  if (!device.value) return
+  editLoading.value = true
+  editError.value = ''
+  editSuccess.value = ''
+
   try {
     const token = localStorage.getItem('token')
-    const payload = {
-      name: adminForm.value.name,
-      description: adminForm.value.description,
-      status: adminForm.value.status,
-      areaId: adminForm.value.areaId === '' ? null : Number(adminForm.value.areaId),
-    }
+    if (!token) throw new Error('Connexion requise pour modifier cet appareil.')
+
+    const payload = buildUpdatePayload(device.value.form.fields, formValues.value)
     const res = await fetch(`http://localhost:3000/api/devices/${route.params.id}`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
     })
+
     const data = await res.json()
-    if (!res.ok || !data.success) throw new Error(data.error || data.message || 'Mise à jour impossible')
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Mise à jour impossible')
+    }
+
     device.value = data.data
-    adminMessage.value = 'Objet connecté mis à jour.'
+    syncFormState(data.data)
+    isEditing.value = false
+    editSuccess.value = data.message || 'Appareil mis à jour.'
   } catch (e) {
-    adminMessage.value = e.message || 'Erreur lors de la mise à jour.'
+    editError.value = e.message || 'Impossible de mettre à jour cet appareil.'
   } finally {
-    adminSaving.value = false
+    editLoading.value = false
   }
 }
 
@@ -361,28 +366,6 @@ onMounted(loadDevice)
 
         <div v-else class="history-empty">Aucune entrée d'historique disponible.</div>
       </section>
-
-      <section v-if="currentUserRole === 'ADMIN'" class="admin-edit-panel">
-        <h3>Modification admin</h3>
-        <div class="form-grid">
-          <label>Nom <input v-model="adminForm.name" type="text" /></label>
-          <label>Description <textarea v-model="adminForm.description" rows="3" /></label>
-          <label>Statut
-            <select v-model="adminForm.status">
-              <option value="ACTIVE">Actif</option>
-              <option value="INACTIVE">Désactivé</option>
-              <option value="MAINTENANCE">Maintenance</option>
-            </select>
-          </label>
-          <label>ID du bâtiment/zone
-            <input v-model="adminForm.areaId" type="number" min="1" placeholder="Ex: 12" />
-          </label>
-        </div>
-        <button class="admin-save-btn" :disabled="adminSaving" @click="saveAdminEdits">
-          {{ adminSaving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-        </button>
-        <p v-if="adminMessage" class="action-message">{{ adminMessage }}</p>
-      </section>
     </article>
   </main>
 </template>
@@ -416,16 +399,40 @@ onMounted(loadDevice)
 .history-item-head span { color: #64748b; }
 .history-kind { margin: .4rem 0 0; color: #334155; font-size: .9rem; }
 .history-values { margin: .5rem 0 0; display: grid; gap: .2rem; font-size: .92rem; }
-.deletion-request-panel { margin: 1.5rem; margin-top: 0; border: 1px solid #fca5a5; background: #fef2f2; border-radius: 12px; padding: 1rem; color: #991b1b; }
-.deletion-request-panel h3 { margin: 0 0 .5rem; }
-.deletion-request-panel p { margin: 0; }
-.deletion-request-action { margin-top: .75rem; border: none; border-radius: 8px; background: #dc2626; color: white; padding: .65rem 1rem; font-weight: 700; cursor: pointer; }
-.deletion-request-action:disabled { opacity: .6; cursor: not-allowed; }
-.action-message { margin-top: .75rem; font-weight: 600; }
-.admin-edit-panel { margin: 1.5rem; margin-top: 0; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 12px; padding: 1rem; }
-.form-grid { display: grid; gap: .75rem; }
-.form-grid label { display: grid; gap: .25rem; font-weight: 600; color: #1e3a8a; }
-.form-grid input, .form-grid textarea, .form-grid select { border: 1px solid #93c5fd; border-radius: 8px; padding: .5rem; font: inherit; }
-.admin-save-btn { margin-top: .75rem; border: none; border-radius: 8px; background: #2563eb; color: white; padding: .65rem 1rem; font-weight: 700; cursor: pointer; }
-.admin-save-btn:disabled { opacity: .6; cursor: not-allowed; }
+.content-panel,
+.side-panel { border: 1px solid #e5e7eb; border-radius: 14px; padding: 1.25rem; }
+.content-panel h2,
+.side-panel h3 { margin: 0 0 1rem; color: #0d2d5e; }
+.content-text { white-space: pre-line; line-height: 1.7; color: #444; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.85rem; margin-top: 1.25rem; }
+.stat-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 0.95rem; background: #f8fbff; display: grid; gap: 0.35rem; }
+.stat-card span { font-size: 12px; color: #6b7280; }
+.stat-card strong { color: #0d2d5e; }
+.info-item { display: grid; gap: 0.25rem; padding: 0.85rem 0; border-top: 1px solid #f0f0f0; }
+.info-item:first-of-type { border-top: none; padding-top: 0; }
+.info-item span { font-size: 12px; color: #777; }
+.info-item strong { color: #0d2d5e; }
+.link-like { cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.info-item pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-size: 12px; color: #555; background: #f8fafc; padding: 0.75rem; border-radius: 10px; overflow: auto; }
+.history-section { padding: 0 1.5rem 1.5rem; }
+.section-header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.section-header h2 { margin: 0; color: #0d2d5e; }
+.section-header span { color: #6b7280; font-size: 13px; font-weight: 600; }
+.history-list { display: grid; gap: 0.85rem; }
+.history-item { border: 1px solid #e5e7eb; border-radius: 14px; padding: 1rem; background: #fafcff; display: grid; gap: 0.6rem; }
+.history-item p { margin: 0.2rem 0 0; color: #64748b; }
+.history-values { display: flex; gap: 0.5rem; flex-wrap: wrap; color: #0d2d5e; font-weight: 600; }
+.history-empty { border: 1px dashed #d1d5db; border-radius: 14px; padding: 1.25rem; text-align: center; color: #777; background: #fafafa; }
+@media (max-width: 900px) {
+  .page-container { padding: 1rem; }
+  .content-grid { grid-template-columns: 1fr; }
+  .hero-overlay h1 { font-size: 26px; }
+  .history-section { padding: 0 1rem 1rem; }
+}
+@media (max-width: 480px) {
+  .hero-overlay { padding: 1rem; }
+  .hero-overlay h1 { font-size: 22px; }
+  .content-grid { padding: 1rem; }
+  .section-header { flex-direction: column; align-items: flex-start; }
+}
 </style>

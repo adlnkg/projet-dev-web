@@ -73,6 +73,24 @@ export const postDevice = async (req, res, next) => {
   }
 };
 
+export const getDeviceReport = async (req, res, next) => {
+  try {
+    const deviceId = Number(req.params.id);
+    if (!Number.isInteger(deviceId)) {
+      return res.status(400).json({ error: "Identifiant d'appareil invalide." });
+    }
+
+    const role = getUserRole(req);
+    const report = await deviceService.generateDeviceReportPdf(deviceId, role);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=\"rapport-appareil-${deviceId}.pdf\"`);
+    return res.status(200).send(report);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const createDevice = async (req, res, next) => {
   try {
     const role = getUserRole(req);

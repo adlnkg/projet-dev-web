@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMe } from '../utils/user'
+import EntityForm from '../components/EntityForm.vue'
+import { buildFormState, buildUpdatePayload, getFieldDisplayValue } from '../utils/entityForm'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,10 +16,61 @@ const adminForm = ref({ name: '', description: '', status: 'ACTIVE', areaId: '' 
 const adminMessage = ref('')
 const adminSaving = ref(false)
 
+const canEdit = computed(() => Boolean(device.value?.form?.editableFieldKeys?.length))
+const canRequestDeletion = computed(() => ['SUPER_USER', 'ADMIN'].includes(device.value?.form?.role || ''))
 const imageUrl = computed(() => {
-  const value = device.value?.imageUrl
+  const value = isEditing.value ? formValues.value.imageUrl : device.value?.imageUrl
   return value ? `http://localhost:3000/${value}` : 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80'
 })
+
+function syncFormState(resource) {
+  formValues.value = buildFormState(resource?.form?.fields ?? [])
+}
+
+function formatDateTime(value) {
+  if (!value) return 'Date inconnue'
+  return new Date(value).toLocaleString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function formatNumber(value, digits = 2) {
+  if (value === null || value === undefined || value === '') return 'Non renseigné'
+  return Number(value).toLocaleString('fr-FR', {
+    maximumFractionDigits: digits,
+  })
+}
+
+function startEditing() {
+  if (!canEdit.value || !device.value) return
+  editError.value = ''
+  editSuccess.value = ''
+  syncFormState(device.value)
+  isEditing.value = true
+}
+
+function cancelEditing() {
+  if (device.value) {
+    syncFormState(device.value)
+  }
+  editError.value = ''
+  editSuccess.value = ''
+  isEditing.value = false
+}
+
+function goToArea() {
+  if (!device.value?.area?.id) return
+  router.push({ name: 'area-detail', params: { id: device.value.area.id } })
+}
+
+function goToProfile(login) {
+  if (!login) return
+  router.push(`/profile/${login}`)
+}
 
 const historyEntries = computed(() => device.value?.history?.entries ?? [])
 
@@ -119,12 +171,6 @@ async function requestDeletion() {
 }
 
 onMounted(loadDevice)
-onMounted(async () => {
-  try {
-    const me = await getMe()
-    currentUserRole.value = me.role || ''
-  } catch (_) {}
-})
 </script>
 
 <template>
@@ -138,15 +184,109 @@ onMounted(async () => {
       <div class="hero">
         <img :src="imageUrl" :alt="device.name" class="hero-img" />
         <div class="hero-overlay">
+          <div class="hero-actions">
+            <button v-if="canEdit && !isEditing" class="ghost-btn" @click="startEditing">Modifier</button>
+            <button v-else-if="canEdit && isEditing" class="ghost-btn" @click="cancelEditing">Voir</button>
+            <button
+              v-if="canRequestDeletion"
+              class="delete-request-btn"
+              :disabled="deletionLoading"
+              @click="requestDeletion"
+              title="Demander la suppression"
+            >
+              ✕
+            </button>
+          </div>
+          <div class="meta-row">
+            <span v-if="device.type" class="pill">{{ device.type }}</span>
+            <span v-if="device.status" class="pill status-pill">{{ device.status }}</span>
+          </div>
           <h1>{{ device.name }}</h1>
-          <p v-if="device.type" class="subtitle">Type : {{ device.type }}</p>
+          <p v-if="device.brand || device.model" class="subtitle">{{ [device.brand, device.model].filter(Boolean).join(' · ') }}</p>
+          <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
         </div>
       </div>
 
-      <section class="content-panel">
-        <h2>Description</h2>
-        <p>{{ device.description || 'Aucune description disponible.' }}</p>
-      </section>
+      <div v-if="!isEditing" class="content-grid">
+        <section class="content-panel">
+          <h2>Description</h2>
+          <p class="content-text">{{ device.description || 'Aucune description disponible.' }}</p>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span>Consommation électrique</span>
+              <strong>{{ formatNumber(device.electricityConsumption, 2) }} kWh</strong>
+            </div>
+            <div class="stat-card" v-if="device.statistics?.consumption?.estimatedDailyConsumptionKwh !== undefined">
+              <span>Conso estimée / jour</span>
+              <strong>{{ formatNumber(device.statistics.consumption.estimatedDailyConsumptionKwh, 3) }} kWh</strong>
+            </div>
+            <div class="stat-card" v-if="device.statistics?.maintenance">
+              <span>Maintenance</span>
+              <strong>{{ device.statistics.maintenance.maintenanceRequired ? 'Requise' : 'À jour' }}</strong>
+            </div>
+            <div class="stat-card" v-if="device.statistics?.history">
+              <span>Historique</span>
+              <strong>{{ device.statistics.history.entriesCount ?? device.history?.count ?? 0 }} entrées</strong>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-panel">
+          <h3>Informations</h3>
+          <div class="info-item">
+            <span>Identifiant unique</span>
+            <strong>{{ device.uniqueName }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Type</span>
+            <strong>{{ device.type }}</strong>
+          </div>
+          <div class="info-item" v-if="device.area?.id">
+            <span>Zone</span>
+            <RouterLink class="link-like" :to="{ name: 'area-detail', params: { id: device.area.id } }">
+              {{ device.area.name }}
+            </RouterLink>
+          </div>
+          <div class="info-item" v-if="device.owner?.login || device.ownerName">
+            <span>Auteur</span>
+            <strong class="link-like" @click="goToProfile(device.owner?.login || device.ownerName)">{{ device.owner?.firstName || device.ownerName || device.owner?.login }}</strong>
+          </div>
+          <div class="info-item" v-if="device.form?.fields?.some(f => f.section === 'specific')">
+            <span>Valeurs spécifiques</span>
+            <div>
+              <div v-for="field in device.form.fields.filter(f => f.section === 'specific')" :key="field.key" style="margin-bottom:0.5rem;">
+                <small style="color:#6b7280">{{ field.label }}</small>
+                <div class="field-value" style="margin-top:0.25rem">{{ getFieldDisplayValue(field) }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="info-item" v-if="device.statistics?.lifecycle">
+            <span>Dernière activité</span>
+            <strong>{{ formatDateTime(device.statistics.lifecycle.lastActivityAt) }}</strong>
+          </div>
+          <div class="info-item" v-if="device.statistics?.maintenance">
+            <span>Dernière maintenance</span>
+            <strong>{{ formatDateTime(device.statistics.maintenance.lastMaintenanceAt) }}</strong>
+          </div>
+        </aside>
+      </div>
+
+      <div v-else class="content-grid edit-grid">
+        <section class="content-panel edit-panel">
+          <EntityForm
+            v-model="formValues"
+            :fields="device.form.fields"
+            title="Modifier l'appareil"
+            description="Les valeurs non modifiables sont conservées à titre informatif."
+            submit-label="Enregistrer"
+            :loading="editLoading"
+            :error="editError"
+            :success="editSuccess"
+            @submit="saveDevice"
+            @cancel="cancelEditing"
+          />
+        </section>
 
       <section class="content-panel history-panel">
         <div class="history-header">
@@ -173,16 +313,53 @@ onMounted(async () => {
         </ul>
       </section>
 
-      <section
-        v-if="currentUserRole === 'SUPER_USER' || currentUserRole === 'ADMIN'"
-        class="deletion-request-panel"
-      >
-        <h3>Demande de suppression</h3>
-        <p>Cette action envoie une demande de suppression aux administrateurs.</p>
-        <button class="deletion-request-action" :disabled="deletionLoading" @click="requestDeletion">
-          {{ deletionLoading ? 'Envoi...' : 'Demander la suppression' }}
-        </button>
-        <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
+        <aside class="side-panel">
+          <h3>Aperçu</h3>
+          <div class="info-item">
+            <span>Zone</span>
+            <strong>{{ device.area?.name || 'Non renseignée' }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Statut</span>
+            <strong>{{ formValues.status || device.status }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Consommation</span>
+            <strong>{{ formatNumber(formValues.electricityConsumption ?? device.electricityConsumption, 2) }} kWh</strong>
+          </div>
+          <div class="info-item">
+            <span>Historique</span>
+            <strong>{{ device.history?.count ?? 0 }} entrées</strong>
+          </div>
+          <div class="info-item" v-if="deletionMessage">
+            <span>Suppression</span>
+            <strong>{{ deletionMessage }}</strong>
+          </div>
+        </aside>
+      </div>
+
+      <section class="history-section">
+        <div class="section-header">
+          <h2>Historique</h2>
+          <span>{{ device.history?.count ?? 0 }} événement{{ (device.history?.count ?? 0) > 1 ? 's' : '' }}</span>
+        </div>
+
+        <div v-if="device.history?.entries?.length" class="history-list">
+          <article v-for="entry in device.history.entries" :key="entry.id" class="history-item">
+            <div>
+              <strong>{{ entry.kind }}</strong>
+              <p>{{ entry.fieldKey }}</p>
+            </div>
+            <div class="history-values">
+              <span>{{ entry.previousValue ?? '—' }}</span>
+              <span>→</span>
+              <span>{{ entry.currentValue ?? '—' }}</span>
+            </div>
+            <small>{{ formatDateTime(entry.recordedAt) }}</small>
+          </article>
+        </div>
+
+        <div v-else class="history-empty">Aucune entrée d'historique disponible.</div>
       </section>
 
       <section v-if="currentUserRole === 'ADMIN'" class="admin-edit-panel">
@@ -211,17 +388,24 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.page-container { max-width: 980px; margin: 0 auto; padding: 2rem; }
+.page-container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
 .back-btn { background: transparent; border: none; color: #1a5c9e; font-weight: 700; cursor: pointer; margin-bottom: 1rem; }
 .state-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 2rem; color: #555; }
 .state-card.error { color: #b91c1c; background: #fef2f2; }
-.detail-card { background: white; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; }
+.detail-card { background: white; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(13, 45, 94, 0.08); }
 .hero { position: relative; }
-.hero-img { width: 100%; max-height: 360px; object-fit: cover; display: block; }
+.hero-img { width: 100%; max-height: 420px; object-fit: cover; display: block; }
 .hero-overlay { position: absolute; inset: auto 0 0 0; background: linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,0)); color: white; padding: 2rem; }
-.hero-overlay h1 { margin: 0; }
+.hero-actions { position: absolute; right: 1rem; top: 1rem; display: flex; gap: 0.5rem; align-items: center; }
+.ghost-btn { border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.14); color: white; border-radius: 999px; padding: 0.6rem 0.9rem; font-weight: 700; cursor: pointer; }
+.delete-request-btn { width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(220,38,38,.8); color: white; cursor: pointer; font-size: 1.2rem; font-weight: 800; }
+.meta-row { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.pill { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.pill.status-pill { background: #e0f2fe; color: #0369a1; }
 .subtitle { margin-top: .5rem; color: #d6e8f7; }
-.content-panel { padding: 1.5rem; }
+.hero-overlay h1 { margin: 0; font-size: 32px; line-height: 1.15; }
+.action-message { color: #d6e8f7; font-size: 13px; }
+.content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; padding: 1.5rem; }
 .history-panel { border-top: 1px solid #e5e7eb; }
 .history-header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
 .history-header p { margin: 0; color: #64748b; font-weight: 600; }

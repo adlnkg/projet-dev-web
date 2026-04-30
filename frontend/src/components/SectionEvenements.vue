@@ -70,7 +70,7 @@ onMounted(async () => {
       </div>
 
       <div class="actu-footer" v-if="evenements.length > 0">
-        <button class="btn-plus" @click="router.push('/evenements')">Voir tous les événements</button>
+        <button class="btn-plus" @click="router.push({ path: '/recherche', query: { category: 'event' } })">Voir tous les événements</button>
       </div>
 
     </div>

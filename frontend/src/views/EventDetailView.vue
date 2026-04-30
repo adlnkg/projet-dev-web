@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getMe } from '../utils/user'
+import EntityForm from '../components/EntityForm.vue'
+import { buildFormState, buildUpdatePayload } from '../utils/entityForm'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,20 +13,29 @@ const actionLoading = ref(false)
 const actionMessage = ref('')
 const deletionLoading = ref(false)
 const deletionMessage = ref('')
-const currentUserRole = ref('')
-
+const isEditing = ref(false)
+const editLoading = ref(false)
+const editError = ref('')
+const editSuccess = ref('')
+const formValues = ref({})
 
 const registeredUsers = computed(() => event.value?.registrations?.map((registration) => registration.user).filter(Boolean) ?? [])
+const canEdit = computed(() => Boolean(event.value?.form?.editableFieldKeys?.length))
+const canRequestDeletion = computed(() => ['SUPER_USER', 'ADMIN'].includes(event.value?.form?.role || ''))
+const imageUrl = computed(() => {
+  const value = isEditing.value ? formValues.value.imageUrl : event.value?.imageUrl
+  return value ? `http://localhost:3000/${value}` : 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&q=80'
+})
 
 function goToProfile(login) {
   if (!login) return
   router.push(`/profile/${login}`)
 }
 
-const imageUrl = computed(() => {
-  const value = event.value?.imageUrl
-  return value ? `http://localhost:3000/${value}` : 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&q=80'
-})
+function goToArea(areaId) {
+  if (!areaId) return
+  router.push(`/zones/${areaId}`)
+}
 
 function formatDateTime(value) {
   if (!value) return 'Date inconnue'
@@ -44,6 +54,27 @@ function formatPrice(value) {
   return `${value} €`
 }
 
+function syncFormState(resource) {
+  formValues.value = buildFormState(resource?.form?.fields ?? [])
+}
+
+function startEditing() {
+  if (!canEdit.value || !event.value) return
+  editError.value = ''
+  editSuccess.value = ''
+  syncFormState(event.value)
+  isEditing.value = true
+}
+
+function cancelEditing() {
+  if (event.value) {
+    syncFormState(event.value)
+  }
+  editError.value = ''
+  editSuccess.value = ''
+  isEditing.value = false
+}
+
 async function loadEvent() {
   try {
     const token = localStorage.getItem('token')
@@ -54,10 +85,52 @@ async function loadEvent() {
       throw new Error(data.error || 'Événement introuvable')
     }
     event.value = data.data
+    syncFormState(data.data)
   } catch (e) {
     error.value = e.message || 'Impossible de charger l’événement.'
   } finally {
     loading.value = false
+  }
+}
+
+async function saveEvent() {
+  if (!event.value) return
+  editLoading.value = true
+  editError.value = ''
+  editSuccess.value = ''
+
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Connexion requise pour modifier cet événement.')
+
+    const payload = buildUpdatePayload(event.value.form.fields, formValues.value)
+    const wasRegistered = event.value.userIsRegistered
+
+    const res = await fetch(`http://localhost:3000/api/events/${route.params.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Mise à jour impossible')
+    }
+
+    event.value = data.data
+    if (wasRegistered) {
+      event.value.userIsRegistered = true
+    }
+    syncFormState(data.data)
+    isEditing.value = false
+    editSuccess.value = data.message || 'Événement mis à jour.'
+  } catch (e) {
+    editError.value = e.message || 'Impossible de mettre à jour l’événement.'
+  } finally {
+    editLoading.value = false
   }
 }
 
@@ -114,19 +187,12 @@ async function requestDeletion() {
   }
 }
 
-
 onMounted(loadEvent)
-onMounted(async () => {
-  try {
-    const me = await getMe()
-    currentUserRole.value = me.role || ''
-  } catch (_) {}
-})
 </script>
 
 <template>
   <main class="page-container">
-    <button class="back-btn" @click="router.push('/evenements')">← Retour aux événements</button>
+    <button class="back-btn" @click="router.push({ path: '/recherche', query: { category: 'event' } })">← Retour aux événements</button>
 
     <div v-if="loading" class="state-card">Chargement de l’événement...</div>
     <div v-else-if="error" class="state-card error">{{ error }}</div>
@@ -135,17 +201,31 @@ onMounted(async () => {
       <div class="hero">
         <img :src="imageUrl" :alt="event.title" class="hero-img" />
         <div class="hero-overlay">
+          <div class="hero-actions">
+            <button v-if="canEdit && !isEditing" class="ghost-btn" @click="startEditing">Modifier</button>
+            <button v-else-if="canEdit && isEditing" class="ghost-btn" @click="cancelEditing">Voir</button>
+            <button
+              v-if="canRequestDeletion"
+              class="delete-request-btn"
+              :disabled="deletionLoading"
+              @click="requestDeletion"
+              title="Demander la suppression"
+            >
+              ✕
+            </button>
+          </div>
           <div class="meta-row">
             <span v-if="event.type" class="pill">{{ event.type }}</span>
             <span class="date">{{ formatDateTime(event.startTime) }}</span>
-            <span v-if="event.userIsRegistered" class="pill registered">Déjà inscrit</span>
-          </div>         
+            <span v-if="event.userIsRegistered && !isEditing" class="pill registered">Déjà inscrit</span>
+          </div>
           <h1>{{ event.title }}</h1>
           <p v-if="event.organizer" class="author">Organisé par {{ event.organizer }}</p>
+          <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
         </div>
       </div>
 
-      <div class="content-grid">
+      <div v-if="!isEditing" class="content-grid">
         <section class="content-panel">
           <h2>Description</h2>
           <p class="content-text">{{ event.description }}</p>
@@ -170,7 +250,7 @@ onMounted(async () => {
           </div>
           <div class="info-item" v-if="event.area?.name || event.areaName">
             <span>Lieu</span>
-            <strong>{{ event.area?.name || event.areaName }}</strong>
+            <strong class="link-like" @click="goToArea(event.area?.id || event.areaId)">{{ event.area?.name || event.areaName }}</strong>
           </div>
           <div class="info-item" v-if="event.maxParticipants !== undefined">
             <span>Capacité</span>
@@ -198,17 +278,43 @@ onMounted(async () => {
           </div>
         </aside>
       </div>
-      <section
-        v-if="currentUserRole === 'SUPER_USER' || currentUserRole === 'ADMIN'"
-        class="deletion-request-panel"
-      >
-        <h3>Demande de suppression</h3>
-        <p>Cette action envoie une demande de suppression aux administrateurs.</p>
-        <button class="deletion-request-action" :disabled="deletionLoading" @click="requestDeletion">
-          {{ deletionLoading ? 'Envoi...' : 'Demander la suppression' }}
-        </button>
-        <p v-if="deletionMessage" class="action-message danger">{{ deletionMessage }}</p>
-      </section>
+
+      <div v-else class="content-grid edit-grid">
+        <section class="content-panel edit-panel">
+          <EntityForm
+            v-model="formValues"
+            :fields="event.form.fields"
+            title="Modifier l'événement"
+            description="Le formulaire est généré à partir des métadonnées renvoyées par l'API."
+            submit-label="Enregistrer"
+            :loading="editLoading"
+            :error="editError"
+            :success="editSuccess"
+            @submit="saveEvent"
+            @cancel="cancelEditing"
+          />
+        </section>
+
+        <aside class="side-panel">
+          <h3>Aperçu</h3>
+          <div class="info-item">
+            <span>Début</span>
+            <strong>{{ formatDateTime(formValues.startTime || event.startTime) }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Fin</span>
+            <strong>{{ formatDateTime(formValues.endTime || event.endTime) }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Capacité</span>
+            <strong>{{ formValues.maxParticipants || event.maxParticipants }} personnes</strong>
+          </div>
+          <div class="info-item">
+            <span>Prix</span>
+            <strong>{{ formatPrice(formValues.price ?? event.price) }}</strong>
+          </div>
+        </aside>
+      </div>
 
       <section class="participants-section">
         <div class="participants-header">
@@ -296,6 +402,25 @@ onMounted(async () => {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
   color: white;
   padding: 2rem;
+}
+
+.hero-actions {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ghost-btn {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+  border-radius: 999px;
+  padding: 0.6rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .meta-row {
@@ -504,11 +629,11 @@ onMounted(async () => {
 .action-message {
   margin-top: 0.75rem;
   font-size: 13px;
-  color: #0d2d5e;
+  color: #d6e8f7;
 }
 
 .action-message.danger {
-  color: #991b1b;
+  color: #fecaca;
 }
 
 .info-item {
@@ -530,6 +655,12 @@ onMounted(async () => {
 
 .info-item strong {
   color: #0d2d5e;
+}
+
+.link-like {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .info-item pre {

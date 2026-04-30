@@ -1,0 +1,78 @@
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Bienvenue à la plateforme IoT",
+    "content": "Actualité de bienvenue pour la nouvelle plateforme de gestion IoT",
+    "imageUrl": "images/actualities/default-actuality.png",
+    "createdAt": "2026-04-26T19:52:37.000Z",
+    "owner": null,
+    "ownerName": null,
+    "specific": {},
+    "form": {
+      "role": "GUEST",
+      "editableFieldKeys": [],
+      "fields": [
+        {
+          "key": "id",
+          "label": "Identifiant",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": 1,
+          "editable": false
+        },
+        {
+          "key": "title",
+          "label": "Titre",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 150,
+          "section": "general",
+          "value": "Bienvenue à la plateforme IoT",
+          "editable": false
+        },
+        {
+          "key": "content",
+          "label": "Contenu",
+          "kind": "textarea",
+          "minLength": 1,
+          "maxLength": 5000,
+          "section": "general",
+          "value": "Actualité de bienvenue pour la nouvelle plateforme de gestion IoT",
+          "editable": false
+        },
+        {
+          "key": "imageUrl",
+          "label": "Image",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 255,
+          "section": "general",
+          "value": "images/actualities/default-actuality.png",
+          "editable": false
+        },
+        {
+          "key": "createdAt",
+          "label": "Cree le",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "general",
+          "value": "2026-04-26T19:52:37.000Z",
+          "editable": false
+        },
+        {
+          "key": "ownerName",
+          "label": "Createur",
+          "kind": "text",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        }
+      ],
+      "supportedSpecificFields": []
+    }
+  },
+  "pointGained": 0
+}

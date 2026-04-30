@@ -57,7 +57,7 @@ async function onSubmit(e) {
   if (res) {
     message.value = 'Événement créé.'
     formError.value = ''
-    setTimeout(() => router.push('/evenements'), 800)
+    setTimeout(() => router.push({ path: '/recherche', query: { category: 'event' } }), 800)
   }
 }
 

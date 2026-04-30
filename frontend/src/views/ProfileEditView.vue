@@ -46,84 +46,84 @@ async function onSubmit(e) {
 </script>
 
 <template>
-  <main v-if="error.value !== null">
-    Il y a une erreur lors de la récupération des données
-  </main>
-  <Card v-else>
-    <Form v-slot="form" :initialValues="user" :resolver @submit="onSubmit">
-      <main>
-        <Skeleton v-if="initLoading" width="100%" height="100%" id="avatar" />
-        <AvatarChooser v-else v-model="avatar" :defaultAvatar="user.avatarUrl" />
-        <Message v-if="submitError !== null" severity="error" closable>
-          {{ submitError.toString() }}
-        </Message>
-        <div>
-          <label for="firstName">Prénom</label>
-          <InputText name="firstName" id="firstName" :disabled="initLoading" />
+  <div class="profile-edit-page">
+    <main v-if="error.value !== null">
+      Il y a une erreur lors de la récupération des données
+    </main>
+    <Card v-else>
+      <Form v-slot="form" :initialValues="user" :resolver @submit="onSubmit">
+        <main>
+          <Skeleton v-if="initLoading" width="100%" height="100%" id="avatar" />
+          <AvatarChooser v-else v-model="avatar" :defaultAvatar="user.avatarUrl" />
+          <Message v-if="submitError !== null" severity="error" closable>
+            {{ submitError.toString() }}
+          </Message>
+          <div>
+            <label for="firstName">Prénom</label>
+            <InputText name="firstName" id="firstName" :disabled="initLoading" />
 
-          <label for="lastName">Nom de famille</label>
-          <InputText name="lastName" id="lastName" :disabled="initLoading" />
+            <label for="lastName">Nom de famille</label>
+            <InputText name="lastName" id="lastName" :disabled="initLoading" />
 
-          <label for="login">Identifiant</label>
-          <InputText name="login" id="login" :disabled="initLoading" />
+            <label for="login">Identifiant</label>
+            <InputText name="login" id="login" :disabled="initLoading" />
 
-          <label for="email">Email</label>
-          <InputText
-            name="email"
-            id="email"
-            type="email"
-            :disabled="initLoading"
-          />
+            <label for="email">Email</label>
+            <InputText
+              name="email"
+              id="email"
+              type="email"
+              :disabled="initLoading"
+            />
 
-          <label for="sex">Genre</label>
-          <Select
-            name="sex"
-            id="sex"
-            :options="SELECT_GENDER"
-            optionValue="value"
-            optionLabel="label"
-            :disabled="initLoading"
-          />
+            <label for="sex">Genre</label>
+            <Select
+              name="sex"
+              id="sex"
+              :options="SELECT_GENDER"
+              optionValue="value"
+              optionLabel="label"
+              :disabled="initLoading"
+            />
 
-          <label for="birthdate">
-            Né{{ form.gender?.value === "female" ? "e" : "" }} le
-          </label>
+            <label for="birthdate">
+              Né{{ form.gender?.value === "female" ? "e" : "" }} le
+            </label>
 
-          <FieldDate
-            name="birthdate"
-            id="birthdate"
-            :disabled="loading.value"
-          />
-        </div>
+            <FieldDate
+              name="birthdate"
+              id="birthdate"
+              :disabled="loading.value"
+            />
+          </div>
 
-        <Button type="submit" :disabled="loading.value">Enregistrer</Button>
-      </main>
-    </Form>
-  </Card>
+          <Button type="submit" :disabled="loading.value">Enregistrer</Button>
+        </main>
+      </Form>
+    </Card>
+  </div>
 </template>
 
 <style scoped>
-:global(body) {
-  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
-}
-:global(#content) {
+.profile-edit-page {
+  min-height: 100%;
   display: grid;
   place-items: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
 }
-:global(.card) {
-  max-width: 75%;
+.card {
+  width: min(100%, 960px);
   display: flex;
   gap: 1em;
   flex-direction: column;
   align-items: center;
-  padding-top: 25vw;
 }
 main {
   display: flex;
   gap: 1em;
   flex-direction: column;
   align-items: center;
-  padding-top: 25vw;
 }
 main > div {
   display: grid;

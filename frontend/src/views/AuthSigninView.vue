@@ -27,65 +27,66 @@ function onSubmit(e) {
 </script>
 
 <template>
-  <Card floating>
-    <Form :resolver @submit="onSubmit">
-      <h1>Créer un compte</h1>
-      <h2>Créez votre compte pour accéder à votre espace personnel</h2>
-      <Message v-if="error !== null" severity="error" closable>
-        {{ error.toString() }}
-      </Message>
-      <AvatarChooser v-model="avatar" />
-      <div class="group">
-        <InputText name="firstName" type="text" placeholder="Prénom" fluid />
-        <InputText name="lastName" type="text" placeholder="Nom" fluid />
-      </div>
-      <InputText name="login" type="text" placeholder="Identifiant" fluid />
-      <InputText name="email" type="email" placeholder="Email" fluid />
-      <Password name="password" placeholder="Mot de passe" toggleMask fluid />
-      <Password
-        name="confirmPassword"
-        placeholder="Confirmer le mot de passe"
-        :feedback="false"
-        toggleMask
-        fluid
-      />
-      <Select
-        name="sex"
-        id="sex"
-        :options="SELECT_GENDER"
-        optionValue="value"
-        optionLabel="label"
-      />
-      <FieldDate
-        name="birthdate"
-        id="birthdate"
-        :disabled="loading"
-        placeholder="Date de naissance"
-      />
+  <div class="auth-page">
+    <Card floating>
+      <Form :resolver @submit="onSubmit">
+        <h1>Créer un compte</h1>
+        <h2>Créez votre compte pour accéder à votre espace personnel</h2>
+        <Message v-if="error !== null" severity="error" closable>
+          {{ error.toString() }}
+        </Message>
+        <AvatarChooser v-model="avatar" />
+        <div class="group">
+          <InputText name="firstName" type="text" placeholder="Prénom" fluid />
+          <InputText name="lastName" type="text" placeholder="Nom" fluid />
+        </div>
+        <InputText name="login" type="text" placeholder="Identifiant" fluid />
+        <InputText name="email" type="email" placeholder="Email" fluid />
+        <Password name="password" placeholder="Mot de passe" toggleMask fluid />
+        <Password
+          name="confirmPassword"
+          placeholder="Confirmer le mot de passe"
+          :feedback="false"
+          toggleMask
+          fluid
+        />
+        <Select
+          name="sex"
+          id="sex"
+          :options="SELECT_GENDER"
+          optionValue="value"
+          optionLabel="label"
+        />
+        <FieldDate
+          name="birthdate"
+          id="birthdate"
+          :disabled="loading"
+          placeholder="Date de naissance"
+        />
 
-      <Button type="submit" :disabled="loading">Créer un compte</Button>
-      <p id="already-member">
-        Déjà inscrit ? <RouterLink to="/login">Se connecter</RouterLink>
-      </p>
-    </Form>
-  </Card>
+        <Button type="submit" :disabled="loading">Créer un compte</Button>
+        <p id="already-member">
+          Déjà inscrit ? <RouterLink to="/login">Se connecter</RouterLink>
+        </p>
+      </Form>
+    </Card>
+  </div>
 </template>
 
-<style>
-body {
+<style scoped>
+.auth-page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
   background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
 }
 .group {
   display: flex;
   gap: 0.5rem;
 }
-#content {
-  display: grid;
-  place-items: center;
-}
 .card {
-  max-width: 75%;
-  margin-block: 4rem;
+  width: min(100%, 920px);
 }
 form {
   display: flex;

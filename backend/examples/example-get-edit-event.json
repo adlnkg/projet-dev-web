@@ -1,0 +1,198 @@
+{
+  "success": true,
+  "data": {
+    "id": 3,
+    "title": "Séminaire sur l'intelligence artificielle",
+    "description": "Séminaire sur les dernières avancées en intelligence artificielle",
+    "createdAt": "2026-04-24T16:53:24.853Z",
+    "organizer": "Dr. Lee",
+    "price": 0,
+    "imageUrl": "images/events/default-event.png",
+    "startTime": "2024-09-03T10:00:00.000Z",
+    "endTime": "2024-09-03T12:00:00.000Z",
+    "numberOfParticipants": 1,
+    "maxParticipants": 50,
+    "type": "WORKSHOP",
+    "areaId": 24,
+    "registrations": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655550004",
+        "createdAt": "2026-04-29T14:24:52.799Z",
+        "user": {
+          "id": "550e8400-e29b-41d4-a716-446655440004",
+          "login": "student1",
+          "firstName": "Alice",
+          "lastName": "Dupont",
+          "avatarUrl": null,
+          "role": "USER",
+          "memberType": "STUDENT"
+        }
+      }
+    ],
+    "owner": null,
+    "ownerName": null,
+    "area": {
+      "id": 24,
+      "name": "Amphi A",
+      "description": "Grand amphithéâtre A",
+      "type": "CLASSROOM"
+    },
+    "userIsRegistered": false,
+    "specific": {},
+    "form": {
+      "role": "ADMIN",
+      "editableFieldKeys": [
+        "startTime",
+        "endTime",
+        "maxParticipants",
+        "type",
+        "title",
+        "description",
+        "organizer",
+        "price",
+        "imageUrl"
+      ],
+      "fields": [
+        {
+          "key": "id",
+          "label": "Identifiant",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": 3,
+          "editable": false
+        },
+        {
+          "key": "title",
+          "label": "Titre",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 120,
+          "section": "general",
+          "value": "Séminaire sur l'intelligence artificielle",
+          "editable": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "kind": "textarea",
+          "minLength": 1,
+          "maxLength": 800,
+          "section": "general",
+          "value": "Séminaire sur les dernières avancées en intelligence artificielle",
+          "editable": true
+        },
+        {
+          "key": "createdAt",
+          "label": "Cree le",
+          "kind": "datetime",
+          "readOnly": true,
+          "section": "general",
+          "value": "2026-04-24T16:53:24.853Z",
+          "editable": false
+        },
+        {
+          "key": "organizer",
+          "label": "Organisateur",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 120,
+          "section": "general",
+          "value": "Dr. Lee",
+          "editable": true
+        },
+        {
+          "key": "price",
+          "label": "Prix",
+          "kind": "number",
+          "min": 0,
+          "max": 10000,
+          "step": 0.5,
+          "section": "general",
+          "value": 0,
+          "editable": true
+        },
+        {
+          "key": "imageUrl",
+          "label": "Image",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 255,
+          "section": "general",
+          "value": "images/events/default-event.png",
+          "editable": true
+        },
+        {
+          "key": "startTime",
+          "label": "Debut",
+          "kind": "datetime",
+          "section": "general",
+          "value": "2024-09-03T10:00:00.000Z",
+          "editable": true
+        },
+        {
+          "key": "endTime",
+          "label": "Fin",
+          "kind": "datetime",
+          "section": "general",
+          "value": "2024-09-03T12:00:00.000Z",
+          "editable": true
+        },
+        {
+          "key": "numberOfParticipants",
+          "label": "Participants",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": 40,
+          "editable": false
+        },
+        {
+          "key": "maxParticipants",
+          "label": "Capacite max",
+          "kind": "number",
+          "min": 1,
+          "max": 10000,
+          "step": 1,
+          "section": "general",
+          "value": 50,
+          "editable": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "kind": "select",
+          "options": [
+            "WORKSHOP",
+            "CONFERENCE",
+            "MEETING",
+            "COURSE"
+          ],
+          "section": "general",
+          "value": "WORKSHOP",
+          "editable": true
+        },
+        {
+          "key": "areaId",
+          "label": "Zone",
+          "kind": "number",
+          "readOnly": true,
+          "section": "general",
+          "value": 24,
+          "editable": false
+        },
+        {
+          "key": "ownerName",
+          "label": "Createur",
+          "kind": "text",
+          "readOnly": true,
+          "section": "general",
+          "value": null,
+          "editable": false
+        }
+      ],
+      "supportedSpecificFields": []
+    }
+  },
+  "pointGained": 1
+}

@@ -24,7 +24,9 @@ onMounted(async () => {
       deviceCount.value = data?.data?.deviceCount || 0
     }
   } catch (e) {
-    // silently ignore
+    
+    // silently ignore and log to console, since these counts are not critical for the page to function
+    console.error('Erreur lors du chargement des statistiques du home:', e)
   }
 })
 </script>

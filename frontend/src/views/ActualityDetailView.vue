@@ -1,15 +1,23 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import EntityForm from '../components/EntityForm.vue'
+import { buildFormState, buildUpdatePayload, getFieldDisplayValue } from '../utils/entityForm'
 
 const route = useRoute()
 const router = useRouter()
 const actuality = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const isEditing = ref(false)
+const editLoading = ref(false)
+const editError = ref('')
+const editSuccess = ref('')
+const formValues = ref({})
 
+const canEdit = computed(() => Boolean(actuality.value?.form?.editableFieldKeys?.length))
 const imageUrl = computed(() => {
-  const value = actuality.value?.imageUrl
+  const value = isEditing.value ? formValues.value.imageUrl : actuality.value?.imageUrl
   return value ? `http://localhost:3000/${value}` : 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=1200&q=80'
 })
 
@@ -27,18 +35,78 @@ function formatDate(value) {
   })
 }
 
+function syncFormState(resource) {
+  formValues.value = buildFormState(resource?.form?.fields ?? [])
+}
+
+function startEditing() {
+  if (!canEdit.value || !actuality.value) return
+  editError.value = ''
+  editSuccess.value = ''
+  syncFormState(actuality.value)
+  isEditing.value = true
+}
+
+function cancelEditing() {
+  if (actuality.value) {
+    syncFormState(actuality.value)
+  }
+  editError.value = ''
+  editSuccess.value = ''
+  isEditing.value = false
+}
+
 async function loadActuality() {
   try {
-    const res = await fetch(`http://localhost:3000/api/actualities/${route.params.id}`)
+    const token = localStorage.getItem('token')
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    const res = await fetch(`http://localhost:3000/api/actualities/${route.params.id}`, { headers })
     const data = await res.json()
     if (!res.ok || !data.success) {
       throw new Error(data.error || 'Actualité introuvable')
     }
     actuality.value = data.data
+    syncFormState(data.data)
   } catch (e) {
     error.value = e.message || 'Impossible de charger l’actualité.'
   } finally {
     loading.value = false
+  }
+}
+
+async function saveActuality() {
+  if (!actuality.value) return
+  editLoading.value = true
+  editError.value = ''
+  editSuccess.value = ''
+
+  try {
+    const payload = buildUpdatePayload(actuality.value.form.fields, formValues.value)
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Connexion requise pour modifier cette actualité.')
+
+    const res = await fetch(`http://localhost:3000/api/actualities/${route.params.id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || data.message || 'Mise à jour impossible')
+    }
+
+    actuality.value = data.data
+    syncFormState(data.data)
+    isEditing.value = false
+    editSuccess.value = data.message || 'Actualité mise à jour.'
+  } catch (e) {
+    editError.value = e.message || 'Impossible de mettre à jour l’actualité.'
+  } finally {
+    editLoading.value = false
   }
 }
 
@@ -47,7 +115,7 @@ onMounted(loadActuality)
 
 <template>
   <main class="page-container">
-    <button class="back-btn" @click="router.push('/actualites')">← Retour aux actualités</button>
+    <button class="back-btn" @click="router.push({ path: '/recherche', query: { category: 'actuality' } })">← Retour aux actualités</button>
 
     <div v-if="loading" class="state-card">Chargement de l’actualité...</div>
     <div v-else-if="error" class="state-card error">{{ error }}</div>
@@ -56,8 +124,12 @@ onMounted(loadActuality)
       <div class="hero">
         <img :src="imageUrl" :alt="actuality.title" class="hero-img" />
         <div class="hero-overlay">
+          <div class="hero-actions" v-if="canEdit">
+            <button v-if="!isEditing" class="ghost-btn" @click="startEditing">Modifier</button>
+            <button v-else class="ghost-btn" @click="cancelEditing">Voir</button>
+          </div>
           <div class="meta-row">
-            <span v-if="actuality.type" class="pill">{{ actuality.type }}</span>
+            <span class="pill">Actualité</span>
             <span class="date">{{ formatDate(actuality.createdAt) }}</span>
           </div>
           <h1>{{ actuality.title }}</h1>
@@ -71,7 +143,7 @@ onMounted(loadActuality)
         </div>
       </div>
 
-      <div class="content-grid">
+      <div v-if="!isEditing" class="content-grid">
         <section class="content-panel">
           <h2>Contenu</h2>
           <p class="content-text">{{ actuality.content }}</p>
@@ -90,6 +162,39 @@ onMounted(loadActuality)
           <div class="info-item" v-if="actuality.specific && Object.keys(actuality.specific).length > 0">
             <span>Détails complémentaires</span>
             <pre>{{ JSON.stringify(actuality.specific, null, 2) }}</pre>
+          </div>
+        </aside>
+      </div>
+
+      <div v-else class="content-grid edit-grid">
+        <section class="content-panel edit-panel">
+          <EntityForm
+            v-model="formValues"
+            :fields="actuality.form.fields"
+            title="Modifier l'actualité"
+            description="Les champs non modifiables restent visibles mais désactivés."
+            submit-label="Enregistrer"
+            :loading="editLoading"
+            :error="editError"
+            :success="editSuccess"
+            @submit="saveActuality"
+            @cancel="cancelEditing"
+          />
+        </section>
+
+        <aside class="side-panel">
+          <h3>Prévisualisation</h3>
+          <div class="info-item">
+            <span>Image</span>
+            <strong>{{ getFieldDisplayValue({ kind: 'text', value: formValues.imageUrl || actuality.imageUrl }) }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Auteur</span>
+            <strong>{{ actuality.owner?.firstName || actuality.ownerName || actuality.owner?.login }}</strong>
+          </div>
+          <div class="info-item">
+            <span>Publié le</span>
+            <strong>{{ formatDate(actuality.createdAt) }}</strong>
           </div>
         </aside>
       </div>
@@ -151,6 +256,22 @@ onMounted(loadActuality)
   background: linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
   color: white;
   padding: 2rem;
+}
+
+.hero-actions {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+}
+
+.ghost-btn {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+  border-radius: 999px;
+  padding: 0.6rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .meta-row {

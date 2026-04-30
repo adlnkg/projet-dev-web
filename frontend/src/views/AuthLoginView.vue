@@ -24,29 +24,35 @@ function onSubmit(e) {
 </script>
 
 <template>
-  <Card floating>
-    <Form :resolver @submit="onSubmit">
-      <h1>Se connecter</h1>
-      <h2>Accédez à votre espace personnel</h2>
-      <Message v-if="error !== null" severity="error" closable>
-        {{ error.toString() }}
-      </Message>
-      <InputText name="pseudo" type="text" placeholder="Identifiant" fluid />
-      <Password
-        name="password"
-        placeholder="Mot de passe"
-        :feedback="false"
-        toggleMask
-        fluid
-      />
-      <Button type="submit" :disabled="loading">Se connecter</Button>
-      <p id="not-member">Pas encore inscrit ? <RouterLink to="/register">Créer un compte</RouterLink></p>
-    </Form>
-  </Card>
+  <div class="auth-page">
+    <Card floating>
+      <Form :resolver @submit="onSubmit">
+        <h1>Se connecter</h1>
+        <h2>Accédez à votre espace personnel</h2>
+        <Message v-if="error !== null" severity="error" closable>
+          {{ error.toString() }}
+        </Message>
+        <InputText name="pseudo" type="text" placeholder="Identifiant" fluid />
+        <Password
+          name="password"
+          placeholder="Mot de passe"
+          :feedback="false"
+          toggleMask
+          fluid
+        />
+        <Button type="submit" :disabled="loading">Se connecter</Button>
+        <p id="not-member">Pas encore inscrit ? <RouterLink to="/register">Créer un compte</RouterLink></p>
+      </Form>
+    </Card>
+  </div>
 </template>
 
 <style scoped>
-:global(body) {
+.auth-page {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
   background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 100%);
 }
 form {
@@ -67,13 +73,8 @@ h2 {
   color: #6b7280;
   font-weight: normal;
 }
-:global(#content) {
-  display: grid;
-  place-items: center;
-}
 .card {
-  max-width: 50%;
-  margin-block: 4rem;
+  width: min(100%, 460px);
 }
 #not-member {
   font-size: 14px;

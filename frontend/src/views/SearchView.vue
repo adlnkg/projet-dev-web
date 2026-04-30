@@ -143,6 +143,7 @@ const getItemImage = (item, type) => {
 const getItemRoute = (itemType, itemId) => {
   if (itemType === 'event') return `/evenements/${itemId}`
   if (itemType === 'actuality') return `/actualites/${itemId}`
+  if (itemType === 'area') return `/zones/${itemId}`
   if (itemType === 'device') return `/objets/${itemId}`
   return null
 }

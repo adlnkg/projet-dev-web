@@ -11,6 +11,9 @@ const error = ref('')
 const deletionLoading = ref(false)
 const deletionMessage = ref('')
 const currentUserRole = ref('')
+const adminForm = ref({ name: '', description: '', status: 'ACTIVE', areaId: '' })
+const adminMessage = ref('')
+const adminSaving = ref(false)
 
 const imageUrl = computed(() => {
   const value = device.value?.imageUrl
@@ -53,10 +56,43 @@ async function loadDevice() {
     const data = await res.json()
     if (!res.ok || !data.success) throw new Error(data.error || 'Objet introuvable')
     device.value = data.data
+    adminForm.value = {
+      name: data.data.name ?? '',
+      description: data.data.description ?? '',
+      status: data.data.status ?? 'ACTIVE',
+      areaId: data.data.areaId ?? '',
+    }
   } catch (e) {
     error.value = e.message || 'Impossible de charger cet objet connecté.'
   } finally {
     loading.value = false
+  }
+}
+
+async function saveAdminEdits() {
+  adminMessage.value = ''
+  adminSaving.value = true
+  try {
+    const token = localStorage.getItem('token')
+    const payload = {
+      name: adminForm.value.name,
+      description: adminForm.value.description,
+      status: adminForm.value.status,
+      areaId: adminForm.value.areaId === '' ? null : Number(adminForm.value.areaId),
+    }
+    const res = await fetch(`http://localhost:3000/api/devices/${route.params.id}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json()
+    if (!res.ok || !data.success) throw new Error(data.error || data.message || 'Mise à jour impossible')
+    device.value = data.data
+    adminMessage.value = 'Objet connecté mis à jour.'
+  } catch (e) {
+    adminMessage.value = e.message || 'Erreur lors de la mise à jour.'
+  } finally {
+    adminSaving.value = false
   }
 }
 
@@ -148,6 +184,28 @@ onMounted(async () => {
         </button>
         <p v-if="deletionMessage" class="action-message">{{ deletionMessage }}</p>
       </section>
+
+      <section v-if="currentUserRole === 'ADMIN'" class="admin-edit-panel">
+        <h3>Modification admin</h3>
+        <div class="form-grid">
+          <label>Nom <input v-model="adminForm.name" type="text" /></label>
+          <label>Description <textarea v-model="adminForm.description" rows="3" /></label>
+          <label>Statut
+            <select v-model="adminForm.status">
+              <option value="ACTIVE">Actif</option>
+              <option value="INACTIVE">Désactivé</option>
+              <option value="MAINTENANCE">Maintenance</option>
+            </select>
+          </label>
+          <label>ID du bâtiment/zone
+            <input v-model="adminForm.areaId" type="number" min="1" placeholder="Ex: 12" />
+          </label>
+        </div>
+        <button class="admin-save-btn" :disabled="adminSaving" @click="saveAdminEdits">
+          {{ adminSaving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+        </button>
+        <p v-if="adminMessage" class="action-message">{{ adminMessage }}</p>
+      </section>
     </article>
   </main>
 </template>
@@ -180,4 +238,10 @@ onMounted(async () => {
 .deletion-request-action { margin-top: .75rem; border: none; border-radius: 8px; background: #dc2626; color: white; padding: .65rem 1rem; font-weight: 700; cursor: pointer; }
 .deletion-request-action:disabled { opacity: .6; cursor: not-allowed; }
 .action-message { margin-top: .75rem; font-weight: 600; }
+.admin-edit-panel { margin: 1.5rem; margin-top: 0; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 12px; padding: 1rem; }
+.form-grid { display: grid; gap: .75rem; }
+.form-grid label { display: grid; gap: .25rem; font-weight: 600; color: #1e3a8a; }
+.form-grid input, .form-grid textarea, .form-grid select { border: 1px solid #93c5fd; border-radius: 8px; padding: .5rem; font: inherit; }
+.admin-save-btn { margin-top: .75rem; border: none; border-radius: 8px; background: #2563eb; color: white; padding: .65rem 1rem; font-weight: 700; cursor: pointer; }
+.admin-save-btn:disabled { opacity: .6; cursor: not-allowed; }
 </style>

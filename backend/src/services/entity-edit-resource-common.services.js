@@ -272,16 +272,16 @@ const validateAndBuildCreateData = ({
 
         if (!definition) {
             unknownKeys.push(key);
-            continue;
-        }
-
-        if (definition.readOnly) {
+            console.log("Unknown key in create payload 1:", key);
+            console.log("Available keys:", Array.from(allowedFieldDefinitions.keys()));
             continue;
         }
 
         const validator = validatorsByField[key];
         if (!validator) {
             unknownKeys.push(key);
+            console.log("Unknown key in create payload 2:", key);
+            console.log("Validators available for keys:", Object.keys(validatorsByField));
             continue;
         }
 
@@ -304,6 +304,8 @@ const validateAndBuildCreateData = ({
     }
 
     if (unknownKeys.length > 0) {
+        //log available keys for better error message
+        console.log("Available keys:", Array.from(allowedFieldDefinitions.keys()));
         const error = new Error(`Champ(s) non reconnu(s) pour cet élément: ${unknownKeys.join(", ")}.`);
         error.statusCode = 400;
         throw error;
@@ -312,6 +314,8 @@ const validateAndBuildCreateData = ({
     const missingRequiredKeys = requiredFieldKeys.filter((key) => {
         if (key.includes(".")) {
             const [source, field] = key.split(".");
+            console.log("Checking required specific field:", source, field);
+            console.log("Provided specific data for source:", specificCreateData[source]);
             return specificCreateData[source]?.[field] === undefined;
         }
 

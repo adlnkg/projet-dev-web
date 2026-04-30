@@ -21,6 +21,16 @@ const router = useRouter()
         <p>Créer un événement avec dates, lieu et capacité.</p>
       </div>
 
+      <div class="card" @click="router.push('/admin/areas/create')" style="cursor:pointer;">
+        <h3>Nouvelle zone</h3>
+        <p>Créer une zone ou un sous-ensemble de zone selon les métadonnées du backend.</p>
+      </div>
+
+      <div class="card" @click="router.push('/admin/devices/create')" style="cursor:pointer;">
+        <h3>Nouvel objet connecté</h3>
+        <p>Créer un device avec ses champs spécifiques selon son type.</p>
+      </div>
+
       <div class="card" @click="router.push('/admin/users')" style="cursor:pointer;">
         <h3>Gestion des utilisateurs</h3>
         <p>Voir, modifier et gérer les rôles des utilisateurs.</p>

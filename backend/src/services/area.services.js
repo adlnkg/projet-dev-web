@@ -1,4 +1,5 @@
 import prisma from "../config/db.js";
+import { normalizeAreaId } from "../utils/area.utils.js";
 import {
   normalizeTextValue,
   normalizeNumberValue,
@@ -193,6 +194,8 @@ const AREA_TYPE_SUPPORT = {
 };
 
 const AREA_FIELD_VALIDATORS = {
+  type: (value, definition) => normalizeEnumValue(value, AREA_TYPES, definition.label),
+  parentAreaId: (value, definition) => normalizeAreaId(value),
   name: (value, definition) => normalizeTextValue(value, {
     minLength: definition.minLength ?? 1,
     maxLength: definition.maxLength,

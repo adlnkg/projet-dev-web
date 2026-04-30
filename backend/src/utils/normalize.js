@@ -95,7 +95,7 @@ const normalizeEnumValue = (value, allowedValues, fieldName) => {
 /**
  * Flattens a nested object into a single-level object with dot-separated keys.
  * For example, { a: { b: 1 }, c: 2 } becomes { "a.b": 1, c: 2 }.
- * Arrays and Date objects are not flattened and are included as-is.
+ * Arrays, Date objects, and File objects are not flattened and are included as-is.
  * Null and undefined values are ignored.
  *
  * @param {object} value - The object to flatten.
@@ -107,7 +107,7 @@ const flattenPayload = (value, prefix = "") => {
         return {};
     }
 
-    if (typeof value !== "object" || value instanceof Date) {
+    if (typeof value !== "object" || value instanceof Date || value instanceof File || value instanceof Blob) {
         return prefix ? { [prefix]: value } : {};
     }
 

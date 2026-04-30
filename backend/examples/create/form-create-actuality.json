@@ -1,0 +1,56 @@
+{
+  "success": true,
+  "data": {
+    "resource": "ACTUALITY",
+    "role": "ADMIN",
+    "create": {
+      "method": "POST",
+      "endpoint": "/api/actualities",
+      "contentType": "multipart/form-data",
+      "imageField": "image",
+      "requiredFieldKeys": [
+        "title",
+        "content"
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Titre",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 150,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Contenu",
+          "kind": "textarea",
+          "minLength": 1,
+          "maxLength": 5000,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "imageUrl",
+          "label": "Image",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 255,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": false
+        }
+      ]
+    }
+  },
+  "pointGained": 2
+}

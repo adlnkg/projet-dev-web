@@ -121,6 +121,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/admin/areas/create",
+      name: "admin-area-create",
+      component: () => import("../views/AdminAreaCreate.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/admin/devices/create",
+      name: "admin-device-create",
+      component: () => import("../views/AdminDeviceCreate.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/admin/users",
       name: "admin-users",
       component: () => import("../views/AdminUsersView.vue"),

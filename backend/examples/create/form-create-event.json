@@ -1,0 +1,155 @@
+{
+  "success": true,
+  "data": {
+    "resource": "EVENT",
+    "role": "ADMIN",
+    "create": {
+      "method": "POST",
+      "endpoint": "/api/events",
+      "contentType": "multipart/form-data",
+      "imageField": "image",
+      "requiredFieldKeys": [
+        "areaId",
+        "title",
+        "description",
+        "organizer",
+        "startTime",
+        "endTime",
+        "maxParticipants"
+      ],
+      "fields": [
+        {
+          "key": "title",
+          "label": "Titre",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 120,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "kind": "textarea",
+          "minLength": 1,
+          "maxLength": 800,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "organizer",
+          "label": "Organisateur",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 120,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Prix",
+          "kind": "number",
+          "min": 0,
+          "max": 10000,
+          "step": 0.5,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": false
+        },
+        {
+          "key": "imageUrl",
+          "label": "Image",
+          "kind": "text",
+          "minLength": 1,
+          "maxLength": 255,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": false
+        },
+        {
+          "key": "startTime",
+          "label": "Debut",
+          "kind": "datetime",
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "endTime",
+          "label": "Fin",
+          "kind": "datetime",
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "numberOfParticipants",
+          "label": "Participants",
+          "kind": "number",
+          "readOnly": false,
+          "section": "general",
+          "value": null,
+          "editable": true,
+          "required": false
+        },
+        {
+          "key": "maxParticipants",
+          "label": "Capacite max",
+          "kind": "number",
+          "min": 1,
+          "max": 10000,
+          "step": 1,
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "kind": "select",
+          "options": [
+            "WORKSHOP",
+            "CONFERENCE",
+            "MEETING",
+            "COURSE"
+          ],
+          "section": "general",
+          "readOnly": false,
+          "value": null,
+          "editable": true,
+          "required": false
+        },
+        {
+          "key": "areaId",
+          "label": "Zone",
+          "kind": "number",
+          "readOnly": false,
+          "section": "general",
+          "value": null,
+          "editable": true,
+          "required": true
+        }
+      ]
+    }
+  },
+  "pointGained": 2
+}

@@ -68,6 +68,10 @@ function updateField(field, value) {
 
 function fieldValue(field) {
   const currentValue = props.modelValue[field.key]
+  if (currentValue && typeof currentValue === 'object' && 'name' in currentValue) {
+    return currentValue.name
+  }
+
   return currentValue === null || currentValue === undefined ? '' : currentValue
 }
 </script>
@@ -104,6 +108,20 @@ function fieldValue(field) {
             :value="fieldValue(field)"
             @input="updateField(field, $event.target.value)"
           />
+
+          <template v-else-if="field.kind === 'file'">
+            <input
+              :id="field.key"
+              type="file"
+              :accept="field.accept ?? 'image/*'"
+              :disabled="field.readOnly || field.editable === false"
+              @change="updateField(field, $event.target.files && $event.target.files[0] ? $event.target.files[0] : null)"
+            />
+
+            <small v-if="fieldValue(field)" class="field-hint">
+              Fichier sélectionné : {{ fieldValue(field) }}
+            </small>
+          </template>
 
           <textarea
             v-else-if="field.kind === 'textarea'"

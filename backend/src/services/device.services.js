@@ -19,11 +19,12 @@ import {
     assertAdminCreator,
 } from "./entity-edit-resource-common.services.js";
 
+import { normalizeAreaId } from "../utils/area.utils.js";
+
 const GENERAL_FIELD_DEFINITIONS = {
     id: {
         key: "id",
         label: "Identifiant",
-        kind: "number",
         readOnly: true,
         section: "general",
     },
@@ -598,6 +599,8 @@ const DEVICE_TYPE_SUPPORT = {
 };
 
 const DEVICE_FIELD_VALIDATORS = {
+    areaId: (value, definition) => normalizeAreaId(value),
+    type: (value, definition) => normalizeEnumValue(value, DEVICE_TYPES, definition.label),
     uniqueName: (value, definition) => normalizeTextValue(value, {
         minLength: definition.minLength ?? 1,
         maxLength: definition.maxLength,
@@ -1358,7 +1361,11 @@ const createDevice = async ({ role, ownerId, payload, imageUrl }) => {
         findUserById: (id) => prisma.user.findUnique({ where: { id }, select: { id: true } }),
     });
 
+    console.log("createDevice - Received payload:", JSON.stringify(payload, null, 2));
+    
     const flattenedPayload = normalizeRawUpdatePayload(payload);
+    console.log("createDevice - Flattened payload:", flattenedPayload);
+    
     const deviceType = normalizeEnumValue(flattenedPayload.type, DEVICE_TYPES, "Type");
 
     const { generalCreateData, specificCreateData } = validateAndBuildCreateData({
@@ -1402,6 +1409,8 @@ const createDevice = async ({ role, ownerId, payload, imageUrl }) => {
     if (imageUrl) {
         generalCreateData.imageUrl = imageUrl;
     }
+    generalCreateData.type = deviceType;
+    generalCreateData.areaId = areaId;
 
     const createdDevice = await prisma.$transaction(async (transaction) => {
         const device = await transaction.ioTDevice.create({

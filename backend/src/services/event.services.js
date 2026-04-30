@@ -1,5 +1,6 @@
 import prisma from "../config/db.js";
 import { parseDateValue } from "../utils/date.js";
+import { normalizeAreaId } from "../utils/area.utils.js";
 import {
   normalizeTextValue,
   normalizeNumberValue,
@@ -153,6 +154,7 @@ const EVENT_TYPE_SUPPORT = {
 };
 
 const EVENT_FIELD_VALIDATORS = {
+  areaId: (value, definition) => normalizeAreaId(value),
   title: (value, definition) =>
     normalizeTextValue(value, {
       minLength: definition.minLength ?? 1,

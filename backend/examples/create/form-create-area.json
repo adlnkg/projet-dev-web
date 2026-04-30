@@ -1,0 +1,380 @@
+{
+  "success": true,
+  "data": {
+    "resource": "AREA",
+    "role": "ADMIN",
+    "create": {
+      "method": "POST",
+      "endpoint": "/api/areas",
+      "contentType": "multipart/form-data",
+      "imageField": "image",
+      "typeOptions": [
+        "BUILDING",
+        "FLOOR",
+        "CLASSROOM",
+        "TECHNICAL_ROOM"
+      ],
+      "byType": {
+        "BUILDING": {
+          "requiredFieldKeys": [
+            "type",
+            "name",
+            "description",
+            "building.address"
+          ],
+          "supportedSpecificFields": [
+            "building.address"
+          ],
+          "fields": [
+            {
+              "key": "name",
+              "label": "Nom",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 120,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "description",
+              "label": "Description",
+              "kind": "textarea",
+              "minLength": 1,
+              "maxLength": 500,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "type",
+              "label": "Type",
+              "kind": "select",
+              "options": [
+                "BUILDING",
+                "FLOOR",
+                "CLASSROOM",
+                "TECHNICAL_ROOM"
+              ],
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "imageUrl",
+              "label": "Image",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 255,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "parentAreaId",
+              "label": "Zone parente",
+              "kind": "number",
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "building.address",
+              "label": "Adresse",
+              "kind": "text",
+              "minLength": 3,
+              "maxLength": 200,
+              "section": "specific",
+              "source": "building",
+              "field": "address",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            }
+          ]
+        },
+        "FLOOR": {
+          "requiredFieldKeys": [
+            "type",
+            "name",
+            "description",
+            "floor.floorNumber"
+          ],
+          "supportedSpecificFields": [
+            "floor.floorNumber"
+          ],
+          "fields": [
+            {
+              "key": "name",
+              "label": "Nom",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 120,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "description",
+              "label": "Description",
+              "kind": "textarea",
+              "minLength": 1,
+              "maxLength": 500,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "type",
+              "label": "Type",
+              "kind": "select",
+              "options": [
+                "BUILDING",
+                "FLOOR",
+                "CLASSROOM",
+                "TECHNICAL_ROOM"
+              ],
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "imageUrl",
+              "label": "Image",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 255,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "parentAreaId",
+              "label": "Zone parente",
+              "kind": "number",
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "floor.floorNumber",
+              "label": "Numero d'etage",
+              "kind": "number",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "section": "specific",
+              "source": "floor",
+              "field": "floorNumber",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            }
+          ]
+        },
+        "CLASSROOM": {
+          "requiredFieldKeys": [
+            "type",
+            "name",
+            "description",
+            "classroom.classroomNumber"
+          ],
+          "supportedSpecificFields": [
+            "classroom.classroomNumber"
+          ],
+          "fields": [
+            {
+              "key": "name",
+              "label": "Nom",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 120,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "description",
+              "label": "Description",
+              "kind": "textarea",
+              "minLength": 1,
+              "maxLength": 500,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "type",
+              "label": "Type",
+              "kind": "select",
+              "options": [
+                "BUILDING",
+                "FLOOR",
+                "CLASSROOM",
+                "TECHNICAL_ROOM"
+              ],
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "imageUrl",
+              "label": "Image",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 255,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "parentAreaId",
+              "label": "Zone parente",
+              "kind": "number",
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "classroom.classroomNumber",
+              "label": "Numero de salle",
+              "kind": "number",
+              "min": 1,
+              "max": 9999,
+              "step": 1,
+              "section": "specific",
+              "source": "classroom",
+              "field": "classroomNumber",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            }
+          ]
+        },
+        "TECHNICAL_ROOM": {
+          "requiredFieldKeys": [
+            "type",
+            "name",
+            "description",
+            "technicalRoom.roomNumber"
+          ],
+          "supportedSpecificFields": [
+            "technicalRoom.roomNumber"
+          ],
+          "fields": [
+            {
+              "key": "name",
+              "label": "Nom",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 120,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "description",
+              "label": "Description",
+              "kind": "textarea",
+              "minLength": 1,
+              "maxLength": 500,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "type",
+              "label": "Type",
+              "kind": "select",
+              "options": [
+                "BUILDING",
+                "FLOOR",
+                "CLASSROOM",
+                "TECHNICAL_ROOM"
+              ],
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": true
+            },
+            {
+              "key": "imageUrl",
+              "label": "Image",
+              "kind": "text",
+              "minLength": 1,
+              "maxLength": 255,
+              "section": "general",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "parentAreaId",
+              "label": "Zone parente",
+              "kind": "number",
+              "readOnly": false,
+              "section": "general",
+              "value": null,
+              "editable": true,
+              "required": false
+            },
+            {
+              "key": "technicalRoom.roomNumber",
+              "label": "Numero de local technique",
+              "kind": "number",
+              "min": 1,
+              "max": 9999,
+              "step": 1,
+              "section": "specific",
+              "source": "technicalRoom",
+              "field": "roomNumber",
+              "readOnly": false,
+              "value": null,
+              "editable": true,
+              "required": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}

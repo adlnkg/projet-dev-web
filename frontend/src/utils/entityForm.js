@@ -34,8 +34,13 @@ export function getFieldInitialValue(field) {
   return field.value
 }
 
-export function buildFormState(fields = []) {
+export function buildFormState(fields = [], existingValues = {}) {
   return fields.reduce((accumulator, field) => {
+    if (Object.prototype.hasOwnProperty.call(existingValues, field.key)) {
+      accumulator[field.key] = existingValues[field.key]
+      return accumulator
+    }
+
     accumulator[field.key] = getFieldInitialValue(field)
     return accumulator
   }, {})

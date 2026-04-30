@@ -32,7 +32,7 @@ router.delete(
 router.post(
 	"/:id/deletion-request",
 	authMiddleware,
-	authorizeMiddleware("SUPER_USER", "ADMIN"),
+	authorizeMiddleware("SUPER_USER", "ADMIN","USER"),
 	requestDeletionForEntity("EVENT", "Evenement"),
 );
 

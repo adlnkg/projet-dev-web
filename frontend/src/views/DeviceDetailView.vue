@@ -73,6 +73,31 @@ function goToProfile(login) {
   router.push(`/profile/${login}`)
 }
 
+const historyEntries = computed(() => device.value?.history?.entries ?? [])
+
+const historySummary = computed(() => {
+  const count = device.value?.history?.count ?? 0
+  return count > 0 ? `${count} modification${count > 1 ? 's' : ''}` : 'Aucune modification enregistrée'
+})
+
+function formatDate(value) {
+  if (!value) return 'Date inconnue'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Date inconnue'
+  return date.toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function formatHistoryValue(value) {
+  if (value === null || value === undefined || value === '') return '—'
+  return String(value)
+}
+
 async function loadDevice() {
   try {
     const token = localStorage.getItem('token')
@@ -268,6 +293,31 @@ onMounted(loadDevice)
           />
         </section>
 
+      <section class="content-panel history-panel">
+        <div class="history-header">
+          <h2>Historique</h2>
+          <p>{{ historySummary }}</p>
+        </div>
+
+        <p v-if="historyEntries.length === 0" class="history-empty">
+          Aucun historique disponible pour cet objet connecté.
+        </p>
+
+        <ul v-else class="history-list">
+          <li v-for="entry in historyEntries" :key="entry.id" class="history-item">
+            <div class="history-item-head">
+              <strong>{{ entry.label || entry.fieldKey }}</strong>
+              <span>{{ formatDate(entry.recordedAt) }}</span>
+            </div>
+            <p class="history-kind">Type : {{ entry.kind }}</p>
+            <p class="history-values">
+              <span>Avant : {{ formatHistoryValue(entry.previousValue) }}</span>
+              <span>Après : {{ formatHistoryValue(entry.currentValue) }}</span>
+            </p>
+          </li>
+        </ul>
+      </section>
+
         <aside class="side-panel">
           <h3>Aperçu</h3>
           <div class="info-item">
@@ -339,6 +389,16 @@ onMounted(loadDevice)
 .hero-overlay h1 { margin: 0; font-size: 32px; line-height: 1.15; }
 .action-message { color: #d6e8f7; font-size: 13px; }
 .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; padding: 1.5rem; }
+.history-panel { border-top: 1px solid #e5e7eb; }
+.history-header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.history-header p { margin: 0; color: #64748b; font-weight: 600; }
+.history-empty { margin-top: .75rem; color: #6b7280; }
+.history-list { list-style: none; padding: 0; margin: .75rem 0 0; display: grid; gap: .75rem; }
+.history-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: .9rem; background: #f8fafc; }
+.history-item-head { display: flex; justify-content: space-between; gap: 1rem; font-size: .95rem; }
+.history-item-head span { color: #64748b; }
+.history-kind { margin: .4rem 0 0; color: #334155; font-size: .9rem; }
+.history-values { margin: .5rem 0 0; display: grid; gap: .2rem; font-size: .92rem; }
 .content-panel,
 .side-panel { border: 1px solid #e5e7eb; border-radius: 14px; padding: 1.25rem; }
 .content-panel h2,

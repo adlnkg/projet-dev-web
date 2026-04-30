@@ -18,7 +18,9 @@ const editSuccess = ref('')
 const formValues = ref({})
 
 const canEdit = computed(() => Boolean(device.value?.form?.editableFieldKeys?.length))
-const canRequestDeletion = computed(() => ['SUPER_USER', 'ADMIN'].includes(device.value?.form?.role || ''))
+const userRole = computed(() => device.value?.form?.role || '')
+const canRequestDeletion = computed(() => ['SUPER_USER', 'ADMIN'].includes(userRole.value))
+const isAdmin = computed(() => userRole.value === 'ADMIN')
 const imageUrl = computed(() => {
   const value = isEditing.value ? formValues.value.imageUrl : device.value?.imageUrl
   return value ? `http://localhost:3000/${value}` : 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80'
@@ -159,15 +161,30 @@ async function requestDeletion() {
   try {
     const token = localStorage.getItem('token')
     if (!token) throw new Error('Connexion requise.')
-    if (!confirm('Envoyer une demande de suppression de cet objet connecté à un administrateur ?')) return
+    
+        const shouldDelete = isAdmin.value
+    const confirmed = shouldDelete
+      ? confirm('Supprimer définitivement cet objet connecté ? Cette action est irréversible.')
+      : confirm('Envoyer une demande de suppression de cet objet connecté à un administrateur ?')
+    if (!confirmed) return
 
-    const res = await fetch(`http://localhost:3000/api/devices/${route.params.id}/deletion-request`, {
-      method: 'POST',
+    const endpoint = shouldDelete
+      ? `http://localhost:3000/api/devices/${route.params.id}`
+      : `http://localhost:3000/api/devices/${route.params.id}/deletion-request`
+    const method = shouldDelete ? 'DELETE' : 'POST'
+
+    const res = await fetch(endpoint, {
+      method,
       headers: { Authorization: `Bearer ${token}` },
     })
     const data = await res.json()
     if (!res.ok || !data.success) throw new Error(data.error || data.message || 'Demande impossible')
-    deletionMessage.value = 'Demande envoyée aux administrateurs.'
+    if (isAdmin.value) {
+      deletionMessage.value = 'Objet supprimé.'
+      setTimeout(() => router.push('/recherche?category=device'), 600)
+    } else {
+      deletionMessage.value = 'Demande envoyée aux administrateurs.'
+    }
   } catch (e) {
     deletionMessage.value = e.message || 'Erreur lors de la demande.'
   } finally {
@@ -199,7 +216,7 @@ onMounted(loadDevice)
               @click="requestDeletion"
               title="Demander la suppression"
             >
-              ✕
+              {{ isAdmin ? 'Supprimer' : '✕' }}
             </button>
           </div>
           <div class="meta-row">
@@ -381,8 +398,7 @@ onMounted(loadDevice)
 .hero-overlay { position: absolute; inset: auto 0 0 0; background: linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,0)); color: white; padding: 2rem; }
 .hero-actions { position: absolute; right: 1rem; top: 1rem; display: flex; gap: 0.5rem; align-items: center; }
 .ghost-btn { border: 1px solid rgba(255,255,255,.7); background: rgba(255,255,255,.14); color: white; border-radius: 999px; padding: 0.6rem 0.9rem; font-weight: 700; cursor: pointer; }
-.delete-request-btn { width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(220,38,38,.8); color: white; cursor: pointer; font-size: 1.2rem; font-weight: 800; }
-.meta-row { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.delete-request-btn { min-width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(220,38,38,.9); color: white; cursor: pointer; font-size: .95rem; font-weight: 800; padding: 0 .85rem; }
 .pill { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .pill.status-pill { background: #e0f2fe; color: #0369a1; }
 .subtitle { margin-top: .5rem; color: #d6e8f7; }
